@@ -20685,7 +20685,7 @@ waddata_packages_processed_PMap.prototype = {
 			_scale = 15;
 		}
 		var _graphics = _frame.get_g2();
-		_graphics.set_color(-1);
+		_graphics.set_color(-16777216);
 		var _g = 0;
 		var _g1 = this.a_rlinedef;
 		while(_g < _g1.length) {
