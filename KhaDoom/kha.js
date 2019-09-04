@@ -110,11 +110,18 @@ Main.__name__ = true;
 Main.update = function() {
 };
 Main.render = function(frames) {
+	++Main.buffer;
+	if(Main.buffer >= 60) {
+		Main.rnd_map = waddata_WadDataGlobal.iwad_keys.length * Math.random() | 0;
+		Main.buffer = 0;
+	}
 	frames[0].get_g2().begin();
 	frames[0].get_g2().clear();
-	var this1 = waddata_WadDataGlobal.maps;
-	var key = waddata_WadDataGlobal.iwad_keys[waddata_WadDataGlobal.iwad_keys.length * Math.random() | 0];
-	var _this = this1;
+	var _graphics = frames[0].get_g2();
+	_graphics.set_color(-16777216);
+	_graphics.drawRect(0,0,1920,1080);
+	var key = waddata_WadDataGlobal.iwad_keys[Main.rnd_map];
+	var _this = waddata_WadDataGlobal.maps;
 	(__map_reserved[key] != null ? _this.getReserved(key) : _this.h[key]).draw_automap(frames[0],5);
 	frames[0].get_g2().end();
 };
@@ -124,16 +131,16 @@ Main.main = function() {
 			kha_Scheduler.addTimeTask(function() {
 				Main.update();
 			},0,0.016666666666666666);
-			kha_System.notifyOnFrames(function(frames) {
-				Main.render(frames);
-			});
 		});
 	});
 	Main.a_loadedwads = [];
 	kha_Assets.loadBlobFromPath("DOOM1.WAD",function(_blop) {
 		Main.a_loadedwads.push(new waddata_packages_WadReader(_blop.bytes,"D1",false));
 		Main.a_loadedwads[0].deconstruct();
-	},null,{ fileName : "Main.hx", lineNumber : 40, className : "Main", methodName : "main"});
+		kha_System.notifyOnFrames(function(frames) {
+			Main.render(frames);
+		});
+	},null,{ fileName : "Main.hx", lineNumber : 49, className : "Main", methodName : "main"});
 };
 Math.__name__ = true;
 var Reflect = function() { };
@@ -20685,7 +20692,7 @@ waddata_packages_processed_PMap.prototype = {
 			_scale = 15;
 		}
 		var _graphics = _frame.get_g2();
-		_graphics.set_color(-16777216);
+		_graphics.set_color(-1);
 		var _g = 0;
 		var _g1 = this.a_rlinedef;
 		while(_g < _g1.length) {
@@ -20734,6 +20741,8 @@ Object.defineProperty(js__$Boot_HaxeError.prototype,"message",{ get : function()
 if(ArrayBuffer.prototype.slice == null) {
 	ArrayBuffer.prototype.slice = js_html__$ArrayBuffer_ArrayBufferCompat.sliceImpl;
 }
+Main.rnd_map = 0;
+Main.buffer = 0;
 haxe_Unserializer.DEFAULT_RESOLVER = new haxe__$Unserializer_DefaultResolver();
 haxe_Unserializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";
 haxe_crypto_Base64.CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
