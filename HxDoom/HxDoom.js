@@ -896,9 +896,9 @@ ApplicationMain.create = function(config) {
 	ManifestResources.init(config);
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","112");
+		_this.setReserved("build","118");
 	} else {
-		_this.h["build"] = "112";
+		_this.h["build"] = "118";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -3426,28 +3426,60 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__class__: openfl_display_Sprite
 });
 var Main = function() {
+	var _gthis = this;
 	openfl_display_Sprite.call(this);
 	this.wads = [];
+	this.draw = new openfl_display_Sprite();
+	this.addChild(this.draw);
 	this.wads.push(new packages_WadData(openfl_utils__$ByteArray_ByteArray_$Impl_$.toBytes(openfl_utils_Assets.getBytes("wads/DOOM1.WAD")),"DOOM1.WAD",true));
 	this.wads.push(new packages_WadData(openfl_utils__$ByteArray_ByteArray_$Impl_$.toBytes(openfl_utils_Assets.getBytes("wads/HERETIC1.WAD")),"HERETIC1.WAD",true));
-	Main.iwad_chosen = this.wads.length * Math.random() | 0;
-	Main.map_to_draw = this.wads[Main.iwad_chosen].maps.length * Math.random() | 0;
-	this.get_graphics().clear();
-	this.get_graphics().lineStyle(1,16777215);
-	var _g = 0;
-	var _g1 = this.wads[Main.iwad_chosen].maps[Main.map_to_draw].linedefs;
-	while(_g < _g1.length) {
-		var a = _g1[_g];
-		++_g;
-		this.get_graphics().moveTo((this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.start].x + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_x) / Main.map_scale_inv,(this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.start].y + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_y) / Main.map_scale_inv);
-		this.get_graphics().lineTo((this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.end].x + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_x) / Main.map_scale_inv,(this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.end].y + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_y) / Main.map_scale_inv);
-	}
+	this.stage.addEventListener("keyUp",function(e) {
+		if(e.keyCode == 82) {
+			_gthis.redraw();
+		}
+	});
+	this.stage.addEventListener("mouseWheel",function(e1) {
+		var _g = _gthis.draw;
+		_g.set_scaleX(_g.get_scaleX() + e1.delta / 10);
+		var _g1 = _gthis.draw;
+		_g1.set_scaleY(_g1.get_scaleY() + e1.delta / 10);
+		if(_gthis.draw.get_scaleX() <= 0.1) {
+			_gthis.draw.set_scaleX(_gthis.draw.set_scaleY(0.1));
+		}
+		if(_gthis.draw.get_scaleX() >= 20) {
+			_gthis.draw.set_scaleX(_gthis.draw.set_scaleY(20));
+		}
+	});
+	this.stage.addEventListener("mouseDown",function(e2) {
+		_gthis.draw.startDrag();
+	});
+	this.stage.addEventListener("mouseUp",function(e3) {
+		_gthis.draw.stopDrag();
+	});
+	this.redraw();
 };
 $hxClasses["Main"] = Main;
 Main.__name__ = "Main";
 Main.__super__ = openfl_display_Sprite;
 Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	wads: null
+	,draw: null
+	,redraw: function() {
+		this.draw.set_x(this.draw.set_y(0));
+		this.draw.set_scaleX(this.draw.set_scaleY(1));
+		Main.iwad_chosen = this.wads.length * Math.random() | 0;
+		Main.map_to_draw = this.wads[Main.iwad_chosen].maps.length * Math.random() | 0;
+		this.draw.get_graphics().clear();
+		this.draw.get_graphics().lineStyle(1,16777215);
+		var _g = 0;
+		var _g1 = this.wads[Main.iwad_chosen].maps[Main.map_to_draw].linedefs;
+		while(_g < _g1.length) {
+			var a = _g1[_g];
+			++_g;
+			this.draw.get_graphics().moveTo((this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.start].x + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_x) / Main.map_scale_inv,(this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.start].y + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_y) / Main.map_scale_inv);
+			this.draw.get_graphics().lineTo((this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.end].x + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_x) / Main.map_scale_inv,(this.wads[Main.iwad_chosen].maps[Main.map_to_draw].vertexes[a.end].y + this.wads[Main.iwad_chosen].maps[Main.map_to_draw].offset_y) / Main.map_scale_inv);
+		}
+	}
 	,__class__: Main
 });
 var DocumentClass = function(current) {
@@ -23150,7 +23182,7 @@ var lime_utils_AssetCache = function() {
 	this.font = new haxe_ds_StringMap();
 	var t2 = null;
 	this.image = new haxe_ds_StringMap();
-	this.version = 633583;
+	this.version = 163569;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
