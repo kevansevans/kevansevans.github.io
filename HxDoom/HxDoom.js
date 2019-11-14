@@ -893,9 +893,9 @@ ApplicationMain.create = function(config) {
 	ManifestResources.init(config);
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","10");
+		_this.setReserved("build","13");
 	} else {
-		_this.h["build"] = "10";
+		_this.h["build"] = "13";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -23208,7 +23208,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 512747;
+	this.version = 604709;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -79534,6 +79534,14 @@ packages_actors_Thing.prototype = {
 	}
 	,set_angle: function(value) {
 		return this.angle = value;
+	}
+	,get_isMonster: function() {
+		switch(this.type) {
+		case 64:case 65:case 67:case 68:case 69:case 71:case 88:case 89:
+			return true;
+		default:
+			return false;
+		}
 	}
 	,get_isPlayer: function() {
 		switch(this.type) {
