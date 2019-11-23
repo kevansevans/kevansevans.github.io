@@ -893,9 +893,9 @@ ApplicationMain.create = function(config) {
 	ManifestResources.init(config);
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","13");
+		_this.setReserved("build","36");
 	} else {
-		_this.h["build"] = "13";
+		_this.h["build"] = "36";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -3426,15 +3426,20 @@ var Main = function() {
 	this.wads = [];
 	this.draw = new openfl_display_Sprite();
 	this.mapsprite = new openfl_display_Sprite();
+	this.mapnode = new openfl_display_Sprite();
 	this.addChild(this.draw);
 	this.draw.addChild(this.mapsprite);
-	this.mapsprite.set_scaleY(-1);
+	this.addChild(this.mapnode);
+	var _g = this.mapsprite;
+	_g.set_scaleX(_g.get_scaleX() / Main.map_scale_inv);
+	var _g1 = this.mapsprite;
+	_g1.set_scaleY(_g1.get_scaleY() / (Main.map_scale_inv * -1));
 	var wad;
-	var _g = 0;
-	var _g1 = openfl_utils_Assets.list();
-	while(_g < _g1.length) {
-		var a = _g1[_g];
-		++_g;
+	var _g2 = 0;
+	var _g11 = openfl_utils_Assets.list();
+	while(_g2 < _g11.length) {
+		var a = _g11[_g2];
+		++_g2;
 		if(a.lastIndexOf("wads/") == 0) {
 			wad = openfl_utils__$ByteArray_ByteArray_$Impl_$.toBytes(openfl_utils_Assets.getBytes(a));
 		} else {
@@ -3449,16 +3454,18 @@ var Main = function() {
 		}
 	});
 	this.stage.addEventListener("mouseWheel",function(e1) {
-		var _g2 = _gthis.draw;
-		_g2.set_scaleX(_g2.get_scaleX() + e1.delta / 10);
 		var _g21 = _gthis.draw;
-		_g21.set_scaleY(_g21.get_scaleY() + e1.delta / 10);
+		_g21.set_scaleX(_g21.get_scaleX() + e1.delta / 10);
+		var _g22 = _gthis.draw;
+		_g22.set_scaleY(_g22.get_scaleY() + e1.delta / 10);
 		if(_gthis.draw.get_scaleX() <= 0.1) {
 			_gthis.draw.set_scaleX(_gthis.draw.set_scaleY(0.1));
 		}
 		if(_gthis.draw.get_scaleX() >= 20) {
 			_gthis.draw.set_scaleX(_gthis.draw.set_scaleY(20));
 		}
+		_gthis.mapnode.set_scaleX(_gthis.draw.get_scaleX());
+		_gthis.mapnode.set_scaleY(_gthis.draw.get_scaleY());
 	});
 	this.stage.addEventListener("mouseDown",function(e2) {
 		_gthis.draw.startDrag();
@@ -3469,7 +3476,7 @@ var Main = function() {
 	if(this.wads.length > 0) {
 		this.redraw();
 	} else {
-		haxe_Log.trace("No wad data collected",{ fileName : "src/Main.hx", lineNumber : 87, className : "Main", methodName : "new"});
+		haxe_Log.trace("No wad data collected",{ fileName : "src/Main.hx", lineNumber : 99, className : "Main", methodName : "new"});
 	}
 };
 $hxClasses["Main"] = Main;
@@ -3479,6 +3486,7 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	wads: null
 	,draw: null
 	,mapsprite: null
+	,mapnode: null
 	,redraw: function() {
 		Main.map_to_draw = this.wads[0].mapindex.length * Math.random() | 0;
 		this.wads[0].loadMap(Main.map_to_draw);
@@ -3486,30 +3494,42 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 		this.draw.set_x(this.draw.set_y(0));
 		this.draw.set_scaleX(this.draw.set_scaleY(1));
 		this.mapsprite.get_graphics().clear();
-		this.mapsprite.get_graphics().lineStyle(1,16777215);
 		var xoff = _map.offset_x;
 		var yoff = _map.offset_y;
 		var _g = 0;
-		var _g1 = _map.linedefs;
+		var _g1 = _map.subsectors;
 		while(_g < _g1.length) {
-			var a = _g1[_g];
+			var ssect = _g1[_g];
 			++_g;
-			this.mapsprite.get_graphics().moveTo((_map.vertexes[a.start].x + xoff) / Main.map_scale_inv,(_map.vertexes[a.start].y + yoff) / Main.map_scale_inv);
-			this.mapsprite.get_graphics().lineTo((_map.vertexes[a.end].x + xoff) / Main.map_scale_inv,(_map.vertexes[a.end].y + yoff) / Main.map_scale_inv);
+			this.mapsprite.get_graphics().lineStyle(2,Math.random() * 16777215 | 0);
+			var _g2 = 0;
+			var _g11 = ssect.segCount;
+			while(_g2 < _g11) {
+				var index = _g2++;
+				var seg = _map.seg[ssect.firstSegID + index];
+				this.mapsprite.get_graphics().moveTo(_map.vertexes[seg.startVertexID].x + xoff,_map.vertexes[seg.startVertexID].y + yoff);
+				this.mapsprite.get_graphics().lineTo(_map.vertexes[seg.endVertexID].x + xoff,_map.vertexes[seg.endVertexID].y + yoff);
+			}
 		}
-		var _g2 = 0;
+		var _g21 = 0;
 		var _g3 = _map.things;
-		while(_g2 < _g3.length) {
-			var a1 = _g3[_g2];
-			++_g2;
-			switch(a1.type) {
+		while(_g21 < _g3.length) {
+			var a = _g3[_g21];
+			++_g21;
+			switch(a.type) {
 			case 1:case 2:case 3:case 4:
 				this.mapsprite.get_graphics().lineStyle(1,65280);
 				break;
-			default:
+			case 7:case 9:case 16:case 18:case 19:case 20:case 21:case 22:case 23:case 58:case 64:case 65:case 66:case 67:case 68:case 69:case 71:case 72:case 84:case 87:case 88:case 89:case 3001:case 3002:case 3003:case 3004:case 3005:case 3006:
 				this.mapsprite.get_graphics().lineStyle(1,16711680);
+				break;
+			case 5:case 6:case 8:case 13:case 17:case 38:case 39:case 40:case 83:case 2007:case 2008:case 2009:case 2010:case 2011:case 2012:case 2013:case 2014:case 2015:case 2016:case 2017:case 2018:case 2019:case 2020:case 2021:case 2024:case 2025:case 2026:case 2027:case 2028:
+				this.mapsprite.get_graphics().lineStyle(1,52479);
+				break;
+			default:
+				this.mapsprite.get_graphics().lineStyle(1,16777215);
 			}
-			this.mapsprite.get_graphics().drawCircle((a1.xpos + xoff) / Main.map_scale_inv,(a1.ypos + yoff) / Main.map_scale_inv,2);
+			this.mapsprite.get_graphics().drawCircle(a.xpos + xoff,a.ypos + yoff,5);
 		}
 		this.mapsprite.set_y(this.mapsprite.get_height());
 	}
@@ -23208,7 +23228,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 604709;
+	this.version = 268552;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -79346,8 +79366,8 @@ packages_WadData.prototype = {
 	,dir_count: null
 	,dir_offset: null
 	,baseIndexWadItems: function() {
-		this.dir_count = this.bytesToInteger(4);
-		this.dir_offset = this.bytesToInteger(8);
+		this.dir_count = this.readFourBytes(4);
+		this.dir_offset = this.readFourBytes(8);
 		var _g = 0;
 		var _g1 = this.dir_count;
 		while(_g < _g1) {
@@ -79360,9 +79380,16 @@ packages_WadData.prototype = {
 			}
 		}
 	}
+	,loadMap: function(_mapIndex) {
+		if(this.maps[_mapIndex] == null) {
+			this.deconstructMap(_mapIndex);
+			return;
+		}
+		this.activemap = this.maps[_mapIndex];
+	}
 	,deconstructMap: function(_mapIndex) {
 		var dirIndex = this.mapindex[_mapIndex];
-		var map = { name : this.name + ":" + this.directories[dirIndex - 10].lumpName, player : [], nodes : this.readNodeData(this.directories[dirIndex - 3]), vertexes : this.readVertextData(this.directories[dirIndex - 6]), linedefs : this.readLineDefData(this.directories[dirIndex - 8]), things : this.readThingData(this.directories[dirIndex - 9]), offset_x : 0, offset_y : 0};
+		var map = { name : this.name + "_" + this.directories[dirIndex - 10].lumpName, player : [], nodes : this.readNodeData(this.directories[dirIndex - 3]), subsectors : this.readSubsectorData(this.directories[dirIndex - 4]), seg : this.readSegData(this.directories[dirIndex - 5]), vertexes : this.readVertextData(this.directories[dirIndex - 6]), linedefs : this.readLineDefData(this.directories[dirIndex - 8]), things : this.readThingData(this.directories[dirIndex - 9]), offset_x : 0, offset_y : 0};
 		var mapx = Infinity;
 		var mapy = Infinity;
 		var _g = 0;
@@ -79397,15 +79424,8 @@ packages_WadData.prototype = {
 		this.maps[_mapIndex] = map;
 		this.activemap = map;
 	}
-	,loadMap: function(_mapIndex) {
-		if(this.maps[_mapIndex] == null) {
-			this.deconstructMap(_mapIndex);
-			return;
-		}
-		this.activemap = this.maps[_mapIndex];
-	}
 	,readDirectoryData: function(_offset) {
-		var dir = { lumpOffset : this.bytesToInteger(_offset), lumpSize : this.bytesToInteger(_offset + 4), lumpName : this.stringFromBytesRange(_offset + 8,_offset + 16)};
+		var dir = { lumpOffset : this.readFourBytes(_offset), lumpSize : this.readFourBytes(_offset + 4), lumpName : this.stringFromBytesRange(_offset + 8,_offset + 16)};
 		return dir;
 	}
 	,readVertextData: function(_dir) {
@@ -79415,10 +79435,34 @@ packages_WadData.prototype = {
 		var _g1 = num_verts;
 		while(_g < _g1) {
 			var a = _g++;
-			var ver = { x : this.bytesToShort(_dir.lumpOffset + a * 4,true), y : this.bytesToShort(_dir.lumpOffset + a * 4 + 2,true)};
+			var ver = { x : this.readTwoBytes(_dir.lumpOffset + a * 4,true), y : this.readTwoBytes(_dir.lumpOffset + a * 4 + 2,true)};
 			ver_array.push(ver);
 		}
 		return ver_array;
+	}
+	,readSubsectorData: function(_dir) {
+		var ssec_array = [];
+		var num_ssec = _dir.lumpSize / 4 | 0;
+		var _g = 0;
+		var _g1 = num_ssec;
+		while(_g < _g1) {
+			var a = _g++;
+			var ssect = { segCount : this.readTwoBytes(_dir.lumpOffset + a * 4), firstSegID : this.readTwoBytes(_dir.lumpOffset + a * 4 + 2)};
+			ssec_array.push(ssect);
+		}
+		return ssec_array;
+	}
+	,readSegData: function(_dir) {
+		var seg_array = [];
+		var num_seg = _dir.lumpSize / 12 | 0;
+		var _g = 0;
+		var _g1 = num_seg;
+		while(_g < _g1) {
+			var a = _g++;
+			var seg = { startVertexID : this.readTwoBytes(_dir.lumpOffset + a * 12), endVertexID : this.readTwoBytes(_dir.lumpOffset + a * 12 + 2), angle : this.readTwoBytes(_dir.lumpOffset + a * 12 + 4,true), lineDefID : this.readTwoBytes(_dir.lumpOffset + a * 12 + 6), direction : this.readTwoBytes(_dir.lumpOffset + a * 12 + 8), offset : this.readTwoBytes(_dir.lumpOffset + a * 12 + 10)};
+			seg_array.push(seg);
+		}
+		return seg_array;
 	}
 	,readLineDefData: function(_dir) {
 		var line_array = [];
@@ -79427,7 +79471,7 @@ packages_WadData.prototype = {
 		var _g1 = num_lines;
 		while(_g < _g1) {
 			var a = _g++;
-			var line = { start : this.bytesToShort(_dir.lumpOffset + a * 14), end : this.bytesToShort(_dir.lumpOffset + a * 14 + 2), flags : this.bytesToShort(_dir.lumpOffset + a * 14 + 4), linetype : this.bytesToShort(_dir.lumpOffset + a * 14 + 6), sectortag : this.bytesToShort(_dir.lumpOffset + a * 14 + 8), frontsidedef : this.bytesToShort(_dir.lumpOffset + a * 14 + 10), backsidedef : this.bytesToShort(_dir.lumpOffset + a * 14 + 12)};
+			var line = { start : this.readTwoBytes(_dir.lumpOffset + a * 14), end : this.readTwoBytes(_dir.lumpOffset + a * 14 + 2), flags : this.readTwoBytes(_dir.lumpOffset + a * 14 + 4), linetype : this.readTwoBytes(_dir.lumpOffset + a * 14 + 6), sectortag : this.readTwoBytes(_dir.lumpOffset + a * 14 + 8), frontsidedef : this.readTwoBytes(_dir.lumpOffset + a * 14 + 10), backsidedef : this.readTwoBytes(_dir.lumpOffset + a * 14 + 12)};
 			line_array.push(line);
 		}
 		return line_array;
@@ -79439,7 +79483,7 @@ packages_WadData.prototype = {
 		var _g1 = num_things;
 		while(_g < _g1) {
 			var a = _g++;
-			var thing = { xpos : this.bytesToShort(_dir.lumpOffset + a * 10,true), ypos : this.bytesToShort(_dir.lumpOffset + a * 10 + 2,true), angle : this.bytesToShort(_dir.lumpOffset + a * 10 + 4), type : this.bytesToShort(_dir.lumpOffset + a * 10 + 6), flags : this.bytesToShort(_dir.lumpOffset + a * 10 + 8)};
+			var thing = { xpos : this.readTwoBytes(_dir.lumpOffset + a * 10,true), ypos : this.readTwoBytes(_dir.lumpOffset + a * 10 + 2,true), angle : this.readTwoBytes(_dir.lumpOffset + a * 10 + 4), type : this.readTwoBytes(_dir.lumpOffset + a * 10 + 6), flags : this.readTwoBytes(_dir.lumpOffset + a * 10 + 8)};
 			switch(thing.type) {
 			case 64:case 65:case 66:case 67:case 68:case 69:case 71:case 84:case 88:case 89:
 				if(!(!packages_WadData.COMMERCIAL)) {
@@ -79459,12 +79503,12 @@ packages_WadData.prototype = {
 		var _g1 = num_nodes;
 		while(_g < _g1) {
 			var a = _g++;
-			var node = { xPartition : this.bytesToShort(_dir.lumpOffset + a * 28,true), yPartition : this.bytesToShort(_dir.lumpOffset + a * 28 + 2,true), changeXPartition : this.bytesToShort(_dir.lumpOffset + a * 28 + 4,true), changeYPartition : this.bytesToShort(_dir.lumpOffset + a * 28 + 6,true), frontBoxTop : this.bytesToShort(_dir.lumpOffset + a * 28 + 8,true), frontBoxBottom : this.bytesToShort(_dir.lumpOffset + a * 28 + 10,true), frontBoxLeft : this.bytesToShort(_dir.lumpOffset + a * 28 + 12,true), frontBoxRight : this.bytesToShort(_dir.lumpOffset + a * 28 + 14,true), backBoxTop : this.bytesToShort(_dir.lumpOffset + a * 28 + 16,true), backBoxBottom : this.bytesToShort(_dir.lumpOffset + a * 28 + 18,true), backBoxLeft : this.bytesToShort(_dir.lumpOffset + a * 28 + 20,true), backBoxRight : this.bytesToShort(_dir.lumpOffset + a * 28 + 22,true), frontChildID : this.bytesToShort(_dir.lumpOffset + a * 28 + 24), backChildID : this.bytesToShort(_dir.lumpOffset + a * 28 + 26)};
+			var node = { xPartition : this.readTwoBytes(_dir.lumpOffset + a * 28,true), yPartition : this.readTwoBytes(_dir.lumpOffset + a * 28 + 2,true), changeXPartition : this.readTwoBytes(_dir.lumpOffset + a * 28 + 4,true), changeYPartition : this.readTwoBytes(_dir.lumpOffset + a * 28 + 6,true), frontBoxTop : this.readTwoBytes(_dir.lumpOffset + a * 28 + 8,true), frontBoxBottom : this.readTwoBytes(_dir.lumpOffset + a * 28 + 10,true), frontBoxLeft : this.readTwoBytes(_dir.lumpOffset + a * 28 + 12,true), frontBoxRight : this.readTwoBytes(_dir.lumpOffset + a * 28 + 14,true), backBoxTop : this.readTwoBytes(_dir.lumpOffset + a * 28 + 16,true), backBoxBottom : this.readTwoBytes(_dir.lumpOffset + a * 28 + 18,true), backBoxLeft : this.readTwoBytes(_dir.lumpOffset + a * 28 + 20,true), backBoxRight : this.readTwoBytes(_dir.lumpOffset + a * 28 + 22,true), frontChildID : this.readTwoBytes(_dir.lumpOffset + a * 28 + 24), backChildID : this.readTwoBytes(_dir.lumpOffset + a * 28 + 26)};
 			node_array.push(node);
 		}
 		return node_array;
 	}
-	,bytesToShort: function(_offset,_signed) {
+	,readTwoBytes: function(_offset,_signed) {
 		if(_signed == null) {
 			_signed = false;
 		}
@@ -79475,7 +79519,7 @@ packages_WadData.prototype = {
 			return val;
 		}
 	}
-	,bytesToInteger: function(_offset) {
+	,readFourBytes: function(_offset) {
 		return this.b_dataArray[_offset + 3] << 24 | this.b_dataArray[_offset + 2] << 16 | this.b_dataArray[_offset + 1] << 8 | this.b_dataArray[_offset];
 	}
 	,stringFromBytesRange: function(_start,_end) {
@@ -79491,31 +79535,29 @@ packages_WadData.prototype = {
 		}
 		return str;
 	}
-	,nodeRecursiveSearch: function(_node,_leaf) {
-		if(_node == null) {
-			return;
-		}
-		if(this.activemap.nodes[_node.frontChildID] == null && this.activemap.nodes[_node.backChildID] == null) {
-			return;
-		}
-		if(_node.frontChildID < _leaf) {
-			this.nodeRecursiveSearch(this.activemap.nodes[_node.backChildID],_leaf);
-			this.nodeRecursiveSearch(this.activemap.nodes[_node.frontChildID],_leaf);
-		} else {
-			this.nodeRecursiveSearch(this.activemap.nodes[_node.frontChildID],_leaf);
-			this.nodeRecursiveSearch(this.activemap.nodes[_node.backChildID],_leaf);
-		}
+	,isPointOnBackSide: function(_x,_y,_nodeID) {
+		var dx = _x - this.activemap.nodes[_nodeID].xPartition;
+		var dy = _y - this.activemap.nodes[_nodeID].yPartition;
+		return dx * this.activemap.nodes[_nodeID].changeYPartition - dy * this.activemap.nodes[_nodeID].changeXPartition <= 0;
 	}
-	,isPointOnBackSide: function(_x,_y,_map,_nodeID) {
-		var dx = _x - this.maps[_map].nodes[_nodeID].xPartition;
-		var dy = _y - this.maps[_map].nodes[_nodeID].yPartition;
-		return dx * this.maps[_map].nodes[_nodeID].changeYPartition - dy * this.maps[_map].nodes[_nodeID].changeXPartition <= 0;
+	,getPlayerNode: function() {
+		var node = this.activemap.nodes.length - 1;
+		while(true) {
+			if((this.activemap.nodes[node].backChildID & 32768) > 0 || (this.activemap.nodes[node].frontChildID & 32768) > 0) {
+				return this.activemap.nodes[node];
+			}
+			var isOnBack = this.isPointOnBackSide(this.activemap.things[0].xpos,this.activemap.things[0].ypos,node);
+			if(isOnBack) {
+				node = this.activemap.nodes[node].backChildID;
+			} else {
+				node = this.activemap.nodes[node].frontChildID;
+			}
+		}
 	}
 	,__class__: packages_WadData
 };
 var packages_actors_Thing = function(_id) {
 	this.id = _id;
-	this.group = packages_actors_TypeGroup.UNDEFINED;
 };
 $hxClasses["packages.actors.Thing"] = packages_actors_Thing;
 packages_actors_Thing.__name__ = "packages.actors.Thing";
@@ -79525,7 +79567,6 @@ packages_actors_Thing.prototype = {
 	,ypos: null
 	,angle: null
 	,type: null
-	,group: null
 	,set_xpos: function(value) {
 		return this.xpos = value;
 	}
@@ -79537,7 +79578,15 @@ packages_actors_Thing.prototype = {
 	}
 	,get_isMonster: function() {
 		switch(this.type) {
-		case 64:case 65:case 67:case 68:case 69:case 71:case 88:case 89:
+		case 7:case 9:case 16:case 18:case 19:case 20:case 21:case 22:case 23:case 58:case 64:case 65:case 66:case 67:case 68:case 69:case 71:case 72:case 84:case 87:case 88:case 89:case 3001:case 3002:case 3003:case 3004:case 3005:case 3006:
+			return true;
+		default:
+			return false;
+		}
+	}
+	,get_isPickup: function() {
+		switch(this.type) {
+		case 5:case 6:case 8:case 13:case 17:case 38:case 39:case 40:case 83:case 2007:case 2008:case 2009:case 2010:case 2011:case 2012:case 2013:case 2014:case 2015:case 2016:case 2017:case 2018:case 2019:case 2020:case 2021:case 2024:case 2025:case 2026:case 2027:case 2028:
 			return true;
 		default:
 			return false;
@@ -79555,7 +79604,6 @@ packages_actors_Thing.prototype = {
 };
 var packages_actors_Player = function(_id) {
 	packages_actors_Thing.call(this,_id);
-	this.group = packages_actors_TypeGroup.PLAYER;
 };
 $hxClasses["packages.actors.Player"] = packages_actors_Player;
 packages_actors_Player.__name__ = "packages.actors.Player";
@@ -79563,10 +79611,6 @@ packages_actors_Player.__super__ = packages_actors_Thing;
 packages_actors_Player.prototype = $extend(packages_actors_Thing.prototype,{
 	__class__: packages_actors_Player
 });
-var packages_actors_TypeGroup = $hxEnums["packages.actors.TypeGroup"] = { __ename__ : "packages.actors.TypeGroup", __constructs__ : ["UNDEFINED","PLAYER"]
-	,UNDEFINED: {_hx_index:0,__enum__:"packages.actors.TypeGroup",toString:$estr}
-	,PLAYER: {_hx_index:1,__enum__:"packages.actors.TypeGroup",toString:$estr}
-};
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $global.$haxeUID++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
 $global.$haxeUID |= 0;
@@ -79647,7 +79691,7 @@ openfl_display_DisplayObject.__tempStack = new lime_utils_ObjectPool(function() 
 	stack.set_length(0);
 });
 Main.iwad_chosen = 0;
-Main.map_scale_inv = 5;
+Main.map_scale_inv = 2;
 Main.map_to_draw = 0;
 haxe_Serializer.USE_CACHE = false;
 haxe_Serializer.USE_ENUM_INDEX = false;
@@ -82000,6 +82044,8 @@ packages_WadData.VERTEX_LUMP_SIZE = 4;
 packages_WadData.LINEDEF_LUMP_SIZE = 14;
 packages_WadData.THING_LUMP_SIZE = 10;
 packages_WadData.NODE_LUMP_SIZE = 28;
+packages_WadData.SSECTOR_LUMP_SIZE = 4;
+packages_WadData.SEG_LUMP_SIZE = 12;
 packages_WadData.SUBSECTORIDENTIFIER = 32768;
 packages_WadData.COMMERCIAL = false;
 ApplicationMain.main();
