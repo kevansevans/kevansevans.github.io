@@ -886,16 +886,16 @@ var ApplicationMain = function() { };
 $hxClasses["ApplicationMain"] = ApplicationMain;
 ApplicationMain.__name__ = "ApplicationMain";
 ApplicationMain.main = function() {
-	lime_system_System.__registerEntryPoint("hxDoom",ApplicationMain.create);
+	lime_system_System.__registerEntryPoint("HxDoom",ApplicationMain.create);
 };
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","36");
+		_this.setReserved("build","40");
 	} else {
-		_this.h["build"] = "36";
+		_this.h["build"] = "40";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -905,9 +905,9 @@ ApplicationMain.create = function(config) {
 	}
 	var _this2 = app.meta;
 	if(__map_reserved["file"] != null) {
-		_this2.setReserved("file","hxDoom");
+		_this2.setReserved("file","HxDoom");
 	} else {
-		_this2.h["file"] = "hxDoom";
+		_this2.h["file"] = "HxDoom";
 	}
 	var _this3 = app.meta;
 	if(__map_reserved["name"] != null) {
@@ -3423,41 +3423,69 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 var Main = function() {
 	var _gthis = this;
 	openfl_display_Sprite.call(this);
-	this.wads = [];
-	this.draw = new openfl_display_Sprite();
-	this.mapsprite = new openfl_display_Sprite();
-	this.mapnode = new openfl_display_Sprite();
-	this.addChild(this.draw);
-	this.draw.addChild(this.mapsprite);
-	this.addChild(this.mapnode);
-	var _g = this.mapsprite;
-	_g.set_scaleX(_g.get_scaleX() / Main.map_scale_inv);
-	var _g1 = this.mapsprite;
-	_g1.set_scaleY(_g1.get_scaleY() / (Main.map_scale_inv * -1));
 	var wad;
-	var _g2 = 0;
-	var _g11 = openfl_utils_Assets.list();
-	while(_g2 < _g11.length) {
-		var a = _g11[_g2];
-		++_g2;
+	this.wads = [];
+	var _g = 0;
+	var _g1 = openfl_utils_Assets.list();
+	while(_g < _g1.length) {
+		var a = _g1[_g];
+		++_g;
 		if(a.lastIndexOf("wads/") == 0) {
 			wad = openfl_utils__$ByteArray_ByteArray_$Impl_$.toBytes(openfl_utils_Assets.getBytes(a));
 		} else {
 			continue;
 		}
 		var isIwad = wad.getString(0,4) == "IWAD";
-		this.wads.push(new packages_WadData(wad,a,isIwad));
+		this.wads.push(new packages_wad_Pack(wad,a,isIwad));
 	}
+	this.wads[0].loadMap(0);
+	this.draw = new openfl_display_Sprite();
+	this.mapsprite = new openfl_display_Sprite();
+	this.mapnode = new openfl_display_Sprite();
+	this.addChild(this.draw);
+	this.draw.addChild(this.mapsprite);
+	this.addChild(this.mapnode);
+	var _g2 = this.mapsprite;
+	_g2.set_scaleX(_g2.get_scaleX() / Main.map_scale_inv);
+	var _g21 = this.mapsprite;
+	_g21.set_scaleY(_g21.get_scaleY() / (Main.map_scale_inv * -1));
 	this.stage.addEventListener("keyUp",function(e) {
-		if(e.keyCode == 82) {
-			_gthis.redraw();
+		switch(e.keyCode) {
+		case 49:
+			_gthis.wads[0].loadMap(0);
+			break;
+		case 50:
+			_gthis.wads[0].loadMap(1);
+			break;
+		case 51:
+			_gthis.wads[0].loadMap(2);
+			break;
+		case 52:
+			_gthis.wads[0].loadMap(3);
+			break;
+		case 53:
+			_gthis.wads[0].loadMap(4);
+			break;
+		case 54:
+			_gthis.wads[0].loadMap(5);
+			break;
+		case 55:
+			_gthis.wads[0].loadMap(6);
+			break;
+		case 56:
+			_gthis.wads[0].loadMap(7);
+			break;
+		case 57:
+			_gthis.wads[0].loadMap(8);
+			break;
 		}
+		_gthis.debug_draw();
 	});
 	this.stage.addEventListener("mouseWheel",function(e1) {
-		var _g21 = _gthis.draw;
-		_g21.set_scaleX(_g21.get_scaleX() + e1.delta / 10);
 		var _g22 = _gthis.draw;
-		_g22.set_scaleY(_g22.get_scaleY() + e1.delta / 10);
+		_g22.set_scaleX(_g22.get_scaleX() + e1.delta / 10);
+		var _g23 = _gthis.draw;
+		_g23.set_scaleY(_g23.get_scaleY() + e1.delta / 10);
 		if(_gthis.draw.get_scaleX() <= 0.1) {
 			_gthis.draw.set_scaleX(_gthis.draw.set_scaleY(0.1));
 		}
@@ -3474,9 +3502,7 @@ var Main = function() {
 		_gthis.draw.stopDrag();
 	});
 	if(this.wads.length > 0) {
-		this.redraw();
-	} else {
-		haxe_Log.trace("No wad data collected",{ fileName : "src/Main.hx", lineNumber : 99, className : "Main", methodName : "new"});
+		this.debug_draw();
 	}
 };
 $hxClasses["Main"] = Main;
@@ -3487,49 +3513,27 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	,draw: null
 	,mapsprite: null
 	,mapnode: null
-	,redraw: function() {
-		Main.map_to_draw = this.wads[0].mapindex.length * Math.random() | 0;
-		this.wads[0].loadMap(Main.map_to_draw);
-		var _map = this.wads[0].activemap;
+	,debug_draw: function() {
+		var _map = this.wads[0].activeMap;
 		this.draw.set_x(this.draw.set_y(0));
 		this.draw.set_scaleX(this.draw.set_scaleY(1));
-		this.mapsprite.get_graphics().clear();
 		var xoff = _map.offset_x;
 		var yoff = _map.offset_y;
+		this.mapsprite.get_graphics().clear();
 		var _g = 0;
 		var _g1 = _map.subsectors;
 		while(_g < _g1.length) {
-			var ssect = _g1[_g];
+			var ssec = _g1[_g];
 			++_g;
-			this.mapsprite.get_graphics().lineStyle(2,Math.random() * 16777215 | 0);
+			var color = Math.random() * 16777215 | 0;
+			this.mapsprite.get_graphics().lineStyle(2,color);
 			var _g2 = 0;
-			var _g11 = ssect.segCount;
+			var _g11 = ssec.segmentCount;
 			while(_g2 < _g11) {
-				var index = _g2++;
-				var seg = _map.seg[ssect.firstSegID + index];
-				this.mapsprite.get_graphics().moveTo(_map.vertexes[seg.startVertexID].x + xoff,_map.vertexes[seg.startVertexID].y + yoff);
-				this.mapsprite.get_graphics().lineTo(_map.vertexes[seg.endVertexID].x + xoff,_map.vertexes[seg.endVertexID].y + yoff);
+				var seg = _g2++;
+				this.mapsprite.get_graphics().moveTo(_map.vertexes[_map.segments[seg + ssec.firstSegmentID].startVertexID].xpos + xoff,_map.vertexes[_map.segments[seg + ssec.firstSegmentID].startVertexID].ypos + yoff);
+				this.mapsprite.get_graphics().lineTo(_map.vertexes[_map.segments[seg + ssec.firstSegmentID].endVertexID].xpos + xoff,_map.vertexes[_map.segments[seg + ssec.firstSegmentID].endVertexID].ypos + yoff);
 			}
-		}
-		var _g21 = 0;
-		var _g3 = _map.things;
-		while(_g21 < _g3.length) {
-			var a = _g3[_g21];
-			++_g21;
-			switch(a.type) {
-			case 1:case 2:case 3:case 4:
-				this.mapsprite.get_graphics().lineStyle(1,65280);
-				break;
-			case 7:case 9:case 16:case 18:case 19:case 20:case 21:case 22:case 23:case 58:case 64:case 65:case 66:case 67:case 68:case 69:case 71:case 72:case 84:case 87:case 88:case 89:case 3001:case 3002:case 3003:case 3004:case 3005:case 3006:
-				this.mapsprite.get_graphics().lineStyle(1,16711680);
-				break;
-			case 5:case 6:case 8:case 13:case 17:case 38:case 39:case 40:case 83:case 2007:case 2008:case 2009:case 2010:case 2011:case 2012:case 2013:case 2014:case 2015:case 2016:case 2017:case 2018:case 2019:case 2020:case 2021:case 2024:case 2025:case 2026:case 2027:case 2028:
-				this.mapsprite.get_graphics().lineStyle(1,52479);
-				break;
-			default:
-				this.mapsprite.get_graphics().lineStyle(1,16777215);
-			}
-			this.mapsprite.get_graphics().drawCircle(a.xpos + xoff,a.ypos + yoff,5);
 		}
 		this.mapsprite.set_y(this.mapsprite.get_height());
 	}
@@ -23228,7 +23232,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 268552;
+	this.version = 172725;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -79333,284 +79337,332 @@ haxe_lang_Iterable.prototype = {
 	iterator: null
 	,__class__: haxe_lang_Iterable
 };
-var packages_WadData = function(_data,_name,_iwad) {
+var packages_wad_Map = function(_dirOffset) {
+	this.dirOffset = _dirOffset;
+	this.hasBeenBuilt = false;
+	this.things = [];
+	this.vertexes = [];
+	this.linedefs = [];
+	this.nodes = [];
+	this.subsectors = [];
+	this.segments = [];
+};
+$hxClasses["packages.wad.Map"] = packages_wad_Map;
+packages_wad_Map.__name__ = "packages.wad.Map";
+packages_wad_Map.prototype = {
+	name: null
+	,things: null
+	,vertexes: null
+	,linedefs: null
+	,nodes: null
+	,subsectors: null
+	,segments: null
+	,offset_x: null
+	,offset_y: null
+	,dirOffset: null
+	,hasBeenBuilt: null
+	,setOffset: function() {
+		var mapx = Infinity;
+		var mapy = Infinity;
+		var _g = 0;
+		var _g1 = this.vertexes;
+		while(_g < _g1.length) {
+			var a = _g1[_g];
+			++_g;
+			if(a.xpos < mapx) {
+				mapx = a.xpos;
+			}
+			if(a.ypos < mapy) {
+				mapy = a.ypos;
+			}
+		}
+		this.offset_x = mapx * -1;
+		this.offset_y = mapy * -1;
+	}
+	,__class__: packages_wad_Map
+};
+var packages_wad_Pack = function(_data,_name,_iwad) {
 	if(_iwad == null) {
 		_iwad = false;
 	}
-	this.deconstructed = false;
-	this.b_dataArray = [];
+	this.data = [];
 	var _g = 0;
 	var _g1 = _data.length;
 	while(_g < _g1) {
 		var a = _g++;
-		this.b_dataArray.push(_data.b[a]);
+		this.data.push(_data.b[a]);
 	}
-	this.name = _name;
-	this.iwad = _iwad;
-	this.directories = [];
-	this.mapindex = [];
-	this.maps = [];
-	this.baseIndexWadItems();
+	this.wadname = _name;
+	this.isIwad = _iwad;
+	this.reader = new packages_wad_Reader();
+	this.getDirectoryListing();
+	this.indexMaps();
 };
-$hxClasses["packages.WadData"] = packages_WadData;
-packages_WadData.__name__ = "packages.WadData";
-packages_WadData.prototype = {
-	deconstructed: null
-	,b_dataArray: null
+$hxClasses["packages.wad.Pack"] = packages_wad_Pack;
+packages_wad_Pack.__name__ = "packages.wad.Pack";
+packages_wad_Pack.prototype = {
+	reader: null
+	,data: null
+	,wadname: null
+	,isIwad: null
 	,directories: null
+	,directory_count: null
+	,directory_offset: null
 	,maps: null
-	,activemap: null
-	,mapindex: null
-	,iwad: null
-	,name: null
-	,dir_count: null
-	,dir_offset: null
-	,baseIndexWadItems: function() {
-		this.dir_count = this.readFourBytes(4);
-		this.dir_offset = this.readFourBytes(8);
+	,activeMap: null
+	,getDirectoryListing: function() {
+		this.directory_count = this.reader.getFourBytes(this.data,4);
+		this.directory_offset = this.reader.getFourBytes(this.data,8);
+		this.directories = [];
 		var _g = 0;
-		var _g1 = this.dir_count;
+		var _g1 = this.directory_count;
 		while(_g < _g1) {
 			var a = _g++;
-			this.directories[a] = this.readDirectoryData(this.dir_offset + a * 16);
-			if(this.directories.length > 10) {
-				if(this.directories[a - 9].lumpName == "THINGS" && this.directories[a - 8].lumpName == "LINEDEFS" && this.directories[a - 7].lumpName == "SIDEDEFS" && this.directories[a - 6].lumpName == "VERTEXES" && this.directories[a - 5].lumpName == "SEGS" && this.directories[a - 4].lumpName == "SSECTORS" && this.directories[a - 3].lumpName == "NODES" && this.directories[a - 2].lumpName == "SECTORS" && this.directories[a - 1].lumpName == "REJECT" && this.directories[a].lumpName == "BLOCKMAP") {
-					this.mapindex.push(a);
-				}
-			}
+			this.directories[a] = this.reader.readDirectory(this.data,this.directory_offset + a * 16);
 		}
 	}
-	,loadMap: function(_mapIndex) {
-		if(this.maps[_mapIndex] == null) {
-			this.deconstructMap(_mapIndex);
-			return;
-		}
-		this.activemap = this.maps[_mapIndex];
-	}
-	,deconstructMap: function(_mapIndex) {
-		var dirIndex = this.mapindex[_mapIndex];
-		var map = { name : this.name + "_" + this.directories[dirIndex - 10].lumpName, player : [], nodes : this.readNodeData(this.directories[dirIndex - 3]), subsectors : this.readSubsectorData(this.directories[dirIndex - 4]), seg : this.readSegData(this.directories[dirIndex - 5]), vertexes : this.readVertextData(this.directories[dirIndex - 6]), linedefs : this.readLineDefData(this.directories[dirIndex - 8]), things : this.readThingData(this.directories[dirIndex - 9]), offset_x : 0, offset_y : 0};
-		var mapx = Infinity;
-		var mapy = Infinity;
+	,indexMaps: function() {
+		this.maps = [];
 		var _g = 0;
-		var _g1 = map.vertexes;
-		while(_g < _g1.length) {
-			var a = _g1[_g];
-			++_g;
-			if(a.x < mapx) {
-				mapx = a.x;
+		var _g1 = this.directories.length;
+		while(_g < _g1) {
+			var dir = _g++;
+			if(dir < 10) {
+				continue;
 			}
-			if(a.y < mapy) {
-				mapy = a.y;
+			if(this.directories[dir - 9].name == "THINGS" && this.directories[dir - 8].name == "LINEDEFS" && this.directories[dir - 7].name == "SIDEDEFS" && this.directories[dir - 6].name == "VERTEXES" && this.directories[dir - 5].name == "SEGS" && this.directories[dir - 4].name == "SSECTORS" && this.directories[dir - 3].name == "NODES" && this.directories[dir - 2].name == "SECTORS" && this.directories[dir - 1].name == "REJECT" && this.directories[dir].name == "BLOCKMAP") {
+				this.maps.push(new packages_wad_Map(dir));
 			}
 		}
-		map.offset_x = mapx * -1;
-		map.offset_y = mapy * -1;
+	}
+	,loadMap: function(_index) {
+		if(this.maps[_index] == null) {
+			throw new js__$Boot_HaxeError("This map does not exist!");
+		}
+		var place = 0;
+		var numitems = 0;
+		var _map = this.maps[_index];
+		var _offset = _map.dirOffset;
+		numitems = this.directories[_offset - 4].size / 4 | 0;
+		place = this.directories[_offset - 4].offset;
+		var _g = 0;
+		var _g1 = numitems;
+		while(_g < _g1) {
+			var a = _g++;
+			_map.subsectors[a] = this.reader.readSubSector(this.data,place + a * 4);
+		}
+		numitems = this.directories[_offset - 5].size / 12 | 0;
+		place = this.directories[_offset - 5].offset;
 		var _g2 = 0;
-		var _g3 = map.things;
-		while(_g2 < _g3.length) {
-			var a1 = _g3[_g2];
-			++_g2;
-			switch(a1.type) {
-			case 1:case 2:case 3:case 4:
-				var player = new packages_actors_Player(a1.type);
-				player.set_xpos(a1.xpos);
-				player.set_ypos(a1.ypos);
-				player.set_angle(a1.angle);
-				map.player.push(player);
-				break;
-			}
+		var _g3 = numitems;
+		while(_g2 < _g3) {
+			var a1 = _g2++;
+			_map.segments[a1] = this.reader.readSegment(this.data,place + a1 * 12);
 		}
-		this.maps[_mapIndex] = map;
-		this.activemap = map;
-	}
-	,readDirectoryData: function(_offset) {
-		var dir = { lumpOffset : this.readFourBytes(_offset), lumpSize : this.readFourBytes(_offset + 4), lumpName : this.stringFromBytesRange(_offset + 8,_offset + 16)};
-		return dir;
-	}
-	,readVertextData: function(_dir) {
-		var ver_array = [];
-		var num_verts = _dir.lumpSize / 4 | 0;
-		var _g = 0;
-		var _g1 = num_verts;
-		while(_g < _g1) {
-			var a = _g++;
-			var ver = { x : this.readTwoBytes(_dir.lumpOffset + a * 4,true), y : this.readTwoBytes(_dir.lumpOffset + a * 4 + 2,true)};
-			ver_array.push(ver);
+		numitems = this.directories[_offset - 6].size / 4 | 0;
+		place = this.directories[_offset - 6].offset;
+		var _g4 = 0;
+		var _g5 = numitems;
+		while(_g4 < _g5) {
+			var a2 = _g4++;
+			_map.vertexes[a2] = this.reader.readVertex(this.data,place + a2 * 4);
 		}
-		return ver_array;
-	}
-	,readSubsectorData: function(_dir) {
-		var ssec_array = [];
-		var num_ssec = _dir.lumpSize / 4 | 0;
-		var _g = 0;
-		var _g1 = num_ssec;
-		while(_g < _g1) {
-			var a = _g++;
-			var ssect = { segCount : this.readTwoBytes(_dir.lumpOffset + a * 4), firstSegID : this.readTwoBytes(_dir.lumpOffset + a * 4 + 2)};
-			ssec_array.push(ssect);
+		_map.setOffset();
+		numitems = this.directories[_offset - 8].size / 14 | 0;
+		place = this.directories[_offset - 8].offset;
+		var _g6 = 0;
+		var _g7 = numitems;
+		while(_g6 < _g7) {
+			var a3 = _g6++;
+			_map.linedefs[a3] = this.reader.readLinedef(this.data,place + a3 * 14);
 		}
-		return ssec_array;
-	}
-	,readSegData: function(_dir) {
-		var seg_array = [];
-		var num_seg = _dir.lumpSize / 12 | 0;
-		var _g = 0;
-		var _g1 = num_seg;
-		while(_g < _g1) {
-			var a = _g++;
-			var seg = { startVertexID : this.readTwoBytes(_dir.lumpOffset + a * 12), endVertexID : this.readTwoBytes(_dir.lumpOffset + a * 12 + 2), angle : this.readTwoBytes(_dir.lumpOffset + a * 12 + 4,true), lineDefID : this.readTwoBytes(_dir.lumpOffset + a * 12 + 6), direction : this.readTwoBytes(_dir.lumpOffset + a * 12 + 8), offset : this.readTwoBytes(_dir.lumpOffset + a * 12 + 10)};
-			seg_array.push(seg);
+		numitems = this.directories[_offset - 9].size / 10 | 0;
+		place = this.directories[_offset - 9].offset;
+		var _g8 = 0;
+		var _g9 = numitems;
+		while(_g8 < _g9) {
+			var a4 = _g8++;
+			_map.things[a4] = this.reader.readThing(this.data,place + a4 * 10);
 		}
-		return seg_array;
+		_map.name = this.directories[_offset - 10].name;
+		this.activeMap = _map;
 	}
-	,readLineDefData: function(_dir) {
-		var line_array = [];
-		var num_lines = _dir.lumpSize / 14 | 0;
-		var _g = 0;
-		var _g1 = num_lines;
-		while(_g < _g1) {
-			var a = _g++;
-			var line = { start : this.readTwoBytes(_dir.lumpOffset + a * 14), end : this.readTwoBytes(_dir.lumpOffset + a * 14 + 2), flags : this.readTwoBytes(_dir.lumpOffset + a * 14 + 4), linetype : this.readTwoBytes(_dir.lumpOffset + a * 14 + 6), sectortag : this.readTwoBytes(_dir.lumpOffset + a * 14 + 8), frontsidedef : this.readTwoBytes(_dir.lumpOffset + a * 14 + 10), backsidedef : this.readTwoBytes(_dir.lumpOffset + a * 14 + 12)};
-			line_array.push(line);
-		}
-		return line_array;
+	,__class__: packages_wad_Pack
+};
+var packages_wad_Reader = function() {
+};
+$hxClasses["packages.wad.Reader"] = packages_wad_Reader;
+packages_wad_Reader.__name__ = "packages.wad.Reader";
+packages_wad_Reader.prototype = {
+	readDirectory: function(_data,_offset) {
+		return new packages_wad_maplumps_Directory(this.getFourBytes(_data,_offset),this.getFourBytes(_data,_offset + 4),this.stringFromBytesRange(_data,_offset + 8,_offset + 16));
 	}
-	,readThingData: function(_dir) {
-		var thing_array = [];
-		var num_things = _dir.lumpSize / 10 | 0;
-		var _g = 0;
-		var _g1 = num_things;
-		while(_g < _g1) {
-			var a = _g++;
-			var thing = { xpos : this.readTwoBytes(_dir.lumpOffset + a * 10,true), ypos : this.readTwoBytes(_dir.lumpOffset + a * 10 + 2,true), angle : this.readTwoBytes(_dir.lumpOffset + a * 10 + 4), type : this.readTwoBytes(_dir.lumpOffset + a * 10 + 6), flags : this.readTwoBytes(_dir.lumpOffset + a * 10 + 8)};
-			switch(thing.type) {
-			case 64:case 65:case 66:case 67:case 68:case 69:case 71:case 84:case 88:case 89:
-				if(!(!packages_WadData.COMMERCIAL)) {
-					thing_array.push(thing);
-				}
-				break;
-			default:
-				thing_array.push(thing);
-			}
-		}
-		return thing_array;
+	,readThing: function(_data,_offset) {
+		return new packages_wad_maplumps_Thing(this.getTwoBytes(_data,_offset,true),this.getTwoBytes(_data,_offset + 2,true),this.getTwoBytes(_data,_offset + 4,true),this.getTwoBytes(_data,_offset + 6,true),this.getTwoBytes(_data,_offset + 8,true));
 	}
-	,readNodeData: function(_dir) {
-		var node_array = [];
-		var num_nodes = _dir.lumpSize / 28 | 0;
-		var _g = 0;
-		var _g1 = num_nodes;
-		while(_g < _g1) {
-			var a = _g++;
-			var node = { xPartition : this.readTwoBytes(_dir.lumpOffset + a * 28,true), yPartition : this.readTwoBytes(_dir.lumpOffset + a * 28 + 2,true), changeXPartition : this.readTwoBytes(_dir.lumpOffset + a * 28 + 4,true), changeYPartition : this.readTwoBytes(_dir.lumpOffset + a * 28 + 6,true), frontBoxTop : this.readTwoBytes(_dir.lumpOffset + a * 28 + 8,true), frontBoxBottom : this.readTwoBytes(_dir.lumpOffset + a * 28 + 10,true), frontBoxLeft : this.readTwoBytes(_dir.lumpOffset + a * 28 + 12,true), frontBoxRight : this.readTwoBytes(_dir.lumpOffset + a * 28 + 14,true), backBoxTop : this.readTwoBytes(_dir.lumpOffset + a * 28 + 16,true), backBoxBottom : this.readTwoBytes(_dir.lumpOffset + a * 28 + 18,true), backBoxLeft : this.readTwoBytes(_dir.lumpOffset + a * 28 + 20,true), backBoxRight : this.readTwoBytes(_dir.lumpOffset + a * 28 + 22,true), frontChildID : this.readTwoBytes(_dir.lumpOffset + a * 28 + 24), backChildID : this.readTwoBytes(_dir.lumpOffset + a * 28 + 26)};
-			node_array.push(node);
-		}
-		return node_array;
+	,readLinedef: function(_data,_offset) {
+		return new packages_wad_maplumps_LineDef(this.getTwoBytes(_data,_offset),this.getTwoBytes(_data,_offset + 2),this.getTwoBytes(_data,_offset + 4),this.getTwoBytes(_data,_offset + 6),this.getTwoBytes(_data,_offset + 8),this.getTwoBytes(_data,_offset + 10),this.getTwoBytes(_data,_offset + 12));
 	}
-	,readTwoBytes: function(_offset,_signed) {
+	,readVertex: function(_data,_offset) {
+		return new packages_wad_maplumps_Vertex(this.getTwoBytes(_data,_offset,true),this.getTwoBytes(_data,_offset + 2,true));
+	}
+	,readSegment: function(_data,_offset) {
+		return new packages_wad_maplumps_Segment(this.getTwoBytes(_data,_offset),this.getTwoBytes(_data,_offset + 2),this.getTwoBytes(_data,_offset + 4,true),this.getTwoBytes(_data,_offset + 6),this.getTwoBytes(_data,_offset + 8),this.getTwoBytes(_data,_offset + 10));
+	}
+	,readSubSector: function(_data,_offset) {
+		return new packages_wad_maplumps_SubSector(this.getTwoBytes(_data,_offset),this.getTwoBytes(_data,_offset + 2));
+	}
+	,readNode: function(_data,_offset) {
+		return new packages_wad_maplumps_Node(this.getTwoBytes(_data,_offset,true),this.getTwoBytes(_data,_offset + 2,true),this.getTwoBytes(_data,_offset + 4,true),this.getTwoBytes(_data,_offset + 6,true),this.getTwoBytes(_data,_offset + 8,true),this.getTwoBytes(_data,_offset + 10,true),this.getTwoBytes(_data,_offset + 12,true),this.getTwoBytes(_data,_offset + 14,true),this.getTwoBytes(_data,_offset + 16,true),this.getTwoBytes(_data,_offset + 18,true),this.getTwoBytes(_data,_offset + 20,true),this.getTwoBytes(_data,_offset + 22,true),this.getTwoBytes(_data,_offset + 24),this.getTwoBytes(_data,_offset + 26));
+	}
+	,getTwoBytes: function(_data,_offset,_signed) {
 		if(_signed == null) {
 			_signed = false;
 		}
-		var val = this.b_dataArray[_offset + 1] << 8 | this.b_dataArray[_offset];
+		var val = _data[_offset + 1] << 8 | _data[_offset];
 		if(_signed == true && val > 32768) {
 			return val - 65536;
 		} else {
 			return val;
 		}
 	}
-	,readFourBytes: function(_offset) {
-		return this.b_dataArray[_offset + 3] << 24 | this.b_dataArray[_offset + 2] << 16 | this.b_dataArray[_offset + 1] << 8 | this.b_dataArray[_offset];
+	,getFourBytes: function(_data,_offset) {
+		return _data[_offset + 3] << 24 | _data[_offset + 2] << 16 | _data[_offset + 1] << 8 | _data[_offset];
 	}
-	,stringFromBytesRange: function(_start,_end) {
+	,stringFromBytesRange: function(_data,_start,_end) {
 		var str = "";
 		var _g = _start;
 		var _g1 = _end;
 		while(_g < _g1) {
 			var a = _g++;
-			if(this.b_dataArray[a] != 0 && isNaN(this.b_dataArray[a]) == false) {
-				var code = this.b_dataArray[a];
-				str += String.fromCodePoint(code);
+			if(_data[a] != 0 && isNaN(_data[a]) == false) {
+				str += String.fromCodePoint(_data[a]);
 			}
 		}
 		return str;
 	}
-	,isPointOnBackSide: function(_x,_y,_nodeID) {
-		var dx = _x - this.activemap.nodes[_nodeID].xPartition;
-		var dy = _y - this.activemap.nodes[_nodeID].yPartition;
-		return dx * this.activemap.nodes[_nodeID].changeYPartition - dy * this.activemap.nodes[_nodeID].changeXPartition <= 0;
-	}
-	,getPlayerNode: function() {
-		var node = this.activemap.nodes.length - 1;
-		while(true) {
-			if((this.activemap.nodes[node].backChildID & 32768) > 0 || (this.activemap.nodes[node].frontChildID & 32768) > 0) {
-				return this.activemap.nodes[node];
-			}
-			var isOnBack = this.isPointOnBackSide(this.activemap.things[0].xpos,this.activemap.things[0].ypos,node);
-			if(isOnBack) {
-				node = this.activemap.nodes[node].backChildID;
-			} else {
-				node = this.activemap.nodes[node].frontChildID;
-			}
-		}
-	}
-	,__class__: packages_WadData
+	,__class__: packages_wad_Reader
 };
-var packages_actors_Thing = function(_id) {
-	this.id = _id;
+var packages_wad_maplumps_Directory = function(_offset,_size,_name) {
+	this.offset = _offset;
+	this.size = _size;
+	this.name = _name;
 };
-$hxClasses["packages.actors.Thing"] = packages_actors_Thing;
-packages_actors_Thing.__name__ = "packages.actors.Thing";
-packages_actors_Thing.prototype = {
-	id: null
-	,xpos: null
+$hxClasses["packages.wad.maplumps.Directory"] = packages_wad_maplumps_Directory;
+packages_wad_maplumps_Directory.__name__ = "packages.wad.maplumps.Directory";
+packages_wad_maplumps_Directory.prototype = {
+	offset: null
+	,size: null
+	,name: null
+	,__class__: packages_wad_maplumps_Directory
+};
+var packages_wad_maplumps_LineDef = function(_start,_end,_flags,_lineType,_sectorTag,_fronSideDef,_backSideDef) {
+};
+$hxClasses["packages.wad.maplumps.LineDef"] = packages_wad_maplumps_LineDef;
+packages_wad_maplumps_LineDef.__name__ = "packages.wad.maplumps.LineDef";
+packages_wad_maplumps_LineDef.prototype = {
+	start: null
+	,end: null
+	,flags: null
+	,lineType: null
+	,sectorTag: null
+	,frontSideDef: null
+	,backSideDef: null
+	,__class__: packages_wad_maplumps_LineDef
+};
+var packages_wad_maplumps_Node = function(_x,_y,_cx,_cy,_ft,_fb,_fl,_fr,_bt,_bb,_bl,_br,_fci,_bci) {
+	this.xPartition = _x;
+	this.yPartition = _y;
+	this.changeXParition = _cx;
+	this.changeYParition = _cy;
+	this.frontBoxTop = _ft;
+	this.frontBoxBottom = _fb;
+	this.frontBoxLeft = _fl;
+	this.frontBoxRight = _fr;
+	this.backBoxTop = _bt;
+	this.backBoxBottom = _bb;
+	this.backBoxLeft = _bl;
+	this.backBoxRight = _br;
+	this.frontChildID = _fci;
+	this.backChildID = _bci;
+};
+$hxClasses["packages.wad.maplumps.Node"] = packages_wad_maplumps_Node;
+packages_wad_maplumps_Node.__name__ = "packages.wad.maplumps.Node";
+packages_wad_maplumps_Node.prototype = {
+	xPartition: null
+	,yPartition: null
+	,changeXParition: null
+	,changeYParition: null
+	,frontBoxTop: null
+	,frontBoxBottom: null
+	,frontBoxLeft: null
+	,frontBoxRight: null
+	,backBoxTop: null
+	,backBoxBottom: null
+	,backBoxLeft: null
+	,backBoxRight: null
+	,frontChildID: null
+	,backChildID: null
+	,__class__: packages_wad_maplumps_Node
+};
+var packages_wad_maplumps_Segment = function(_startID,_endID,_angle,_lineID,_direction,_offset) {
+	this.startVertexID = _startID;
+	this.endVertexID = _endID;
+	this.angle = _angle;
+	this.lineDefID = _lineID;
+	this.direction = _direction;
+	this.offset = _offset;
+};
+$hxClasses["packages.wad.maplumps.Segment"] = packages_wad_maplumps_Segment;
+packages_wad_maplumps_Segment.__name__ = "packages.wad.maplumps.Segment";
+packages_wad_maplumps_Segment.prototype = {
+	startVertexID: null
+	,endVertexID: null
+	,angle: null
+	,lineDefID: null
+	,direction: null
+	,offset: null
+	,__class__: packages_wad_maplumps_Segment
+};
+var packages_wad_maplumps_SubSector = function(_count,_id) {
+	this.segmentCount = _count;
+	this.firstSegmentID = _id;
+};
+$hxClasses["packages.wad.maplumps.SubSector"] = packages_wad_maplumps_SubSector;
+packages_wad_maplumps_SubSector.__name__ = "packages.wad.maplumps.SubSector";
+packages_wad_maplumps_SubSector.prototype = {
+	segmentCount: null
+	,firstSegmentID: null
+	,__class__: packages_wad_maplumps_SubSector
+};
+var packages_wad_maplumps_Thing = function(_xpos,_ypos,_angle,_type,_flags) {
+	this.xpos = _xpos;
+	this.ypos = _ypos;
+	this.angle = _angle;
+	this.type = _type;
+	this.flags = _flags;
+};
+$hxClasses["packages.wad.maplumps.Thing"] = packages_wad_maplumps_Thing;
+packages_wad_maplumps_Thing.__name__ = "packages.wad.maplumps.Thing";
+packages_wad_maplumps_Thing.prototype = {
+	xpos: null
 	,ypos: null
 	,angle: null
 	,type: null
-	,set_xpos: function(value) {
-		return this.xpos = value;
-	}
-	,set_ypos: function(value) {
-		return this.ypos = value;
-	}
-	,set_angle: function(value) {
-		return this.angle = value;
-	}
-	,get_isMonster: function() {
-		switch(this.type) {
-		case 7:case 9:case 16:case 18:case 19:case 20:case 21:case 22:case 23:case 58:case 64:case 65:case 66:case 67:case 68:case 69:case 71:case 72:case 84:case 87:case 88:case 89:case 3001:case 3002:case 3003:case 3004:case 3005:case 3006:
-			return true;
-		default:
-			return false;
-		}
-	}
-	,get_isPickup: function() {
-		switch(this.type) {
-		case 5:case 6:case 8:case 13:case 17:case 38:case 39:case 40:case 83:case 2007:case 2008:case 2009:case 2010:case 2011:case 2012:case 2013:case 2014:case 2015:case 2016:case 2017:case 2018:case 2019:case 2020:case 2021:case 2024:case 2025:case 2026:case 2027:case 2028:
-			return true;
-		default:
-			return false;
-		}
-	}
-	,get_isPlayer: function() {
-		switch(this.type) {
-		case 1:case 2:case 3:case 4:
-			return true;
-		default:
-			return false;
-		}
-	}
-	,__class__: packages_actors_Thing
+	,flags: null
+	,__class__: packages_wad_maplumps_Thing
 };
-var packages_actors_Player = function(_id) {
-	packages_actors_Thing.call(this,_id);
+var packages_wad_maplumps_Vertex = function(_x,_y) {
+	this.xpos = _x;
+	this.ypos = _y;
 };
-$hxClasses["packages.actors.Player"] = packages_actors_Player;
-packages_actors_Player.__name__ = "packages.actors.Player";
-packages_actors_Player.__super__ = packages_actors_Thing;
-packages_actors_Player.prototype = $extend(packages_actors_Thing.prototype,{
-	__class__: packages_actors_Player
-});
+$hxClasses["packages.wad.maplumps.Vertex"] = packages_wad_maplumps_Vertex;
+packages_wad_maplumps_Vertex.__name__ = "packages.wad.maplumps.Vertex";
+packages_wad_maplumps_Vertex.prototype = {
+	xpos: null
+	,ypos: null
+	,__class__: packages_wad_maplumps_Vertex
+};
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $global.$haxeUID++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
 $global.$haxeUID |= 0;
@@ -82040,22 +82092,20 @@ openfl_utils__$Endian_Endian_$Impl_$.LITTLE_ENDIAN = 1;
 openfl_utils__$Object_Object_$Impl_$.__meta__ = { statics : { iterator : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, __get : { SuppressWarnings : ["checkstyle:FieldDocComment"]}, __set : { SuppressWarnings : ["checkstyle:FieldDocComment"]}}};
 haxe_lang_Iterator.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}};
 haxe_lang_Iterable.__meta__ = { obj : { SuppressWarnings : ["checkstyle:FieldDocComment"]}};
-packages_WadData.VERTEX_LUMP_SIZE = 4;
-packages_WadData.LINEDEF_LUMP_SIZE = 14;
-packages_WadData.THING_LUMP_SIZE = 10;
-packages_WadData.NODE_LUMP_SIZE = 28;
-packages_WadData.SSECTOR_LUMP_SIZE = 4;
-packages_WadData.SEG_LUMP_SIZE = 12;
-packages_WadData.SUBSECTORIDENTIFIER = 32768;
-packages_WadData.COMMERCIAL = false;
+packages_wad_Reader.VERTEX_LUMP_SIZE = 4;
+packages_wad_Reader.LINEDEF_LUMP_SIZE = 14;
+packages_wad_Reader.THING_LUMP_SIZE = 10;
+packages_wad_Reader.NODE_LUMP_SIZE = 28;
+packages_wad_Reader.SSECTOR_LUMP_SIZE = 4;
+packages_wad_Reader.SEG_LUMP_SIZE = 12;
 ApplicationMain.main();
 })(typeof exports != "undefined" ? exports : typeof window != "undefined" ? window : typeof self != "undefined" ? self : this, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
-//# sourceMappingURL=hxDoom.js.map
+//# sourceMappingURL=HxDoom.js.map
 });
 $hx_exports.lime = $hx_exports.lime || {};
 $hx_exports.lime.$scripts = $hx_exports.lime.$scripts || {};
-$hx_exports.lime.$scripts["hxDoom"] = $hx_script;
+$hx_exports.lime.$scripts["HxDoom"] = $hx_script;
 $hx_exports.lime.embed = function(projectName) { var exports = {};
 	var script = $hx_exports.lime.$scripts[projectName];
 	if (!script) throw Error("Cannot find project name \"" + projectName + "\"");
