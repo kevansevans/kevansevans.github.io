@@ -893,9 +893,9 @@ ApplicationMain.create = function(config) {
 	ManifestResources.init(config);
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","51");
+		_this.setReserved("build","52");
 	} else {
-		_this.h["build"] = "51";
+		_this.h["build"] = "52";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -3561,20 +3561,19 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 			this.mapsprite.get_graphics().moveTo(line.start.xpos + xoff,line.start.ypos + yoff);
 			this.mapsprite.get_graphics().lineTo(line.end.xpos + xoff,line.end.ypos + yoff);
 		}
-		var _g2 = 0;
-		var _g3 = this.thingprite.get_numChildren();
-		while(_g2 < _g3) {
-			var child = _g2++;
-			if(this.thingprite.contains(this.thingprite.getChildAt(child))) {
-				this.thingprite.removeChild(this.thingprite.getChildAt(child));
-			}
-		}
+		this.draw.removeChild(this.thingprite);
+		this.thingprite = new openfl_display_Sprite();
+		this.draw.addChild(this.thingprite);
+		var _g2 = this.thingprite;
+		_g2.set_scaleX(_g2.get_scaleX() / Main.map_scale_inv);
+		var _g21 = this.thingprite;
+		_g21.set_scaleY(_g21.get_scaleY() / (Main.map_scale_inv * -1));
 		var index = 0;
-		var _g4 = 0;
-		var _g5 = this.wads[0].activeMap.actorsprites;
-		while(_g4 < _g5.length) {
-			var actor = _g5[_g4];
-			++_g4;
+		var _g22 = 0;
+		var _g3 = this.wads[0].activeMap.actorsprites;
+		while(_g22 < _g3.length) {
+			var actor = _g3[_g22];
+			++_g22;
 			this.thingprite.addChild(actor);
 			actor.set_x(this.wads[0].get_things()[index].xpos + xoff);
 			actor.set_y(this.wads[0].get_things()[index].ypos + yoff);
@@ -23338,7 +23337,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 639646;
+	this.version = 7448;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
