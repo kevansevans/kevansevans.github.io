@@ -870,9 +870,9 @@ ApplicationMain.create = function(config) {
 	var app = new Main();
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","155");
+		_this.setReserved("build","168");
 	} else {
-		_this.h["build"] = "155";
+		_this.h["build"] = "168";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -1020,6 +1020,9 @@ HxOverrides.iter = function(a) {
 var Main = function() {
 	this.mousey = 0;
 	this.mousex = 0;
+	this.mscount = 0;
+	this.framecount = 0;
+	this.ticks = 0;
 	this.wadsLoaded = false;
 	var _gthis = this;
 	lime_app_Application.call(this);
@@ -1054,6 +1057,7 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 			throw new js__$Boot_HaxeError("This throw is only noticeable in Adobe Air. Flash rendering is not yet supported. Many Apologies");
 		case "opengl":case "opengles":case "webgl":
 			if(this.gl_scene == null) {
+				haxe_Log.trace(context,{ fileName : "src/Main.hx", lineNumber : 81, className : "Main", methodName : "render", customParams : [context.cairo,context.canvas2D,context.gl,context.gles2,context.gles3,context.webgl,context.webgl2]});
 				this.gl_scene = new render_gl_GLHandler(context,this.__window);
 			}
 			break;
@@ -1063,11 +1067,16 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 	}
 	,onWindowCreate: function() {
 		lime_app_Application.prototype.onWindowCreate.call(this);
+		this.__window.__backend.setFrameRate(120);
 		this.__window.warpMouse(this.__window.__width / 2 | 0,this.__window.__height / 2 | 0);
 	}
 	,onWindowResize: function(width,height) {
 		lime_app_Application.prototype.onWindowResize.call(this,width,height);
 		this.__window.warpMouse(this.__window.__width / 2 | 0,this.__window.__height / 2 | 0);
+		if(this.gl_scene == null) {
+			return;
+		}
+		this.gl_scene.resize();
 	}
 	,onKeyUp: function(keyCode,modifier) {
 		lime_app_Application.prototype.onKeyUp.call(this,keyCode,modifier);
@@ -1078,30 +1087,39 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 			break;
 		case 49:
 			this.hxdoom.loadMap(0);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 50:
 			this.hxdoom.loadMap(1);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 51:
 			this.hxdoom.loadMap(2);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 52:
 			this.hxdoom.loadMap(3);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 53:
 			this.hxdoom.loadMap(4);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 54:
 			this.hxdoom.loadMap(5);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 55:
 			this.hxdoom.loadMap(6);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 56:
 			this.hxdoom.loadMap(7);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 57:
 			this.hxdoom.loadMap(8);
+			this.gl_scene.programMapGeometry.buildMapGeometry();
 			break;
 		case 115:case 1073741905:
 			hxdoom_com_Environment.PLAYER_MOVING_BACKWARD = false;
@@ -1143,34 +1161,45 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 	}
 	,update: function(deltaTime) {
 		lime_app_Application.prototype.update.call(this,deltaTime);
-		if(hxdoom_com_Environment.PLAYER_MOVING_FORWARD) {
-			hxdoom_Engine.ACTIVEMAP.actors_players[0].move(5);
-		}
-		if(hxdoom_com_Environment.PLAYER_MOVING_BACKWARD) {
-			hxdoom_Engine.ACTIVEMAP.actors_players[0].move(-5);
-		}
-		if(hxdoom_com_Environment.PLAYER_TURNING_LEFT) {
-			var _v = hxdoom_Engine.ACTIVEMAP.actors_players[0].angle + 1;
-			if(_v > 360) {
-				_v -= 360;
+		this.ticks += deltaTime;
+		if(this.ticks >= 28.571428571428573) {
+			if(hxdoom_com_Environment.PLAYER_MOVING_FORWARD) {
+				hxdoom_Engine.ACTIVEMAP.actors_players[0].move(5);
 			}
-			if(_v < 0) {
-				_v += 360;
+			if(hxdoom_com_Environment.PLAYER_MOVING_BACKWARD) {
+				hxdoom_Engine.ACTIVEMAP.actors_players[0].move(-5);
 			}
-			hxdoom_Engine.ACTIVEMAP.actors_players[0].angle = _v;
-		}
-		if(hxdoom_com_Environment.PLAYER_TURNING_RIGHT) {
-			var _v1 = hxdoom_Engine.ACTIVEMAP.actors_players[0].angle - 1;
-			if(_v1 > 360) {
-				_v1 -= 360;
+			if(hxdoom_com_Environment.PLAYER_TURNING_LEFT) {
+				var _v = hxdoom_Engine.ACTIVEMAP.actors_players[0].angle + 1;
+				if(_v > 360) {
+					_v -= 360;
+				}
+				if(_v < 0) {
+					_v += 360;
+				}
+				hxdoom_Engine.ACTIVEMAP.actors_players[0].angle = _v;
 			}
-			if(_v1 < 0) {
-				_v1 += 360;
+			if(hxdoom_com_Environment.PLAYER_TURNING_RIGHT) {
+				var _v1 = hxdoom_Engine.ACTIVEMAP.actors_players[0].angle - 1;
+				if(_v1 > 360) {
+					_v1 -= 360;
+				}
+				if(_v1 < 0) {
+					_v1 += 360;
+				}
+				hxdoom_Engine.ACTIVEMAP.actors_players[0].angle = _v1;
 			}
-			hxdoom_Engine.ACTIVEMAP.actors_players[0].angle = _v1;
+			this.ticks = 0;
 		}
 		if(this.gl_scene != null) {
 			this.gl_scene.render_scene();
+		}
+		this.framecount += 1;
+		this.mscount += deltaTime;
+		if(this.framecount >= this.__window.__backend.getFrameRate()) {
+			var average = this.mscount / this.__window.__backend.getFrameRate();
+			this.framecount = 0;
+			this.mscount = 0;
 		}
 	}
 	,onMouseMove: function(_x,_y) {
@@ -3634,13 +3663,14 @@ var hxdoom_Engine = function() {
 $hxClasses["hxdoom.Engine"] = hxdoom_Engine;
 hxdoom_Engine.__name__ = "hxdoom.Engine";
 hxdoom_Engine.log = function(_msg) {
-	haxe_Log.trace(_msg,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 75, className : "hxdoom.Engine", methodName : "log"});
+	haxe_Log.trace(_msg,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 76, className : "hxdoom.Engine", methodName : "log"});
 };
 hxdoom_Engine.prototype = {
 	loadMap: function(_index) {
 		var key = hxdoom_Engine.MAPALIAS[_index];
 		var _this = hxdoom_Engine.MAPLIST;
 		hxdoom_Engine.ACTIVEMAP = (__map_reserved[key] != null ? _this.getReserved(key) : _this.h[key]).copy();
+		hxdoom_Engine.ACTIVEMAP.buildNodes(hxdoom_Engine.ACTIVEMAP.nodes.length - 1);
 		hxdoom_com_Environment.NEEDS_TO_REBUILD_AUTOMAP = true;
 	}
 	,setBaseIwad: function(_data,_name) {
@@ -3852,6 +3882,7 @@ var hxdoom_actors_Actor = function(_thing) {
 	this.angle = _thing.angle;
 	this.flags = _thing.flags;
 	this.type = _thing.type;
+	this.set_pitch(0);
 };
 $hxClasses["hxdoom.actors.Actor"] = hxdoom_actors_Actor;
 hxdoom_actors_Actor.__name__ = "hxdoom.actors.Actor";
@@ -3895,6 +3926,12 @@ hxdoom_actors_Actor.prototype = {
 		default:
 			return false;
 		}
+	}
+	,get_zpos_look: function() {
+		return 5 * Math.sin(this.pitch * (Math.PI / 180));
+	}
+	,set_pitch: function(value) {
+		return this.pitch = value;
 	}
 	,__class__: hxdoom_actors_Actor
 };
@@ -7046,8 +7083,8 @@ var hxdoom_com_GameActions = function() { };
 $hxClasses["hxdoom.com.GameActions"] = hxdoom_com_GameActions;
 hxdoom_com_GameActions.__name__ = "hxdoom.com.GameActions";
 hxdoom_com_GameActions.cheat_logPlayerPosition = function() {
-	haxe_Log.trace("x: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 75, className : "hxdoom.Engine", methodName : "log"});
-	haxe_Log.trace("y: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 75, className : "hxdoom.Engine", methodName : "log"});
+	haxe_Log.trace("x: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 76, className : "hxdoom.Engine", methodName : "log"});
+	haxe_Log.trace("y: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 76, className : "hxdoom.Engine", methodName : "log"});
 };
 hxdoom_com_GameActions.cheat_degreeless = function() {
 	hxdoom_com_Environment.CHEAT_INVULNERABILITY = !hxdoom_com_Environment.CHEAT_INVULNERABILITY;
@@ -7066,6 +7103,9 @@ hxdoom_com_GameActions.cheat_clipping = function() {
 	}
 };
 var hxdoom_data_BSPMap = function(_dirOffset) {
+	this.scanning = false;
+	this.hor_walldraw = [];
+	this.hwidth = 320;
 	this.dirOffset = _dirOffset;
 	this.things = [];
 	this.vertexes = [];
@@ -7075,6 +7115,14 @@ var hxdoom_data_BSPMap = function(_dirOffset) {
 	this.segments = [];
 	this.sidedefs = [];
 	this.sectors = [];
+	this.node_visited = [];
+	this.node_visited.length = this.nodes.length;
+	var _g = 0;
+	var _g1 = this.nodes.length;
+	while(_g < _g1) {
+		var n = _g++;
+		this.node_visited[n] = false;
+	}
 };
 $hxClasses["hxdoom.data.BSPMap"] = hxdoom_data_BSPMap;
 hxdoom_data_BSPMap.__name__ = "hxdoom.data.BSPMap";
@@ -7093,11 +7141,81 @@ hxdoom_data_BSPMap.prototype = {
 			}
 		}
 	}
-	,getVisibleSegments: function() {
-		var visible = [];
-		var player = this.actors_players[0];
+	,setVisibleSegments: function() {
+		this.scanning = true;
 		var _g = 0;
-		var _g1 = this.segments;
+		var _g1 = this.hwidth + 1;
+		while(_g < _g1) {
+			var x = _g++;
+			this.hor_walldraw[x] = false;
+		}
+		var _g2 = 0;
+		var _g3 = this.segments;
+		while(_g2 < _g3.length) {
+			var seg = _g3[_g2];
+			++_g2;
+			seg.visible = false;
+		}
+		var _g4 = 0;
+		var _g5 = this.node_visited.length;
+		while(_g4 < _g5) {
+			var n = _g4++;
+			this.node_visited[n] = false;
+		}
+		this.recursiveNodeTraversalVisibility(this.nodes.length - 1);
+	}
+	,recursiveNodeTraversalVisibility: function(_nodeIndex) {
+		if(!this.scanning) {
+			return;
+		}
+		this.node_visited[_nodeIndex] = true;
+		var node = this.nodes[_nodeIndex];
+		var fronsubsec = false;
+		var backsubsec = false;
+		if(this.node_visited[node.frontChildID] && this.node_visited[node.backChildID]) {
+			if(node.parent == -1) {
+				return;
+			}
+			this.recursiveNodeTraversalVisibility(node.parent);
+			return;
+		}
+		if(this.node_visited[node.frontChildID]) {
+			fronsubsec = true;
+		}
+		if(this.node_visited[node.backChildID]) {
+			backsubsec = true;
+		}
+		if((node.frontChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0) {
+			fronsubsec = true;
+			this.subsectorVisibilityCheck(node.frontChildID & ~hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER);
+		}
+		if((node.backChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0) {
+			backsubsec = true;
+			this.subsectorVisibilityCheck(node.backChildID & ~hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER);
+		}
+		if(fronsubsec && backsubsec) {
+			this.recursiveNodeTraversalVisibility(node.parent);
+			return;
+		}
+		if(fronsubsec && !backsubsec) {
+			this.recursiveNodeTraversalVisibility(node.backChildID);
+			return;
+		} else if(!fronsubsec && backsubsec) {
+			this.recursiveNodeTraversalVisibility(node.frontChildID);
+			return;
+		}
+		var isOnBack = this.isPointOnBackSide(this.actors_players[0].xpos,this.actors_players[0].ypos,_nodeIndex);
+		if(isOnBack) {
+			this.recursiveNodeTraversalVisibility(node.backChildID);
+		} else {
+			this.recursiveNodeTraversalVisibility(node.frontChildID);
+		}
+	}
+	,subsectorVisibilityCheck: function(_subsector) {
+		var player = this.actors_players[0];
+		var subsector = this.subsectors[_subsector];
+		var _g = 0;
+		var _g1 = subsector.segments;
 		while(_g < _g1.length) {
 			var segment = _g1[_g];
 			++_g;
@@ -7125,9 +7243,6 @@ hxdoom_data_BSPMap.prototype = {
 				_v2 += 360;
 			}
 			var span = _v2;
-			if(span > 180 || span == 180) {
-				continue;
-			}
 			var _v3 = startAngle + hxdoom_com_Environment.PLAYER_FOV / 2;
 			if(_v3 > 360) {
 				_v3 -= 360;
@@ -7150,10 +7265,112 @@ hxdoom_data_BSPMap.prototype = {
 				}
 				startAngle = hxdoom_com_Environment.PLAYER_FOV / 2;
 			}
-			visible.push(segment);
-			segment.hasBeenSeen = true;
+			if(span > 180 || span == 180) {
+				continue;
+			}
+			if(segment.lineDef.get_solid()) {
+				if(hxdoom_com_Environment.PLAYER_FOV / 2 - (endAngle | 0) > hxdoom_com_Environment.PLAYER_FOV) {
+					endAngle = -hxdoom_com_Environment.PLAYER_FOV;
+				}
+				var _v5 = startAngle + 90;
+				if(_v5 > 360) {
+					_v5 -= 360;
+				}
+				if(_v5 < 0) {
+					_v5 += 360;
+				}
+				startAngle = _v5;
+				var _v6 = endAngle + 90;
+				if(_v6 > 360) {
+					_v6 -= 360;
+				}
+				if(_v6 < 0) {
+					_v6 += 360;
+				}
+				endAngle = _v6;
+				var x_start = this.angleToScreen(startAngle);
+				var x_end = this.angleToScreen(endAngle);
+				x_end = Math.min(x_end,this.hwidth) | 0;
+				var _g2 = x_start;
+				var _g11 = x_end;
+				while(_g2 < _g11) {
+					var x = _g2++;
+					if(this.hor_walldraw[x] == true || this.hor_walldraw[x] == null) {
+						continue;
+					} else {
+						this.hor_walldraw[x] = true;
+						segment.visible = true;
+					}
+				}
+			}
 		}
-		return visible;
+		this.checkScreenFill();
+	}
+	,checkScreenFill: function() {
+		this.hor_walldraw.length = this.hwidth;
+		var _g = 0;
+		var _g1 = this.hwidth + 1;
+		while(_g < _g1) {
+			var x = _g++;
+			if(this.hor_walldraw[x] == true) {
+				continue;
+			} else {
+				return;
+			}
+		}
+		this.scanning = false;
+	}
+	,angleToScreen: function(_angle) {
+		var fov = 90;
+		var x = 0;
+		var angle = _angle;
+		if(angle > fov) {
+			var _v = angle - fov;
+			if(_v > 360) {
+				_v -= 360;
+			}
+			if(_v < 0) {
+				_v += 360;
+			}
+			angle = _v;
+			x = (this.hwidth / 2 | 0) - (Math.tan(angle * (Math.PI / 180) * 160) | 0);
+		} else {
+			angle = fov - (angle | 0);
+			x = Math.tan(angle * (Math.PI / 180)) * 160 | 0;
+			x += 160;
+		}
+		return x;
+	}
+	,getPlayerSubsector: function() {
+		var node = this.nodes.length - 1;
+		while(true) {
+			if((node & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0) {
+				return this.subsectors[node & ~hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER];
+			}
+			var isOnBack = this.isPointOnBackSide(this.actors_players[0].xpos,this.actors_players[0].ypos,node);
+			if(isOnBack) {
+				node = this.nodes[node].backChildID;
+			} else {
+				node = this.nodes[node].frontChildID;
+			}
+		}
+	}
+	,getPlayerNode: function() {
+		var node = this.nodes.length - 1;
+		while(true) {
+			var isOnBack = this.isPointOnBackSide(this.actors_players[0].xpos,this.actors_players[0].ypos,node);
+			if(isOnBack) {
+				if((this.nodes[node].backChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0) {
+					return node;
+				}
+				node = this.nodes[node].backChildID;
+			} else {
+				if((this.nodes[node].frontChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0) {
+					return node;
+				}
+				node = this.nodes[node].frontChildID;
+			}
+		}
 	}
 	,setOffset: function() {
 		var mapx = Infinity;
@@ -7178,18 +7395,15 @@ hxdoom_data_BSPMap.prototype = {
 		var dy = _y - this.nodes[_nodeID].yPartition;
 		return dx * this.nodes[_nodeID].changeYPartition - dy * this.nodes[_nodeID].changeXPartition <= 0;
 	}
-	,getPlayerSector: function() {
-		var node = this.nodes.length - 1;
-		while(true) {
-			if((this.nodes[node].backChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0 || (this.nodes[node].frontChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) > 0) {
-				return this.subsectors[node];
-			}
-			var isOnBack = this.isPointOnBackSide(this.things[0].xpos,this.things[0].ypos,node);
-			if(isOnBack) {
-				node = this.nodes[node].backChildID;
-			} else {
-				node = this.nodes[node].frontChildID;
-			}
+	,buildNodes: function(_node) {
+		var node = this.nodes[_node];
+		if((node.frontChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) == 0) {
+			this.nodes[node.frontChildID].parent = _node;
+			this.buildNodes(node.frontChildID);
+		}
+		if((node.backChildID & hxdoom_data_maplumps_Node.SUBSECTORIDENTIFIER) == 0) {
+			this.nodes[node.backChildID].parent = _node;
+			this.buildNodes(node.backChildID);
 		}
 	}
 	,copy: function() {
@@ -7716,211 +7930,211 @@ hxdoom_data_RootPack.prototype = {
 			var val15 = _data1[_offset16 + 1] << 8 | _data1[_offset16];
 			_map.vertexes[a1] = new hxdoom_data_maplumps_Vertex(_signed12 == true && val14 > 32768 ? val14 - 65536 : val14,_signed13 == true && val15 > 32768 ? val15 - 65536 : val15);
 		}
-		numitems = this.directories[_offset - 4].size / 4 | 0;
-		place = this.directories[_offset - 4].offset;
+		numitems = this.directories[_offset - 9].size / 10 | 0;
+		place = this.directories[_offset - 9].offset;
 		var _g4 = 0;
 		var _g5 = numitems;
 		while(_g4 < _g5) {
 			var a2 = _g4++;
 			var _data2 = this.data;
-			var _offset17 = place + a2 * 4;
-			var val16 = _data2[_offset17 + 1] << 8 | _data2[_offset17];
-			var _offset18 = _offset17 + 2;
-			var val17 = _data2[_offset18 + 1] << 8 | _data2[_offset18];
-			_map.subsectors[a2] = new hxdoom_data_maplumps_SubSector(_map.segments,val16,val17);
-		}
-		numitems = this.directories[_offset - 9].size / 10 | 0;
-		place = this.directories[_offset - 9].offset;
-		var _g6 = 0;
-		var _g7 = numitems;
-		while(_g6 < _g7) {
-			var a3 = _g6++;
-			var _data3 = this.data;
-			var _offset19 = place + a3 * 10;
+			var _offset17 = place + a2 * 10;
 			var _signed14 = true;
 			if(_signed14 == null) {
 				_signed14 = false;
 			}
-			var val18 = _data3[_offset19 + 1] << 8 | _data3[_offset19];
-			var _offset20 = _offset19 + 2;
+			var val16 = _data2[_offset17 + 1] << 8 | _data2[_offset17];
+			var _offset18 = _offset17 + 2;
 			var _signed15 = true;
 			if(_signed15 == null) {
 				_signed15 = false;
 			}
-			var val19 = _data3[_offset20 + 1] << 8 | _data3[_offset20];
-			var _offset21 = _offset19 + 4;
+			var val17 = _data2[_offset18 + 1] << 8 | _data2[_offset18];
+			var _offset19 = _offset17 + 4;
 			var _signed16 = true;
 			if(_signed16 == null) {
 				_signed16 = false;
 			}
-			var val20 = _data3[_offset21 + 1] << 8 | _data3[_offset21];
-			var _offset22 = _offset19 + 6;
+			var val18 = _data2[_offset19 + 1] << 8 | _data2[_offset19];
+			var _offset20 = _offset17 + 6;
 			var _signed17 = true;
 			if(_signed17 == null) {
 				_signed17 = false;
 			}
-			var val21 = _data3[_offset22 + 1] << 8 | _data3[_offset22];
-			var _offset23 = _offset19 + 8;
+			var val19 = _data2[_offset20 + 1] << 8 | _data2[_offset20];
+			var _offset21 = _offset17 + 8;
 			var _signed18 = true;
 			if(_signed18 == null) {
 				_signed18 = false;
 			}
-			var val22 = _data3[_offset23 + 1] << 8 | _data3[_offset23];
-			_map.things[a3] = new hxdoom_data_maplumps_Thing(_signed14 == true && val18 > 32768 ? val18 - 65536 : val18,_signed15 == true && val19 > 32768 ? val19 - 65536 : val19,_signed16 == true && val20 > 32768 ? val20 - 65536 : val20,_signed17 == true && val21 > 32768 ? val21 - 65536 : val21,_signed18 == true && val22 > 32768 ? val22 - 65536 : val22);
+			var val20 = _data2[_offset21 + 1] << 8 | _data2[_offset21];
+			_map.things[a2] = new hxdoom_data_maplumps_Thing(_signed14 == true && val16 > 32768 ? val16 - 65536 : val16,_signed15 == true && val17 > 32768 ? val17 - 65536 : val17,_signed16 == true && val18 > 32768 ? val18 - 65536 : val18,_signed17 == true && val19 > 32768 ? val19 - 65536 : val19,_signed18 == true && val20 > 32768 ? val20 - 65536 : val20);
 		}
 		numitems = this.directories[_offset - 2].size / 26 | 0;
 		place = this.directories[_offset - 2].offset;
-		var _g8 = 0;
-		var _g9 = numitems;
-		while(_g8 < _g9) {
-			var a4 = _g8++;
+		var _g6 = 0;
+		var _g7 = numitems;
+		while(_g6 < _g7) {
+			var a3 = _g6++;
 			var _map1 = _map.sectors;
-			var _data4 = this.data;
-			var _offset24 = place + a4 * 26;
+			var _data3 = this.data;
+			var _offset22 = place + a3 * 26;
 			var _signed19 = true;
 			if(_signed19 == null) {
 				_signed19 = false;
 			}
-			var val23 = _data4[_offset24 + 1] << 8 | _data4[_offset24];
-			var tmp = _signed19 == true && val23 > 32768 ? val23 - 65536 : val23;
-			var _offset25 = _offset24 + 2;
+			var val21 = _data3[_offset22 + 1] << 8 | _data3[_offset22];
+			var tmp = _signed19 == true && val21 > 32768 ? val21 - 65536 : val21;
+			var _offset23 = _offset22 + 2;
 			var _signed20 = true;
 			if(_signed20 == null) {
 				_signed20 = false;
 			}
-			var val24 = _data4[_offset25 + 1] << 8 | _data4[_offset25];
-			var tmp1 = _signed20 == true && val24 > 32768 ? val24 - 65536 : val24;
+			var val22 = _data3[_offset23 + 1] << 8 | _data3[_offset23];
+			var tmp1 = _signed20 == true && val22 > 32768 ? val22 - 65536 : val22;
 			var str = "";
-			var _g10 = _offset24 + 4;
-			var _g11 = _offset24 + 12;
-			while(_g10 < _g11) {
-				var a5 = _g10++;
-				if(_data4[a5] != 0 && isNaN(_data4[a5]) == false) {
-					str += String.fromCodePoint(_data4[a5]);
+			var _g8 = _offset22 + 4;
+			var _g11 = _offset22 + 12;
+			while(_g8 < _g11) {
+				var a4 = _g8++;
+				if(_data3[a4] != 0 && isNaN(_data3[a4]) == false) {
+					str += String.fromCodePoint(_data3[a4]);
 				}
 			}
 			var tmp2 = str;
 			var str1 = "";
-			var _g12 = _offset24 + 12;
-			var _g13 = _offset24 + 20;
-			while(_g12 < _g13) {
-				var a6 = _g12++;
-				if(_data4[a6] != 0 && isNaN(_data4[a6]) == false) {
-					str1 += String.fromCodePoint(_data4[a6]);
+			var _g9 = _offset22 + 12;
+			var _g12 = _offset22 + 20;
+			while(_g9 < _g12) {
+				var a5 = _g9++;
+				if(_data3[a5] != 0 && isNaN(_data3[a5]) == false) {
+					str1 += String.fromCodePoint(_data3[a5]);
 				}
 			}
-			var _offset26 = _offset24 + 20;
+			var _offset24 = _offset22 + 20;
 			var _signed21 = true;
 			if(_signed21 == null) {
 				_signed21 = false;
 			}
-			var val25 = _data4[_offset26 + 1] << 8 | _data4[_offset26];
-			var _offset27 = _offset24 + 22;
-			var val26 = _data4[_offset27 + 1] << 8 | _data4[_offset27];
-			var _offset28 = _offset24 + 24;
-			var val27 = _data4[_offset28 + 1] << 8 | _data4[_offset28];
-			_map1[a4] = new hxdoom_data_maplumps_Sector(tmp,tmp1,tmp2,str1,_signed21 == true && val25 > 32768 ? val25 - 65536 : val25,val26,val27);
+			var val23 = _data3[_offset24 + 1] << 8 | _data3[_offset24];
+			var _offset25 = _offset22 + 22;
+			var val24 = _data3[_offset25 + 1] << 8 | _data3[_offset25];
+			var _offset26 = _offset22 + 24;
+			var val25 = _data3[_offset26 + 1] << 8 | _data3[_offset26];
+			_map1[a3] = new hxdoom_data_maplumps_Sector(tmp,tmp1,tmp2,str1,_signed21 == true && val23 > 32768 ? val23 - 65536 : val23,val24,val25);
 		}
 		numitems = this.directories[_offset - 7].size / 30 | 0;
 		place = this.directories[_offset - 7].offset;
-		var _g101 = 0;
-		var _g111 = numitems;
-		while(_g101 < _g111) {
-			var a7 = _g101++;
+		var _g81 = 0;
+		var _g91 = numitems;
+		while(_g81 < _g91) {
+			var a6 = _g81++;
 			var _map2 = _map.sidedefs;
-			var _data5 = this.data;
-			var _offset29 = place + a7 * 30;
+			var _data4 = this.data;
+			var _offset27 = place + a6 * 30;
 			var _sectors = _map.sectors;
 			var _signed22 = true;
 			if(_signed22 == null) {
 				_signed22 = false;
 			}
-			var val28 = _data5[_offset29 + 1] << 8 | _data5[_offset29];
-			var tmp3 = _signed22 == true && val28 > 32768 ? val28 - 65536 : val28;
-			var _offset30 = _offset29 + 2;
+			var val26 = _data4[_offset27 + 1] << 8 | _data4[_offset27];
+			var tmp3 = _signed22 == true && val26 > 32768 ? val26 - 65536 : val26;
+			var _offset28 = _offset27 + 2;
 			var _signed23 = true;
 			if(_signed23 == null) {
 				_signed23 = false;
 			}
-			var val29 = _data5[_offset30 + 1] << 8 | _data5[_offset30];
-			var tmp4 = _signed23 == true && val29 > 32768 ? val29 - 65536 : val29;
+			var val27 = _data4[_offset28 + 1] << 8 | _data4[_offset28];
+			var tmp4 = _signed23 == true && val27 > 32768 ? val27 - 65536 : val27;
 			var str2 = "";
-			var _g14 = _offset29 + 4;
-			var _g15 = _offset29 + 12;
-			while(_g14 < _g15) {
-				var a8 = _g14++;
-				if(_data5[a8] != 0 && isNaN(_data5[a8]) == false) {
-					str2 += String.fromCodePoint(_data5[a8]);
+			var _g10 = _offset27 + 4;
+			var _g13 = _offset27 + 12;
+			while(_g10 < _g13) {
+				var a7 = _g10++;
+				if(_data4[a7] != 0 && isNaN(_data4[a7]) == false) {
+					str2 += String.fromCodePoint(_data4[a7]);
 				}
 			}
 			var tmp5 = str2;
 			var str3 = "";
-			var _g16 = _offset29 + 12;
-			var _g17 = _offset29 + 20;
-			while(_g16 < _g17) {
-				var a9 = _g16++;
-				if(_data5[a9] != 0 && isNaN(_data5[a9]) == false) {
-					str3 += String.fromCodePoint(_data5[a9]);
+			var _g14 = _offset27 + 12;
+			var _g15 = _offset27 + 20;
+			while(_g14 < _g15) {
+				var a8 = _g14++;
+				if(_data4[a8] != 0 && isNaN(_data4[a8]) == false) {
+					str3 += String.fromCodePoint(_data4[a8]);
 				}
 			}
 			var tmp6 = str3;
 			var str4 = "";
-			var _g18 = _offset29 + 20;
-			var _g19 = _offset29 + 28;
-			while(_g18 < _g19) {
-				var a10 = _g18++;
-				if(_data5[a10] != 0 && isNaN(_data5[a10]) == false) {
-					str4 += String.fromCodePoint(_data5[a10]);
+			var _g16 = _offset27 + 20;
+			var _g17 = _offset27 + 28;
+			while(_g16 < _g17) {
+				var a9 = _g16++;
+				if(_data4[a9] != 0 && isNaN(_data4[a9]) == false) {
+					str4 += String.fromCodePoint(_data4[a9]);
 				}
 			}
-			var _offset31 = _offset29 + 28;
-			var val30 = _data5[_offset31 + 1] << 8 | _data5[_offset31];
-			_map2[a7] = new hxdoom_data_maplumps_SideDef(_sectors,tmp3,tmp4,tmp5,tmp6,str4,val30);
+			var _offset29 = _offset27 + 28;
+			var val28 = _data4[_offset29 + 1] << 8 | _data4[_offset29];
+			_map2[a6] = new hxdoom_data_maplumps_SideDef(_sectors,tmp3,tmp4,tmp5,tmp6,str4,val28);
 		}
 		numitems = this.directories[_offset - 8].size / 14 | 0;
 		place = this.directories[_offset - 8].offset;
+		var _g101 = 0;
+		var _g111 = numitems;
+		while(_g101 < _g111) {
+			var a10 = _g101++;
+			var _data5 = this.data;
+			var _offset30 = place + a10 * 14;
+			var val29 = _data5[_offset30 + 1] << 8 | _data5[_offset30];
+			var _offset31 = _offset30 + 2;
+			var val30 = _data5[_offset31 + 1] << 8 | _data5[_offset31];
+			var _offset32 = _offset30 + 4;
+			var val31 = _data5[_offset32 + 1] << 8 | _data5[_offset32];
+			var _offset33 = _offset30 + 6;
+			var val32 = _data5[_offset33 + 1] << 8 | _data5[_offset33];
+			var _offset34 = _offset30 + 8;
+			var val33 = _data5[_offset34 + 1] << 8 | _data5[_offset34];
+			var _offset35 = _offset30 + 10;
+			var val34 = _data5[_offset35 + 1] << 8 | _data5[_offset35];
+			var _offset36 = _offset30 + 12;
+			var val35 = _data5[_offset36 + 1] << 8 | _data5[_offset36];
+			_map.linedefs[a10] = new hxdoom_data_maplumps_LineDef(_map.vertexes,_map.sidedefs,val29,val30,val31,val32,val33,val34,val35);
+		}
+		numitems = this.directories[_offset - 5].size / 12 | 0;
+		place = this.directories[_offset - 5].offset;
 		var _g121 = 0;
 		var _g131 = numitems;
 		while(_g121 < _g131) {
 			var a11 = _g121++;
 			var _data6 = this.data;
-			var _offset32 = place + a11 * 14;
-			var val31 = _data6[_offset32 + 1] << 8 | _data6[_offset32];
-			var _offset33 = _offset32 + 2;
-			var val32 = _data6[_offset33 + 1] << 8 | _data6[_offset33];
-			var _offset34 = _offset32 + 4;
-			var val33 = _data6[_offset34 + 1] << 8 | _data6[_offset34];
-			var _offset35 = _offset32 + 6;
-			var val34 = _data6[_offset35 + 1] << 8 | _data6[_offset35];
-			var _offset36 = _offset32 + 8;
-			var val35 = _data6[_offset36 + 1] << 8 | _data6[_offset36];
-			var _offset37 = _offset32 + 10;
-			var val36 = _data6[_offset37 + 1] << 8 | _data6[_offset37];
-			var _offset38 = _offset32 + 12;
-			var val37 = _data6[_offset38 + 1] << 8 | _data6[_offset38];
-			_map.linedefs[a11] = new hxdoom_data_maplumps_LineDef(_map.vertexes,_map.sidedefs,val31,val32,val33,val34,val35,val36,val37);
+			var _offset37 = place + a11 * 12;
+			var _offset38 = _offset37 + 4;
+			var _signed24 = true;
+			if(_signed24 == null) {
+				_signed24 = false;
+			}
+			var val36 = _data6[_offset38 + 1] << 8 | _data6[_offset38];
+			var _offset39 = _offset37 + 6;
+			var val37 = _data6[_offset39 + 1] << 8 | _data6[_offset39];
+			var _offset40 = _offset37 + 8;
+			var val38 = _data6[_offset40 + 1] << 8 | _data6[_offset40];
+			var _offset41 = _offset37 + 10;
+			var val39 = _data6[_offset41 + 1] << 8 | _data6[_offset41];
+			_map.segments[a11] = new hxdoom_data_maplumps_Segment(_map.linedefs,_signed24 == true && val36 > 32768 ? val36 - 65536 : val36,val37,val38,val39);
 		}
-		numitems = this.directories[_offset - 5].size / 12 | 0;
-		place = this.directories[_offset - 5].offset;
+		numitems = this.directories[_offset - 4].size / 4 | 0;
+		place = this.directories[_offset - 4].offset;
 		var _g141 = 0;
 		var _g151 = numitems;
 		while(_g141 < _g151) {
 			var a12 = _g141++;
 			var _data7 = this.data;
-			var _offset39 = place + a12 * 12;
-			var _offset40 = _offset39 + 4;
-			var _signed24 = true;
-			if(_signed24 == null) {
-				_signed24 = false;
-			}
-			var val38 = _data7[_offset40 + 1] << 8 | _data7[_offset40];
-			var _offset41 = _offset39 + 6;
-			var val39 = _data7[_offset41 + 1] << 8 | _data7[_offset41];
-			var _offset42 = _offset39 + 8;
+			var _offset42 = place + a12 * 4;
 			var val40 = _data7[_offset42 + 1] << 8 | _data7[_offset42];
-			var _offset43 = _offset39 + 10;
+			var _offset43 = _offset42 + 2;
 			var val41 = _data7[_offset43 + 1] << 8 | _data7[_offset43];
-			_map.segments[a12] = new hxdoom_data_maplumps_Segment(_map.linedefs,_signed24 == true && val38 > 32768 ? val38 - 65536 : val38,val39,val40,val41);
+			_map.subsectors[a12] = new hxdoom_data_maplumps_SubSector(_map.segments,val40,val41);
 		}
 		_map.name = this.directories[_offset - 10].name;
 		hxdoom_Engine.ACTIVEMAP = _map;
@@ -8024,12 +8238,20 @@ hxdoom_data_maplumps_LineDef.prototype = {
 	,get_color_g: function() {
 		return this.color_g;
 	}
+	,get_solid: function() {
+		if(this.backSideDef == null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	,get_color_b: function() {
 		return this.color_b;
 	}
 	,__class__: hxdoom_data_maplumps_LineDef
 };
 var hxdoom_data_maplumps_Node = function(_x,_y,_cx,_cy,_ft,_fb,_fl,_fr,_bt,_bb,_bl,_br,_fci,_bci) {
+	this.parent = -1;
 	this.xPartition = _x;
 	this.yPartition = _y;
 	this.changeXPartition = _cx;
@@ -8066,6 +8288,7 @@ hxdoom_data_maplumps_Sector.prototype = {
 };
 var hxdoom_data_maplumps_Segment = function(_lineDefs,_angle,_lineID,_direction,_offset) {
 	this.randswatch = 255 * Math.random() | 0;
+	this.visible = false;
 	this.hasBeenSeen = false;
 	this.r_color = hxdoom_Engine.PLAYPAL.getColor(this.randswatch,0,0,true);
 	this.g_color = hxdoom_Engine.PLAYPAL.getColor(this.randswatch,1,0,true);
@@ -8080,6 +8303,19 @@ hxdoom_data_maplumps_Segment.__name__ = "hxdoom.data.maplumps.Segment";
 hxdoom_data_maplumps_Segment.prototype = {
 	get_start: function() {
 		return this.lineDef.start;
+	}
+	,get_sector: function() {
+		if(this.lineDef.backSideDef != null) {
+			return this.lineDef.backSideDef.sector;
+		} else {
+			return this.lineDef.frontSideDef.sector;
+		}
+	}
+	,get_frontSector: function() {
+		return this.lineDef.frontSideDef.sector;
+	}
+	,get_backSector: function() {
+		return this.lineDef.backSideDef.sector;
 	}
 	,get_end: function() {
 		return this.lineDef.end;
@@ -8107,6 +8343,7 @@ var hxdoom_data_maplumps_SubSector = function(_segments,_count,_id) {
 		var _seg = _g++;
 		this.segments.push(_segments[_seg]);
 	}
+	this.sector = this.segments[0].direction == 0 ? this.segments[0].get_frontSector() : this.segments[0].get_backSector();
 };
 $hxClasses["hxdoom.data.maplumps.SubSector"] = hxdoom_data_maplumps_SubSector;
 hxdoom_data_maplumps_SubSector.__name__ = "hxdoom.data.maplumps.SubSector";
@@ -23356,7 +23593,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 75381;
+	this.version = 839055;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -34275,24 +34512,279 @@ mme_math_glmatrix_Vec4Tools.equals = function(a,b) {
 	}
 };
 var render_gl_GLHandler = function(_context,_window) {
-	this.gl = _context.webgl;
+	this.gl = _context.webgl2;
 	this.window = _window;
 	this.context = _context;
-	this.programAutoMap = new render_gl_programs_GLAutoMap(this.gl);
-	this.programFirstPerson = new render_gl_programs_GLFirstPerson(this.gl);
+	haxe_Log.trace(this.gl,{ fileName : "src/render/gl/GLHandler.hx", lineNumber : 40, className : "render.gl.GLHandler", methodName : "new"});
+	this.resize();
 };
 $hxClasses["render.gl.GLHandler"] = render_gl_GLHandler;
 render_gl_GLHandler.__name__ = "render.gl.GLHandler";
 render_gl_GLHandler.prototype = {
-	render_scene: function() {
-		this.gl.viewport(0,0,this.window.__width,this.window.__height);
-		if(hxdoom_com_Environment.IS_IN_AUTOMAP) {
-			this.programAutoMap.render(this.window.__width,this.window.__height);
-		} else {
-			this.programFirstPerson.render(this.window.__width,this.window.__height);
-		}
+	resize: function() {
+	}
+	,render_scene: function() {
+		return;
 	}
 	,__class__: render_gl_GLHandler
+};
+var render_gl_objects_SideType = $hxEnums["render.gl.objects.SideType"] = { __ename__ : "render.gl.objects.SideType", __constructs__ : ["FRONT_TOP","FRONT_BOTTOM","FRONT_MIDDLE","BACK_TOP","BACK_BOTTOM","BACK_MIDDLE","SOLID"]
+	,FRONT_TOP: {_hx_index:0,__enum__:"render.gl.objects.SideType",toString:$estr}
+	,FRONT_BOTTOM: {_hx_index:1,__enum__:"render.gl.objects.SideType",toString:$estr}
+	,FRONT_MIDDLE: {_hx_index:2,__enum__:"render.gl.objects.SideType",toString:$estr}
+	,BACK_TOP: {_hx_index:3,__enum__:"render.gl.objects.SideType",toString:$estr}
+	,BACK_BOTTOM: {_hx_index:4,__enum__:"render.gl.objects.SideType",toString:$estr}
+	,BACK_MIDDLE: {_hx_index:5,__enum__:"render.gl.objects.SideType",toString:$estr}
+	,SOLID: {_hx_index:6,__enum__:"render.gl.objects.SideType",toString:$estr}
+};
+var render_gl_objects_GLPlane = function(_context,_segment,_type) {
+	this.gl = _context;
+	this.segment = _segment;
+	this.type = _type;
+	var index = 0;
+	this.plane_vertexes = [];
+	this.plane_vertexes.length = 42;
+	switch(_type._hx_index) {
+	case 0:
+		this.plane_vertexes[index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		break;
+	case 1:
+		this.plane_vertexes[index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		break;
+	case 2:
+		this.plane_vertexes[index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_backSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		break;
+	case 3:
+		break;
+	case 4:
+		break;
+	case 5:
+		break;
+	case 6:
+		this.plane_vertexes[index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_start().xpos;
+		this.plane_vertexes[++index] = this.segment.get_start().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().ceilingHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		this.plane_vertexes[++index] = this.segment.get_end().xpos;
+		this.plane_vertexes[++index] = this.segment.get_end().ypos;
+		this.plane_vertexes[++index] = this.segment.get_frontSector().floorHeight;
+		this.plane_vertexes[++index] = this.segment.r_color;
+		this.plane_vertexes[++index] = this.segment.g_color;
+		this.plane_vertexes[++index] = this.segment.b_color;
+		this.plane_vertexes[++index] = 1.0;
+		break;
+	}
+};
+$hxClasses["render.gl.objects.GLPlane"] = render_gl_objects_GLPlane;
+render_gl_objects_GLPlane.__name__ = "render.gl.objects.GLPlane";
+render_gl_objects_GLPlane.prototype = {
+	bind: function(_program) {
+		if(this.plane_vertexes == null) {
+			return;
+		}
+		if(!this.segment.visible) {
+			return;
+		}
+		var loadedLineBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER,loadedLineBuffer);
+		var this1 = this.gl;
+		var target = this.gl.ARRAY_BUFFER;
+		var elements = null;
+		var array = this.plane_vertexes;
+		var view = null;
+		var buffer = null;
+		var len = null;
+		var this2;
+		if(elements != null) {
+			this2 = new Float32Array(elements);
+		} else if(array != null) {
+			this2 = new Float32Array(array);
+		} else if(view != null) {
+			this2 = new Float32Array(view);
+		} else if(buffer != null) {
+			if(len == null) {
+				this2 = new Float32Array(buffer,0);
+			} else {
+				this2 = new Float32Array(buffer,0,len);
+			}
+		} else {
+			this2 = null;
+		}
+		var srcData = this2;
+		var usage = this.gl.STATIC_DRAW;
+		var srcOffset = null;
+		if(srcOffset != null) {
+			this1.bufferData(target,srcData,usage,srcOffset,null);
+		} else {
+			this1.bufferData(target,srcData,usage);
+		}
+		var posAttributeLocation = this.gl.getAttribLocation(_program,"V3_POSITION");
+		var colorAttributeLocation = this.gl.getAttribLocation(_program,"V4_COLOR");
+		this.gl.vertexAttribPointer(posAttributeLocation,3,this.gl.FLOAT,false,28,0);
+		this.gl.vertexAttribPointer(colorAttributeLocation,4,this.gl.FLOAT,false,28,12);
+		this.gl.enableVertexAttribArray(posAttributeLocation);
+		this.gl.enableVertexAttribArray(colorAttributeLocation);
+		this.gl.useProgram(_program);
+	}
+	,render: function() {
+		var query = this.gl.createQuery();
+		this.gl.drawArrays(this.gl.TRIANGLES,0,this.plane_vertexes.length / 7 | 0);
+	}
+	,__class__: render_gl_objects_GLPlane
 };
 var render_gl_programs_GLAutoMap = function(_gl) {
 	this.gl = _gl;
@@ -34318,31 +34810,43 @@ var render_gl_programs_GLAutoMap = function(_gl) {
 $hxClasses["render.gl.programs.GLAutoMap"] = render_gl_programs_GLAutoMap;
 render_gl_programs_GLAutoMap.__name__ = "render.gl.programs.GLAutoMap";
 render_gl_programs_GLAutoMap.prototype = {
-	bindAttributes: function() {
+	render: function(_winWidth,_winHeight) {
+		if(hxdoom_com_Environment.NEEDS_TO_REBUILD_AUTOMAP) {
+			this.rebuildMapArray();
+		}
 		var loadedLineBuffer = this.gl.createBuffer();
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER,loadedLineBuffer);
+		var this1 = this.gl;
+		var target = this.gl.ARRAY_BUFFER;
 		var elements = null;
 		var array = this.map_lineverts;
 		var view = null;
 		var buffer = null;
 		var len = null;
-		var this1;
+		var this2;
 		if(elements != null) {
-			this1 = new Float32Array(elements);
+			this2 = new Float32Array(elements);
 		} else if(array != null) {
-			this1 = new Float32Array(array);
+			this2 = new Float32Array(array);
 		} else if(view != null) {
-			this1 = new Float32Array(view);
+			this2 = new Float32Array(view);
 		} else if(buffer != null) {
 			if(len == null) {
-				this1 = new Float32Array(buffer,0);
+				this2 = new Float32Array(buffer,0);
 			} else {
-				this1 = new Float32Array(buffer,0,len);
+				this2 = new Float32Array(buffer,0,len);
 			}
 		} else {
-			this1 = null;
+			this2 = null;
 		}
-		lime_graphics__$WebGLRenderContext_WebGLRenderContext_$Impl_$.bufferData(this.gl,this.gl.ARRAY_BUFFER,this1,this.gl.STATIC_DRAW);
+		var srcData = this2;
+		var usage = this.gl.STATIC_DRAW;
+		var srcOffset = null;
+		if(srcOffset != null) {
+			this1.bufferData(target,srcData,usage,srcOffset,null);
+		} else {
+			this1.bufferData(target,srcData,usage);
+		}
 		var posAttributeLocation = this.gl.getAttribLocation(this.program,"V3_POSITION");
 		var colorAttributeLocation = this.gl.getAttribLocation(this.program,"V3_COLOR");
 		this.gl.vertexAttribPointer(posAttributeLocation,3,this.gl.FLOAT,false,24,0);
@@ -34353,19 +34857,11 @@ render_gl_programs_GLAutoMap.prototype = {
 		var view1 = null;
 		var buffer1 = null;
 		var len1 = null;
-		var this2 = new Float32Array(16);
-		this.automapFloat32 = this2;
+		var this3 = new Float32Array(16);
+		this.automapFloat32 = this3;
 		this.automapMatrix4 = lime_math__$Matrix4_Matrix4_$Impl_$._new(this.automapFloat32);
 		lime_math__$Matrix4_Matrix4_$Impl_$.identity(this.automapMatrix4);
-	}
-	,render: function(_winWidth,_winHeight) {
-		if(hxdoom_com_Environment.NEEDS_TO_REBUILD_AUTOMAP) {
-			this.rebuildMapArray();
-		}
-		this.bindAttributes();
 		this.gl.useProgram(this.program);
-		this.gl.clearColor(0.42352941176470588,0.32941176470588235,0.25098039215686274,0);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 		lime_math__$Matrix4_Matrix4_$Impl_$.appendTranslation(this.automapMatrix4,-hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,-hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,0);
 		if(hxdoom_com_Environment.AUTOMAP_ROTATES_WITH_PLAYER) {
 			var _v = hxdoom_Engine.ACTIVEMAP.actors_players[0].angle - 90;
@@ -34378,13 +34874,20 @@ render_gl_programs_GLAutoMap.prototype = {
 			lime_math__$Matrix4_Matrix4_$Impl_$.appendRotation(this.automapMatrix4,_v,new lime_math_Vector4(0,0,-1,1));
 		}
 		lime_math__$Matrix4_Matrix4_$Impl_$.appendScale(this.automapMatrix4,hxdoom_com_Environment.AUTOMAP_ZOOM,hxdoom_com_Environment.AUTOMAP_ZOOM * (_winWidth / _winHeight),1);
-		lime_graphics__$WebGLRenderContext_WebGLRenderContext_$Impl_$.uniformMatrix4fv(this.gl,this.gl.getUniformLocation(this.program,"M4_POSITION"),false,this.automapFloat32);
+		var this4 = this.gl;
+		var location = this.gl.getUniformLocation(this.program,"M4_POSITION");
+		var data = this.automapFloat32;
+		var srcOffset1 = null;
+		if(srcOffset1 != null) {
+			this4.uniformMatrix4fv(location,false,data,srcOffset1,null);
+		} else {
+			this4.uniformMatrix4fv(location,false,data);
+		}
 		this.gl.lineWidth(1 / (2 / hxdoom_com_Environment.AUTOMAP_ZOOM));
 		this.gl.drawArrays(this.gl.LINES,0,this.map_lineverts.length / 6 | 0);
 	}
 	,rebuildMapArray: function() {
 		var loadedsegs = hxdoom_Engine.ACTIVEMAP.segments;
-		var visSegs = hxdoom_Engine.ACTIVEMAP.getVisibleSegments();
 		var numSegs = (loadedsegs.length - 1) * 12;
 		this.map_lineverts.length = numSegs;
 		var itemCount = 0;
@@ -34392,7 +34895,6 @@ render_gl_programs_GLAutoMap.prototype = {
 		var _g1 = loadedsegs.length;
 		while(_g < _g1) {
 			var segs = _g++;
-			loadedsegs[segs].GLOffset = itemCount;
 			this.map_lineverts[itemCount] = loadedsegs[segs].get_start().xpos;
 			this.map_lineverts[++itemCount] = loadedsegs[segs].get_start().ypos;
 			this.map_lineverts[++itemCount] = 0;
@@ -34411,14 +34913,14 @@ render_gl_programs_GLAutoMap.prototype = {
 	}
 	,__class__: render_gl_programs_GLAutoMap
 };
-var render_gl_programs_GLFirstPerson = function(_gl) {
+var render_gl_programs_GLMapGeometry = function(_gl) {
+	this.safeToRender = false;
 	this.gl = _gl;
 	this.program = this.gl.createProgram();
-	this.map_lineverts = [];
 	this.vertex_shader = this.gl.createShader(this.gl.VERTEX_SHADER);
 	this.fragment_shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-	this.gl.shaderSource(this.vertex_shader,render_gl_programs_GLFirstPerson.vertex_source);
-	this.gl.shaderSource(this.fragment_shader,render_gl_programs_GLFirstPerson.fragment_source);
+	this.gl.shaderSource(this.vertex_shader,render_gl_programs_GLMapGeometry.vertex_source);
+	this.gl.shaderSource(this.fragment_shader,render_gl_programs_GLMapGeometry.fragment_source);
 	this.gl.compileShader(this.vertex_shader);
 	if(!this.gl.getShaderParameter(this.vertex_shader,this.gl.COMPILE_STATUS)) {
 		throw new js__$Boot_HaxeError("Map Vertex Shadder error: \n" + this.gl.getShaderInfoLog(this.vertex_shader));
@@ -34432,47 +34934,78 @@ var render_gl_programs_GLFirstPerson = function(_gl) {
 	this.gl.attachShader(this.program,this.fragment_shader);
 	this.gl.linkProgram(this.program);
 };
-$hxClasses["render.gl.programs.GLFirstPerson"] = render_gl_programs_GLFirstPerson;
-render_gl_programs_GLFirstPerson.__name__ = "render.gl.programs.GLFirstPerson";
-render_gl_programs_GLFirstPerson.prototype = {
-	bindAttributes: function() {
-		var loadedLineBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER,loadedLineBuffer);
-		var elements = null;
-		var array = this.map_lineverts;
-		var view = null;
-		var buffer = null;
-		var len = null;
-		var this1;
-		if(elements != null) {
-			this1 = new Float32Array(elements);
-		} else if(array != null) {
-			this1 = new Float32Array(array);
-		} else if(view != null) {
-			this1 = new Float32Array(view);
-		} else if(buffer != null) {
-			if(len == null) {
-				this1 = new Float32Array(buffer,0);
-			} else {
-				this1 = new Float32Array(buffer,0,len);
+$hxClasses["render.gl.programs.GLMapGeometry"] = render_gl_programs_GLMapGeometry;
+render_gl_programs_GLMapGeometry.__name__ = "render.gl.programs.GLMapGeometry";
+render_gl_programs_GLMapGeometry.prototype = {
+	buildMapGeometry: function() {
+		this.safeToRender = false;
+		var mapSegments = hxdoom_Engine.ACTIVEMAP.segments;
+		var numplanes = 0;
+		var _g = 0;
+		while(_g < mapSegments.length) {
+			var seg = mapSegments[_g];
+			++_g;
+			if(seg.lineDef.get_solid()) {
+				++numplanes;
+				continue;
 			}
-		} else {
-			this1 = null;
+			if(seg.lineDef.frontSideDef.lower_texture != "-") {
+				++numplanes;
+			}
+			if(seg.lineDef.frontSideDef.middle_texture != "-") {
+				++numplanes;
+			}
+			if(seg.lineDef.frontSideDef.upper_texture != "-") {
+				++numplanes;
+			}
+			if(seg.lineDef.backSideDef.lower_texture != "-") {
+				++numplanes;
+			}
+			if(seg.lineDef.backSideDef.middle_texture != "-") {
+				++numplanes;
+			}
+			if(seg.lineDef.backSideDef.upper_texture != "-") {
+				++numplanes;
+			}
 		}
-		lime_graphics__$WebGLRenderContext_WebGLRenderContext_$Impl_$.bufferData(this.gl,this.gl.ARRAY_BUFFER,this1,this.gl.STATIC_DRAW);
-		var posAttributeLocation = this.gl.getAttribLocation(this.program,"V3_POSITION");
-		var colorAttributeLocation = this.gl.getAttribLocation(this.program,"V3_COLOR");
-		this.gl.vertexAttribPointer(posAttributeLocation,3,this.gl.FLOAT,false,24,0);
-		this.gl.vertexAttribPointer(colorAttributeLocation,3,this.gl.FLOAT,false,24,12);
-		this.gl.enableVertexAttribArray(posAttributeLocation);
-		this.gl.enableVertexAttribArray(colorAttributeLocation);
+		this.planes = [];
+		this.planes.length = numplanes;
+		var p_index = 0;
+		var _g1 = 0;
+		var _g2 = mapSegments.length;
+		while(_g1 < _g2) {
+			var s_index = _g1++;
+			var segment = mapSegments[s_index];
+			if(segment.lineDef.get_solid()) {
+				this.planes[p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.SOLID);
+			} else {
+				if(segment.lineDef.frontSideDef.lower_texture != "-") {
+					this.planes[p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.FRONT_BOTTOM);
+				}
+				if(segment.lineDef.frontSideDef.middle_texture != "-") {
+					this.planes[++p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.FRONT_MIDDLE);
+				}
+				if(segment.lineDef.frontSideDef.upper_texture != "-") {
+					this.planes[++p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.FRONT_TOP);
+				}
+				if(segment.lineDef.backSideDef.lower_texture != "-") {
+					this.planes[++p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.BACK_BOTTOM);
+				}
+				if(segment.lineDef.backSideDef.middle_texture != "-") {
+					this.planes[++p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.BACK_MIDDLE);
+				}
+				if(segment.lineDef.backSideDef.upper_texture != "-") {
+					this.planes[++p_index] = new render_gl_objects_GLPlane(this.gl,mapSegments[s_index],render_gl_objects_SideType.BACK_TOP);
+				}
+			}
+			++p_index;
+		}
+		this.safeToRender = true;
 	}
 	,render: function(_winWidth,_winHeight) {
-		this.rebuildMapArray();
-		this.bindAttributes();
-		this.gl.useProgram(this.program);
-		this.gl.clearColor(0,0,0,1);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+		if(!this.safeToRender) {
+			return;
+		}
 		var array = null;
 		var view = null;
 		var buffer = null;
@@ -34491,66 +35024,76 @@ render_gl_programs_GLFirstPerson.prototype = {
 		var len2 = null;
 		var this3 = new Float32Array(16);
 		var projArray = this3;
-		mme_math_glmatrix_Mat4Tools.identity(worldArray);
-		mme_math_glmatrix_Mat4Tools.lookAt(mme_math_glmatrix__$Vec3_Vec3_$Impl_$.fromArray([hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,1]),mme_math_glmatrix__$Vec3_Vec3_$Impl_$.fromArray([hxdoom_Engine.ACTIVEMAP.actors_players[0].get_xpos_look(),hxdoom_Engine.ACTIVEMAP.actors_players[0].get_ypos_look(),1]),mme_math_glmatrix__$Vec3_Vec3_$Impl_$.fromArray([0,0,1]),viewArray);
-		mme_math_glmatrix_Mat4Tools.perspective(45 * (Math.PI / 180),_winWidth / _winHeight,0.1,1000,projArray);
-		lime_graphics__$WebGLRenderContext_WebGLRenderContext_$Impl_$.uniformMatrix4fv(this.gl,this.gl.getUniformLocation(this.program,"M4_World"),false,worldArray);
-		lime_graphics__$WebGLRenderContext_WebGLRenderContext_$Impl_$.uniformMatrix4fv(this.gl,this.gl.getUniformLocation(this.program,"M4_View"),false,viewArray);
-		lime_graphics__$WebGLRenderContext_WebGLRenderContext_$Impl_$.uniformMatrix4fv(this.gl,this.gl.getUniformLocation(this.program,"M4_Proj"),false,projArray);
-		this.gl.drawArrays(this.gl.TRIANGLES,0,this.map_lineverts.length / 6 | 0);
-	}
-	,rebuildMapArray: function() {
-		var loadedsegs = hxdoom_Engine.ACTIVEMAP.getVisibleSegments();
-		var sectors = hxdoom_Engine.ACTIVEMAP.sectors;
-		var visSegs = hxdoom_Engine.ACTIVEMAP.getVisibleSegments();
-		var numSegs = (loadedsegs.length - 1) * 36;
-		this.map_lineverts.length = numSegs;
-		var itemCount = 0;
-		var _g = 0;
-		var _g1 = loadedsegs.length;
-		while(_g < _g1) {
-			var segs = _g++;
-			this.map_lineverts[itemCount] = loadedsegs[segs].get_start().xpos;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_start().ypos;
-			this.map_lineverts[++itemCount] = sectors[loadedsegs[segs].lineDef.sectorTag].floorHeight;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].r_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].g_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].b_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_end().xpos;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_end().ypos;
-			this.map_lineverts[++itemCount] = sectors[loadedsegs[segs].lineDef.sectorTag].floorHeight;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].r_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].g_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].b_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_start().xpos;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_start().ypos;
-			this.map_lineverts[++itemCount] = sectors[loadedsegs[segs].lineDef.sectorTag].ceilingHeight;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].r_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].g_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].b_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_start().xpos;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_start().ypos;
-			this.map_lineverts[++itemCount] = sectors[loadedsegs[segs].lineDef.sectorTag].ceilingHeight;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].r_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].g_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].b_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_end().xpos;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_end().ypos;
-			this.map_lineverts[++itemCount] = sectors[loadedsegs[segs].lineDef.sectorTag].ceilingHeight;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].r_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].g_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].b_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_end().xpos;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].get_end().ypos;
-			this.map_lineverts[++itemCount] = sectors[loadedsegs[segs].lineDef.sectorTag].floorHeight;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].r_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].g_color;
-			this.map_lineverts[++itemCount] = loadedsegs[segs].b_color;
-			++itemCount;
+		var p_subsector = hxdoom_Engine.ACTIVEMAP.getPlayerSubsector();
+		var p_segment = p_subsector.segments[0];
+		var p_viewheight = p_segment.get_frontSector().floorHeight + 41;
+		var _v = hxdoom_Engine.ACTIVEMAP.actors_players[0].angleToVertex(p_segment.get_start()) - hxdoom_Engine.ACTIVEMAP.actors_players[0].angle;
+		if(_v > 360) {
+			_v -= 360;
 		}
-		hxdoom_com_Environment.NEEDS_TO_REBUILD_AUTOMAP = false;
+		if(_v < 0) {
+			_v += 360;
+		}
+		var startAngle = _v;
+		var _v1 = hxdoom_Engine.ACTIVEMAP.actors_players[0].angleToVertex(p_segment.get_end()) - hxdoom_Engine.ACTIVEMAP.actors_players[0].angle;
+		if(_v1 > 360) {
+			_v1 -= 360;
+		}
+		if(_v1 < 0) {
+			_v1 += 360;
+		}
+		var endAngle = _v1;
+		var _v2 = startAngle - endAngle;
+		if(_v2 > 360) {
+			_v2 -= 360;
+		}
+		if(_v2 < 0) {
+			_v2 += 360;
+		}
+		var span = _v2;
+		mme_math_glmatrix_Mat4Tools.identity(worldArray);
+		mme_math_glmatrix_Mat4Tools.lookAt(mme_math_glmatrix__$Vec3_Vec3_$Impl_$.fromArray([hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,p_viewheight]),mme_math_glmatrix__$Vec3_Vec3_$Impl_$.fromArray([hxdoom_Engine.ACTIVEMAP.actors_players[0].get_xpos_look(),hxdoom_Engine.ACTIVEMAP.actors_players[0].get_ypos_look(),p_viewheight + hxdoom_Engine.ACTIVEMAP.actors_players[0].get_zpos_look()]),mme_math_glmatrix__$Vec3_Vec3_$Impl_$.fromArray([0,0,1]),viewArray);
+		mme_math_glmatrix_Mat4Tools.perspective(45 * (Math.PI / 180),_winWidth / _winHeight,0.1,10000,projArray);
+		var this4 = this.gl;
+		var location = this.gl.getUniformLocation(this.program,"M4_World");
+		var data = worldArray;
+		var srcOffset = null;
+		if(srcOffset != null) {
+			this4.uniformMatrix4fv(location,false,data,srcOffset,null);
+		} else {
+			this4.uniformMatrix4fv(location,false,data);
+		}
+		var this5 = this.gl;
+		var location1 = this.gl.getUniformLocation(this.program,"M4_View");
+		var data1 = viewArray;
+		var srcOffset1 = null;
+		if(srcOffset1 != null) {
+			this5.uniformMatrix4fv(location1,false,data1,srcOffset1,null);
+		} else {
+			this5.uniformMatrix4fv(location1,false,data1);
+		}
+		var this6 = this.gl;
+		var location2 = this.gl.getUniformLocation(this.program,"M4_Proj");
+		var data2 = projArray;
+		var srcOffset2 = null;
+		if(srcOffset2 != null) {
+			this6.uniformMatrix4fv(location2,false,data2,srcOffset2,null);
+		} else {
+			this6.uniformMatrix4fv(location2,false,data2);
+		}
+		var _g = 0;
+		var _g1 = this.planes;
+		while(_g < _g1.length) {
+			var plane = _g1[_g];
+			++_g;
+			if(plane == null) {
+				continue;
+			}
+			plane.bind(this.program);
+			plane.render();
+		}
 	}
-	,__class__: render_gl_programs_GLFirstPerson
+	,__class__: render_gl_programs_GLMapGeometry
 };
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $global.$haxeUID++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
@@ -34610,7 +35153,7 @@ while(_g2 < _g3) {
 }
 lime_system_CFFI.available = false;
 lime_system_CFFI.enabled = false;
-lime_utils_Log.level = 3;
+lime_utils_Log.level = 4;
 if(typeof console == "undefined") {
 	console = {}
 }
@@ -34643,6 +35186,7 @@ hxdoom_com_Environment.PLAYER_STRAFING_LEFT = false;
 hxdoom_com_Environment.PLAYER_STRAFING_RIGHT = false;
 hxdoom_com_Environment.PLAYER_TURNING_LEFT = false;
 hxdoom_com_Environment.PLAYER_TURNING_RIGHT = false;
+hxdoom_com_Environment.PLAYER_VIEW_HEIGHT = 41;
 hxdoom_data_Reader.VERTEX_LUMP_SIZE = 4;
 hxdoom_data_Reader.LINEDEF_LUMP_SIZE = 14;
 hxdoom_data_Reader.THING_LUMP_SIZE = 10;
@@ -36034,11 +36578,12 @@ mme_math_glmatrix_Vec4Tools.len = mme_math_glmatrix_Vec4Tools.$length;
 mme_math_glmatrix_Vec4Tools.sqrLen = mme_math_glmatrix_Vec4Tools.squaredLength;
 render_gl_programs_GLAutoMap.vertex_source = ["precision mediump float;","attribute vec3 V3_POSITION;","attribute vec3 V3_COLOR;","varying vec3 F_COLOR;","uniform mat4 M4_POSITION;","","void main()","{","\tF_COLOR = V3_COLOR;","\tgl_Position = M4_POSITION * vec4(V3_POSITION, 1.0);","}"].join("\n");
 render_gl_programs_GLAutoMap.fragment_source = ["precision mediump float;","varying vec3 F_COLOR;","","void main()","{"," \tgl_FragColor = vec4(F_COLOR, 1.0);","}"].join("\n");
-render_gl_programs_GLFirstPerson.vertex_source = ["precision mediump float;","attribute vec3 V3_POSITION;","attribute vec3 V3_COLOR;","varying vec3 F_COLOR;","uniform mat4 M4_World;","uniform mat4 M4_View;","uniform mat4 M4_Proj;","","void main()","{","\tF_COLOR = V3_COLOR;","\tgl_Position = M4_Proj * M4_View * M4_World * vec4(V3_POSITION, 1.0);","}"].join("\n");
-render_gl_programs_GLFirstPerson.fragment_source = ["precision mediump float;","varying vec3 F_COLOR;","","void main()","{"," \tgl_FragColor = vec4(F_COLOR, 1.0);","}"].join("\n");
+render_gl_programs_GLMapGeometry.vertex_source = ["precision mediump float;","attribute vec3 V3_POSITION;","attribute vec4 V4_COLOR;","varying vec4 F_COLOR;","uniform mat4 M4_World;","uniform mat4 M4_View;","uniform mat4 M4_Proj;","","void main()","{","\tF_COLOR = V4_COLOR;","\tgl_Position = M4_Proj * M4_View * M4_World * vec4(V3_POSITION, 1.0);","}"].join("\n");
+render_gl_programs_GLMapGeometry.fragment_source = ["precision mediump float;","varying vec4 F_COLOR;","","void main()","{"," \tgl_FragColor = F_COLOR;","}"].join("\n");
 ApplicationMain.main();
 })(typeof exports != "undefined" ? exports : typeof window != "undefined" ? window : typeof self != "undefined" ? self : this, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
+//# sourceMappingURL=HxDoom.js.map
 });
 $hx_exports.lime = $hx_exports.lime || {};
 $hx_exports.lime.$scripts = $hx_exports.lime.$scripts || {};
