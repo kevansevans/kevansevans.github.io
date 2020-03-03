@@ -870,9 +870,9 @@ ApplicationMain.create = function(config) {
 	var app = new Main();
 	var _this = app.meta;
 	if(__map_reserved["build"] != null) {
-		_this.setReserved("build","183");
+		_this.setReserved("build","3");
 	} else {
-		_this.h["build"] = "183";
+		_this.h["build"] = "3";
 	}
 	var _this1 = app.meta;
 	if(__map_reserved["company"] != null) {
@@ -1059,6 +1059,8 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 			if(this.gl_scene == null) {
 				this.gl_scene = new render_citrusGL_GLHandler(context,this.__window);
 				this.gl_scene.programMapGeometry.buildMapGeometry();
+			} else {
+				this.gl_scene.render_scene();
 			}
 			break;
 		default:
@@ -1078,9 +1080,11 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 	,onKeyUp: function(keyCode,modifier) {
 		lime_app_Application.prototype.onKeyUp.call(this,keyCode,modifier);
 		switch(keyCode) {
-		case 9:case 32:
+		case 9:
 			hxdoom_common_Environment.IS_IN_AUTOMAP = !hxdoom_common_Environment.IS_IN_AUTOMAP;
 			hxdoom_common_Environment.NEEDS_TO_REBUILD_AUTOMAP = true;
+			break;
+		case 32:
 			break;
 		case 49:
 			this.hxdoom.loadMap(0);
@@ -1117,6 +1121,14 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 		case 57:
 			this.hxdoom.loadMap(8);
 			this.gl_scene.programMapGeometry.buildMapGeometry();
+			break;
+		case 105:
+			hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER += 15;
+			haxe_Log.trace(hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER,{ fileName : "src/Main.hx", lineNumber : 171, className : "Main", methodName : "onKeyUp"});
+			break;
+		case 107:
+			hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER -= 15;
+			haxe_Log.trace(hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER,{ fileName : "src/Main.hx", lineNumber : 174, className : "Main", methodName : "onKeyUp"});
 			break;
 		case 115:case 1073741905:
 			hxdoom_common_Environment.PLAYER_MOVING_BACKWARD = false;
@@ -1191,9 +1203,6 @@ Main.prototype = $extend(lime_app_Application.prototype,{
 				hxdoom_Engine.ACTIVEMAP.setVisibleSegments();
 			}
 		}
-		if(this.gl_scene != null) {
-			this.gl_scene.render_scene();
-		}
 		this.framecount += 1;
 		this.mscount += deltaTime;
 		if(this.framecount >= this.__window.__backend.getFrameRate()) {
@@ -1222,7 +1231,7 @@ ManifestResources.init = function(config) {
 		ManifestResources.rootPath = "./";
 	}
 	var bundle;
-	var data = "{\"name\":null,\"assets\":\"aoy4:pathy33:assets%2Fimg%2FCitrusDoomIcon.pngy4:sizei3340y4:typey5:IMAGEy2:idR1y7:preloadtgoR0y26:assets%2Fjson%2Fcheats.txtR2i1111R3y4:TEXTR5R7R6tgoR0y30:assets%2Fshareware%2FDOOM1.WADR2i4196020R3y6:BINARYR5R9R6tgoR0y17:IWADS%2FDOOM1.WADR2i4196020R3R10R5R11R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
+	var data = "{\"name\":null,\"assets\":\"aoy4:pathy17:assets%2Ficon.pngy4:sizei4742y4:typey5:IMAGEy2:idR1y7:preloadtgoR0y26:assets%2Fjson%2Fcheats.txtR2i1111R3y4:TEXTR5R7R6tgoR0y30:assets%2Fshareware%2FDOOM1.WADR2i4196020R3y6:BINARYR5R9R6tgoR0y17:IWADS%2FDOOM1.WADR2i4196020R3R10R5R11R6tgh\",\"rootPath\":null,\"version\":2,\"libraryArgs\":[],\"libraryType\":null}";
 	var manifest = lime_utils_AssetManifest.parse(data,ManifestResources.rootPath);
 	var library = lime_utils_AssetLibrary.fromManifest(manifest);
 	lime_utils_Assets.registerLibrary("default",library);
@@ -3663,7 +3672,7 @@ var hxdoom_Engine = function() {
 $hxClasses["hxdoom.Engine"] = hxdoom_Engine;
 hxdoom_Engine.__name__ = "hxdoom.Engine";
 hxdoom_Engine.log = function(_msg) {
-	haxe_Log.trace(_msg,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 82, className : "hxdoom.Engine", methodName : "log"});
+	haxe_Log.trace(_msg,{ fileName : "hxdoom/Engine.hx", lineNumber : 82, className : "hxdoom.Engine", methodName : "log"});
 };
 hxdoom_Engine.prototype = {
 	loadMap: function(_index) {
@@ -3989,7 +3998,7 @@ hxdoom_common_CheatHandler.prototype = {
 								if(_g17 == "o") {
 									if(_g18 == "l") {
 										if(_g19 == "d") {
-											haxe_Log.trace("case not handled: anticipatekitemgive",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: anticipatekitemgive",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -4011,17 +4020,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4044,7 +4053,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "a":
 							if(_g18 == "l") {
 								if(_g19 == "l") {
-									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4055,7 +4064,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "s":
 							if(_g18 == "h") {
 								if(_g19 == "h") {
-									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4072,17 +4081,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4116,11 +4125,11 @@ hxdoom_common_CheatHandler.prototype = {
 						case "k":
 							if(_g18 == "f") {
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4131,7 +4140,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "m":
 							if(_g18 == "u") {
 								if(_g19 == "s") {
-									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4148,112 +4157,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
-				case "k":
-					if(_g16 == "i") {
-						switch(_g17) {
-						case "d":
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-							break;
-						case "t":
-							if(_g18 == "t") {
-								if(_g19 == "y") {
-									haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-					} else {
-						this.doNothing();
-					}
-					break;
-				case "r":
-					switch(_g16) {
-					case "a":
-						if(_g17 == "m") {
-							if(_g18 == "b") {
-								if(_g19 == "o") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4275,17 +4189,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4310,7 +4224,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "a":
 							if(_g18 == "l") {
 								if(_g19 == "l") {
-									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4321,7 +4235,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "s":
 							if(_g18 == "h") {
 								if(_g19 == "h") {
-									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4338,17 +4252,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4382,11 +4296,11 @@ hxdoom_common_CheatHandler.prototype = {
 						case "k":
 							if(_g18 == "f") {
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4397,7 +4311,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "m":
 							if(_g18 == "u") {
 								if(_g19 == "s") {
-									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4414,17 +4328,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4440,50 +4354,6 @@ hxdoom_common_CheatHandler.prototype = {
 						this.doNothing();
 					}
 					break;
-				case "k":
-					if(_g16 == "i") {
-						switch(_g17) {
-						case "d":
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-							break;
-						case "t":
-							if(_g18 == "t") {
-								if(_g19 == "y") {
-									haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-					} else {
-						this.doNothing();
-					}
-					break;
 				case "m":
 					switch(_g16) {
 					case "i":
@@ -4491,17 +4361,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4536,74 +4406,23 @@ hxdoom_common_CheatHandler.prototype = {
 						this.doNothing();
 					}
 					break;
-				case "r":
-					switch(_g16) {
-					case "a":
-						if(_g17 == "m") {
-							if(_g18 == "b") {
-								if(_g19 == "o") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
 				default:
 					if(_g16 == "i") {
 						if(_g17 == "d") {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4628,14 +4447,14 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "e":
 								if(_g19 == "v") {
-									haxe_Log.trace("case not handled: anticipatelevelchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: anticipatelevelchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "i":
 								if(_g19 == "p") {
-									haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: disablecollision",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4652,17 +4471,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4685,7 +4504,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "a":
 							if(_g18 == "l") {
 								if(_g19 == "l") {
-									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4696,7 +4515,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "s":
 							if(_g18 == "h") {
 								if(_g19 == "h") {
-									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4713,17 +4532,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4757,11 +4576,11 @@ hxdoom_common_CheatHandler.prototype = {
 						case "k":
 							if(_g18 == "f") {
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4772,7 +4591,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "m":
 							if(_g18 == "u") {
 								if(_g19 == "s") {
-									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4789,112 +4608,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
-				case "k":
-					if(_g16 == "i") {
-						switch(_g17) {
-						case "d":
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-							break;
-						case "t":
-							if(_g18 == "t") {
-								if(_g19 == "y") {
-									haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-					} else {
-						this.doNothing();
-					}
-					break;
-				case "r":
-					switch(_g16) {
-					case "a":
-						if(_g17 == "m") {
-							if(_g18 == "b") {
-								if(_g19 == "o") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -4921,17 +4645,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -4947,7 +4671,7 @@ hxdoom_common_CheatHandler.prototype = {
 										if(_g17 == "o") {
 											if(_g18 == "p") {
 												if(_g19 == "d") {
-													haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: disablecollision",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -4966,17 +4690,17 @@ hxdoom_common_CheatHandler.prototype = {
 										switch(_g18) {
 										case "d":
 											if(_g19 == "t") {
-												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
 											break;
 										case "f":
 											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -4995,17 +4719,17 @@ hxdoom_common_CheatHandler.prototype = {
 									switch(_g18) {
 									case "d":
 										if(_g19 == "t") {
-											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
 										break;
 									case "f":
 										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -5024,17 +4748,17 @@ hxdoom_common_CheatHandler.prototype = {
 								switch(_g18) {
 								case "d":
 									if(_g19 == "t") {
-										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
 									break;
 								case "f":
 									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -5053,17 +4777,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -5084,17 +4808,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -5123,7 +4847,7 @@ hxdoom_common_CheatHandler.prototype = {
 										case "a":
 											if(_g18 == "l") {
 												if(_g19 == "l") {
-													haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5134,7 +4858,7 @@ hxdoom_common_CheatHandler.prototype = {
 										case "s":
 											if(_g18 == "h") {
 												if(_g19 == "h") {
-													haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5151,17 +4875,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5195,11 +4919,11 @@ hxdoom_common_CheatHandler.prototype = {
 										case "k":
 											if(_g18 == "f") {
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5210,7 +4934,7 @@ hxdoom_common_CheatHandler.prototype = {
 										case "m":
 											if(_g18 == "u") {
 												if(_g19 == "s") {
-													haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5227,17 +4951,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5253,50 +4977,6 @@ hxdoom_common_CheatHandler.prototype = {
 										this.doNothing();
 									}
 									break;
-								case "k":
-									if(_g16 == "i") {
-										switch(_g17) {
-										case "d":
-											switch(_g18) {
-											case "d":
-												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											case "f":
-												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											default:
-												this.doNothing();
-											}
-											break;
-										case "t":
-											if(_g18 == "t") {
-												if(_g19 == "y") {
-													haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-											} else {
-												this.doNothing();
-											}
-											break;
-										default:
-											this.doNothing();
-										}
-									} else {
-										this.doNothing();
-									}
-									break;
 								case "p":
 									switch(_g16) {
 									case "i":
@@ -5304,17 +4984,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5330,62 +5010,11 @@ hxdoom_common_CheatHandler.prototype = {
 										if(_g17 == "e") {
 											if(_g18 == "r") {
 												if(_g19 == "s") {
-													haxe_Log.trace("case not handled: grantitem:doomchainsaw",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantitem:doomchainsaw",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 											} else {
-												this.doNothing();
-											}
-										} else {
-											this.doNothing();
-										}
-										break;
-									default:
-										this.doNothing();
-									}
-									break;
-								case "r":
-									switch(_g16) {
-									case "a":
-										if(_g17 == "m") {
-											if(_g18 == "b") {
-												if(_g19 == "o") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-											} else {
-												this.doNothing();
-											}
-										} else {
-											this.doNothing();
-										}
-										break;
-									case "i":
-										if(_g17 == "d") {
-											switch(_g18) {
-											case "d":
-												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											case "f":
-												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											default:
 												this.doNothing();
 											}
 										} else {
@@ -5402,17 +5031,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5436,7 +5065,7 @@ hxdoom_common_CheatHandler.prototype = {
 										case "a":
 											if(_g18 == "l") {
 												if(_g19 == "l") {
-													haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5447,7 +5076,7 @@ hxdoom_common_CheatHandler.prototype = {
 										case "s":
 											if(_g18 == "h") {
 												if(_g19 == "h") {
-													haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5464,17 +5093,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5508,11 +5137,11 @@ hxdoom_common_CheatHandler.prototype = {
 										case "k":
 											if(_g18 == "f") {
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5523,7 +5152,7 @@ hxdoom_common_CheatHandler.prototype = {
 										case "m":
 											if(_g18 == "u") {
 												if(_g19 == "s") {
-													haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5540,112 +5169,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											default:
-												this.doNothing();
-											}
-										} else {
-											this.doNothing();
-										}
-										break;
-									default:
-										this.doNothing();
-									}
-									break;
-								case "k":
-									if(_g16 == "i") {
-										switch(_g17) {
-										case "d":
-											switch(_g18) {
-											case "d":
-												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											case "f":
-												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											default:
-												this.doNothing();
-											}
-											break;
-										case "t":
-											if(_g18 == "t") {
-												if(_g19 == "y") {
-													haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-											} else {
-												this.doNothing();
-											}
-											break;
-										default:
-											this.doNothing();
-										}
-									} else {
-										this.doNothing();
-									}
-									break;
-								case "r":
-									switch(_g16) {
-									case "a":
-										if(_g17 == "m") {
-											if(_g18 == "b") {
-												if(_g19 == "o") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-											} else {
-												this.doNothing();
-											}
-										} else {
-											this.doNothing();
-										}
-										break;
-									case "i":
-										if(_g17 == "d") {
-											switch(_g18) {
-											case "d":
-												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												} else {
-													this.doNothing();
-												}
-												break;
-											case "f":
-												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5667,17 +5201,17 @@ hxdoom_common_CheatHandler.prototype = {
 											switch(_g18) {
 											case "d":
 												if(_g19 == "t") {
-													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
 												break;
 											case "f":
 												if(_g19 == "a") {
-													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+													haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 												} else {
 													this.doNothing();
 												}
@@ -5702,7 +5236,7 @@ hxdoom_common_CheatHandler.prototype = {
 									case "a":
 										if(_g18 == "l") {
 											if(_g19 == "l") {
-												haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5713,7 +5247,7 @@ hxdoom_common_CheatHandler.prototype = {
 									case "s":
 										if(_g18 == "h") {
 											if(_g19 == "h") {
-												haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5730,17 +5264,17 @@ hxdoom_common_CheatHandler.prototype = {
 										switch(_g18) {
 										case "d":
 											if(_g19 == "t") {
-												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
 											break;
 										case "f":
 											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5774,11 +5308,11 @@ hxdoom_common_CheatHandler.prototype = {
 									case "k":
 										if(_g18 == "f") {
 											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5789,7 +5323,7 @@ hxdoom_common_CheatHandler.prototype = {
 									case "m":
 										if(_g18 == "u") {
 											if(_g19 == "s") {
-												haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5806,112 +5340,17 @@ hxdoom_common_CheatHandler.prototype = {
 										switch(_g18) {
 										case "d":
 											if(_g19 == "t") {
-												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
 											break;
 										case "f":
 											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											} else {
-												this.doNothing();
-											}
-											break;
-										default:
-											this.doNothing();
-										}
-									} else {
-										this.doNothing();
-									}
-									break;
-								default:
-									this.doNothing();
-								}
-								break;
-							case "k":
-								if(_g16 == "i") {
-									switch(_g17) {
-									case "d":
-										switch(_g18) {
-										case "d":
-											if(_g19 == "t") {
-												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											} else {
-												this.doNothing();
-											}
-											break;
-										case "f":
-											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											} else {
-												this.doNothing();
-											}
-											break;
-										default:
-											this.doNothing();
-										}
-										break;
-									case "t":
-										if(_g18 == "t") {
-											if(_g19 == "y") {
-												haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											} else {
-												this.doNothing();
-											}
-										} else {
-											this.doNothing();
-										}
-										break;
-									default:
-										this.doNothing();
-									}
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "r":
-								switch(_g16) {
-								case "a":
-									if(_g17 == "m") {
-										if(_g18 == "b") {
-											if(_g19 == "o") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											} else {
-												this.doNothing();
-											}
-										} else {
-											this.doNothing();
-										}
-									} else {
-										this.doNothing();
-									}
-									break;
-								case "i":
-									if(_g17 == "d") {
-										switch(_g18) {
-										case "d":
-											if(_g19 == "t") {
-												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											} else {
-												this.doNothing();
-											}
-											break;
-										case "f":
-											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5933,17 +5372,17 @@ hxdoom_common_CheatHandler.prototype = {
 										switch(_g18) {
 										case "d":
 											if(_g19 == "t") {
-												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
 											break;
 										case "f":
 											if(_g19 == "a") {
-												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+												haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 											} else {
 												this.doNothing();
 											}
@@ -5968,7 +5407,7 @@ hxdoom_common_CheatHandler.prototype = {
 								case "a":
 									if(_g18 == "l") {
 										if(_g19 == "l") {
-											haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -5979,7 +5418,7 @@ hxdoom_common_CheatHandler.prototype = {
 								case "s":
 									if(_g18 == "h") {
 										if(_g19 == "h") {
-											haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -5996,17 +5435,17 @@ hxdoom_common_CheatHandler.prototype = {
 									switch(_g18) {
 									case "d":
 										if(_g19 == "t") {
-											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
 										break;
 									case "f":
 										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -6040,11 +5479,11 @@ hxdoom_common_CheatHandler.prototype = {
 								case "k":
 									if(_g18 == "f") {
 										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -6055,7 +5494,7 @@ hxdoom_common_CheatHandler.prototype = {
 								case "m":
 									if(_g18 == "u") {
 										if(_g19 == "s") {
-											haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -6072,112 +5511,17 @@ hxdoom_common_CheatHandler.prototype = {
 									switch(_g18) {
 									case "d":
 										if(_g19 == "t") {
-											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
 										break;
 									case "f":
 										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										} else {
-											this.doNothing();
-										}
-										break;
-									default:
-										this.doNothing();
-									}
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-							break;
-						case "k":
-							if(_g16 == "i") {
-								switch(_g17) {
-								case "d":
-									switch(_g18) {
-									case "d":
-										if(_g19 == "t") {
-											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										} else {
-											this.doNothing();
-										}
-										break;
-									case "f":
-										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										} else {
-											this.doNothing();
-										}
-										break;
-									default:
-										this.doNothing();
-									}
-									break;
-								case "t":
-									if(_g18 == "t") {
-										if(_g19 == "y") {
-											haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										} else {
-											this.doNothing();
-										}
-									} else {
-										this.doNothing();
-									}
-									break;
-								default:
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						case "r":
-							switch(_g16) {
-							case "a":
-								if(_g17 == "m") {
-									if(_g18 == "b") {
-										if(_g19 == "o") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										} else {
-											this.doNothing();
-										}
-									} else {
-										this.doNothing();
-									}
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "i":
-								if(_g17 == "d") {
-									switch(_g18) {
-									case "d":
-										if(_g19 == "t") {
-											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										} else {
-											this.doNothing();
-										}
-										break;
-									case "f":
-										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -6199,17 +5543,17 @@ hxdoom_common_CheatHandler.prototype = {
 									switch(_g18) {
 									case "d":
 										if(_g19 == "t") {
-											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
 										break;
 									case "f":
 										if(_g19 == "a") {
-											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+											haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 										} else {
 											this.doNothing();
 										}
@@ -6234,7 +5578,7 @@ hxdoom_common_CheatHandler.prototype = {
 							case "a":
 								if(_g18 == "l") {
 									if(_g19 == "l") {
-										haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6245,7 +5589,7 @@ hxdoom_common_CheatHandler.prototype = {
 							case "s":
 								if(_g18 == "h") {
 									if(_g19 == "h") {
-										haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6262,17 +5606,17 @@ hxdoom_common_CheatHandler.prototype = {
 								switch(_g18) {
 								case "d":
 									if(_g19 == "t") {
-										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
 									break;
 								case "f":
 									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6306,11 +5650,11 @@ hxdoom_common_CheatHandler.prototype = {
 							case "k":
 								if(_g18 == "f") {
 									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6321,7 +5665,7 @@ hxdoom_common_CheatHandler.prototype = {
 							case "m":
 								if(_g18 == "u") {
 									if(_g19 == "s") {
-										haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6338,112 +5682,17 @@ hxdoom_common_CheatHandler.prototype = {
 								switch(_g18) {
 								case "d":
 									if(_g19 == "t") {
-										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
 									break;
 								case "f":
 									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									} else {
-										this.doNothing();
-									}
-									break;
-								default:
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-						break;
-					case "k":
-						if(_g16 == "i") {
-							switch(_g17) {
-							case "d":
-								switch(_g18) {
-								case "d":
-									if(_g19 == "t") {
-										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									} else {
-										this.doNothing();
-									}
-									break;
-								case "f":
-									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									} else {
-										this.doNothing();
-									}
-									break;
-								default:
-									this.doNothing();
-								}
-								break;
-							case "t":
-								if(_g18 == "t") {
-									if(_g19 == "y") {
-										haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									} else {
-										this.doNothing();
-									}
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "r":
-						switch(_g16) {
-						case "a":
-							if(_g17 == "m") {
-								if(_g18 == "b") {
-									if(_g19 == "o") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									} else {
-										this.doNothing();
-									}
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						case "i":
-							if(_g17 == "d") {
-								switch(_g18) {
-								case "d":
-									if(_g19 == "t") {
-										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									} else {
-										this.doNothing();
-									}
-									break;
-								case "f":
-									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6465,17 +5714,17 @@ hxdoom_common_CheatHandler.prototype = {
 								switch(_g18) {
 								case "d":
 									if(_g19 == "t") {
-										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
 									break;
 								case "f":
 									if(_g19 == "a") {
-										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+										haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 									} else {
 										this.doNothing();
 									}
@@ -6489,291 +5738,6 @@ hxdoom_common_CheatHandler.prototype = {
 						} else {
 							this.doNothing();
 						}
-					}
-				}
-				break;
-			case "u":
-				switch(_g15) {
-				case "f":
-					switch(_g16) {
-					case "h":
-						switch(_g17) {
-						case "a":
-							if(_g18 == "l") {
-								if(_g19 == "l") {
-									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						case "s":
-							if(_g18 == "h") {
-								if(_g19 == "h") {
-									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
-				case "i":
-					switch(_g16) {
-					case "c":
-						if(_g13 == "q") {
-							if(_g17 == "k") {
-								if(_g18 == "e") {
-									if(_g19 == "n") {
-										hxdoom_common_GameActions.cheat_degreeless();
-									} else {
-										this.doNothing();
-									}
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "d":
-						switch(_g17) {
-						case "d":
-							if(_g18 == "q") {
-								if(_g19 == "d") {
-									hxdoom_common_GameActions.cheat_degreeless();
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						case "k":
-							if(_g18 == "f") {
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						case "m":
-							if(_g18 == "u") {
-								if(_g19 == "s") {
-									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
-				case "k":
-					if(_g16 == "i") {
-						switch(_g17) {
-						case "d":
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-							break;
-						case "t":
-							if(_g18 == "t") {
-								if(_g19 == "y") {
-									haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-					} else {
-						this.doNothing();
-					}
-					break;
-				case "r":
-					switch(_g16) {
-					case "a":
-						if(_g17 == "m") {
-							if(_g18 == "b") {
-								if(_g19 == "o") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
-				default:
-					if(_g16 == "i") {
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-					} else {
-						this.doNothing();
 					}
 				}
 				break;
@@ -6786,7 +5750,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "a":
 							if(_g18 == "l") {
 								if(_g19 == "l") {
-									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: killall:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -6797,7 +5761,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "s":
 							if(_g18 == "h") {
 								if(_g19 == "h") {
-									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: makeblind:enemies",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -6814,17 +5778,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -6858,11 +5822,11 @@ hxdoom_common_CheatHandler.prototype = {
 						case "k":
 							if(_g18 == "f") {
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantallkeys",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -6873,7 +5837,7 @@ hxdoom_common_CheatHandler.prototype = {
 						case "m":
 							if(_g18 == "u") {
 								if(_g19 == "s") {
-									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: anticipatemusicchange",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -6890,112 +5854,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					default:
-						this.doNothing();
-					}
-					break;
-				case "k":
-					if(_g16 == "i") {
-						switch(_g17) {
-						case "d":
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							default:
-								this.doNothing();
-							}
-							break;
-						case "t":
-							if(_g18 == "t") {
-								if(_g19 == "y") {
-									haxe_Log.trace("case not handled: disablecollision",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-							break;
-						default:
-							this.doNothing();
-						}
-					} else {
-						this.doNothing();
-					}
-					break;
-				case "r":
-					switch(_g16) {
-					case "a":
-						if(_g17 == "m") {
-							if(_g18 == "b") {
-								if(_g19 == "o") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-							} else {
-								this.doNothing();
-							}
-						} else {
-							this.doNothing();
-						}
-						break;
-					case "i":
-						if(_g17 == "d") {
-							switch(_g18) {
-							case "d":
-								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-								} else {
-									this.doNothing();
-								}
-								break;
-							case "f":
-								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -7017,17 +5886,17 @@ hxdoom_common_CheatHandler.prototype = {
 							switch(_g18) {
 							case "d":
 								if(_g19 == "t") {
-									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: cyclemapdetail",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
 								break;
 							case "f":
 								if(_g19 == "a") {
-									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantweapons",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
-									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "src/hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullammo",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantweapons",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullhealth",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
+									haxe_Log.trace("case not handled: grantfullarmor",{ fileName : "hxdoom/common/CheatHandler.hx", lineNumber : 31, className : "hxdoom.common.CheatHandler", methodName : "logKeyStroke"});
 								} else {
 									this.doNothing();
 								}
@@ -7085,29 +5954,30 @@ var hxdoom_common_GameActions = function() { };
 $hxClasses["hxdoom.common.GameActions"] = hxdoom_common_GameActions;
 hxdoom_common_GameActions.__name__ = "hxdoom.common.GameActions";
 hxdoom_common_GameActions.cheat_logPlayerPosition = function() {
-	haxe_Log.trace("x: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 82, className : "hxdoom.Engine", methodName : "log"});
-	haxe_Log.trace("y: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,{ fileName : "src/hxdoom/Engine.hx", lineNumber : 82, className : "hxdoom.Engine", methodName : "log"});
+	haxe_Log.trace("x: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].xpos,{ fileName : "hxdoom/Engine.hx", lineNumber : 82, className : "hxdoom.Engine", methodName : "log"});
+	haxe_Log.trace("y: " + hxdoom_Engine.ACTIVEMAP.actors_players[0].ypos,{ fileName : "hxdoom/Engine.hx", lineNumber : 82, className : "hxdoom.Engine", methodName : "log"});
 };
 hxdoom_common_GameActions.cheat_degreeless = function() {
 	hxdoom_common_Environment.CHEAT_INVULNERABILITY = !hxdoom_common_Environment.CHEAT_INVULNERABILITY;
 	if(hxdoom_common_Environment.CHEAT_INVULNERABILITY) {
-		haxe_Log.trace("Degreeless mode on",{ fileName : "src/hxdoom/common/GameActions.hx", lineNumber : 21, className : "hxdoom.common.GameActions", methodName : "cheat_degreeless"});
+		haxe_Log.trace("Degreeless mode on",{ fileName : "hxdoom/common/GameActions.hx", lineNumber : 21, className : "hxdoom.common.GameActions", methodName : "cheat_degreeless"});
 	} else {
-		haxe_Log.trace("Degreeless mode off",{ fileName : "src/hxdoom/common/GameActions.hx", lineNumber : 23, className : "hxdoom.common.GameActions", methodName : "cheat_degreeless"});
+		haxe_Log.trace("Degreeless mode off",{ fileName : "hxdoom/common/GameActions.hx", lineNumber : 23, className : "hxdoom.common.GameActions", methodName : "cheat_degreeless"});
 	}
 };
 hxdoom_common_GameActions.cheat_clipping = function() {
 	hxdoom_common_Environment.CHEAT_CLIPPING = !hxdoom_common_Environment.CHEAT_CLIPPING;
 	if(hxdoom_common_Environment.CHEAT_CLIPPING) {
-		haxe_Log.trace("Noclip on",{ fileName : "src/hxdoom/common/GameActions.hx", lineNumber : 30, className : "hxdoom.common.GameActions", methodName : "cheat_clipping"});
+		haxe_Log.trace("Noclip on",{ fileName : "hxdoom/common/GameActions.hx", lineNumber : 30, className : "hxdoom.common.GameActions", methodName : "cheat_clipping"});
 	} else {
-		haxe_Log.trace("Noclip off",{ fileName : "src/hxdoom/common/GameActions.hx", lineNumber : 32, className : "hxdoom.common.GameActions", methodName : "cheat_clipping"});
+		haxe_Log.trace("Noclip off",{ fileName : "hxdoom/common/GameActions.hx", lineNumber : 32, className : "hxdoom.common.GameActions", methodName : "cheat_clipping"});
 	}
 };
 var hxdoom_core_BSPMap = function(_dirOffset) {
 	this.scanning = false;
 	this.hor_walldraw = [];
 	this.hwidth = 320;
+	this.spanlimit = 180;
 	this.dirOffset = _dirOffset;
 	this.things = [];
 	this.vertexes = [];
@@ -7117,14 +5987,6 @@ var hxdoom_core_BSPMap = function(_dirOffset) {
 	this.segments = [];
 	this.sidedefs = [];
 	this.sectors = [];
-	this.node_visited = [];
-	this.node_visited.length = this.nodes.length;
-	var _g = 0;
-	var _g1 = this.nodes.length;
-	while(_g < _g1) {
-		var n = _g++;
-		this.node_visited[n] = false;
-	}
 };
 $hxClasses["hxdoom.core.BSPMap"] = hxdoom_core_BSPMap;
 hxdoom_core_BSPMap.__name__ = "hxdoom.core.BSPMap";
@@ -7144,73 +6006,27 @@ hxdoom_core_BSPMap.prototype = {
 		}
 	}
 	,setVisibleSegments: function() {
-		this.scanning = true;
 		var _g = 0;
 		var _g1 = this.hwidth + 1;
 		while(_g < _g1) {
 			var x = _g++;
 			this.hor_walldraw[x] = false;
 		}
-		var _g2 = 0;
-		var _g3 = this.segments;
-		while(_g2 < _g3.length) {
-			var seg = _g3[_g2];
-			++_g2;
-			seg.visible = false;
-		}
-		var _g4 = 0;
-		var _g5 = this.node_visited.length;
-		while(_g4 < _g5) {
-			var n = _g4++;
-			this.node_visited[n] = false;
-		}
 		this.recursiveNodeTraversalVisibility(this.nodes.length - 1);
 	}
 	,recursiveNodeTraversalVisibility: function(_nodeIndex) {
-		if(!this.scanning) {
+		if((_nodeIndex & hxdoom_lumps_map_Node.SUBSECTORIDENTIFIER) > 0) {
+			this.subsectorVisibilityCheck(_nodeIndex & ~hxdoom_lumps_map_Node.SUBSECTORIDENTIFIER);
 			return;
 		}
-		this.node_visited[_nodeIndex] = true;
 		var node = this.nodes[_nodeIndex];
-		var fronsubsec = false;
-		var backsubsec = false;
-		if(this.node_visited[node.frontChildID] && this.node_visited[node.backChildID]) {
-			if(node.parent == -1) {
-				return;
-			}
-			this.recursiveNodeTraversalVisibility(node.parent);
-			return;
-		}
-		if(this.node_visited[node.frontChildID]) {
-			fronsubsec = true;
-		}
-		if(this.node_visited[node.backChildID]) {
-			backsubsec = true;
-		}
-		if((node.frontChildID & hxdoom_lumps_map_Node.SUBSECTORIDENTIFIER) > 0) {
-			fronsubsec = true;
-			this.subsectorVisibilityCheck(node.frontChildID & ~hxdoom_lumps_map_Node.SUBSECTORIDENTIFIER);
-		}
-		if((node.backChildID & hxdoom_lumps_map_Node.SUBSECTORIDENTIFIER) > 0) {
-			backsubsec = true;
-			this.subsectorVisibilityCheck(node.backChildID & ~hxdoom_lumps_map_Node.SUBSECTORIDENTIFIER);
-		}
-		if(fronsubsec && backsubsec) {
-			this.recursiveNodeTraversalVisibility(node.parent);
-			return;
-		}
-		if(fronsubsec && !backsubsec) {
-			this.recursiveNodeTraversalVisibility(node.backChildID);
-			return;
-		} else if(!fronsubsec && backsubsec) {
-			this.recursiveNodeTraversalVisibility(node.frontChildID);
-			return;
-		}
 		var isOnBack = this.isPointOnBackSide(this.actors_players[0].xpos,this.actors_players[0].ypos,_nodeIndex);
 		if(isOnBack) {
 			this.recursiveNodeTraversalVisibility(node.backChildID);
+			this.recursiveNodeTraversalVisibility(node.frontChildID);
 		} else {
 			this.recursiveNodeTraversalVisibility(node.frontChildID);
+			this.recursiveNodeTraversalVisibility(node.backChildID);
 		}
 	}
 	,subsectorVisibilityCheck: function(_subsector) {
@@ -7221,125 +6037,125 @@ hxdoom_core_BSPMap.prototype = {
 		while(_g < _g1.length) {
 			var segment = _g1[_g];
 			++_g;
-			var _v = player.angleToVertex(segment.get_start()) - player.angle;
+			segment.visible = false;
+			var start = player.angleToVertex(segment.get_start());
+			var end = player.angleToVertex(segment.get_end());
+			var _v = start - end;
 			if(_v > 360) {
 				_v -= 360;
 			}
 			if(_v < 0) {
 				_v += 360;
 			}
-			var startAngle = _v;
-			var _v1 = player.angleToVertex(segment.get_end()) - player.angle;
+			var span = _v;
+			if(span > this.spanlimit) {
+				continue;
+			}
+			var _v1 = start - player.angle;
 			if(_v1 > 360) {
 				_v1 -= 360;
 			}
 			if(_v1 < 0) {
 				_v1 += 360;
 			}
-			var endAngle = _v1;
-			var _v2 = startAngle - endAngle;
+			start = _v1;
+			var _v2 = end - player.angle;
 			if(_v2 > 360) {
 				_v2 -= 360;
 			}
 			if(_v2 < 0) {
 				_v2 += 360;
 			}
-			var span = _v2;
-			var _v3 = startAngle + hxdoom_common_Environment.PLAYER_FOV / 2;
+			end = _v2;
+			var half_fov = hxdoom_common_Environment.PLAYER_FOV / 2;
+			var _v3 = start + half_fov;
 			if(_v3 > 360) {
 				_v3 -= 360;
 			}
 			if(_v3 < 0) {
 				_v3 += 360;
 			}
-			var startAngleLeftFov = _v3;
-			if(startAngleLeftFov > hxdoom_common_Environment.PLAYER_FOV) {
-				var _v4 = startAngleLeftFov - hxdoom_common_Environment.PLAYER_FOV;
+			var start_moved = _v3;
+			if(start_moved > hxdoom_common_Environment.PLAYER_FOV) {
+				if(start_moved > span) {
+					continue;
+				}
+				start = half_fov;
+			}
+			if(segment.lineDef.get_solid()) {
+				var end_moved = half_fov - (end | 0);
+				if(end_moved > hxdoom_common_Environment.PLAYER_FOV) {
+					end = -half_fov;
+				}
+				var _v4 = start + hxdoom_common_Environment.PLAYER_FOV;
 				if(_v4 > 360) {
 					_v4 -= 360;
 				}
 				if(_v4 < 0) {
 					_v4 += 360;
 				}
-				var startAngleMoved = _v4;
-				if(startAngleMoved > span) {
-					continue;
-				}
-				startAngle = hxdoom_common_Environment.PLAYER_FOV / 2;
-			}
-			if(span > 180 || span == 180) {
-				continue;
-			}
-			if(segment.lineDef.get_solid()) {
-				if(hxdoom_common_Environment.PLAYER_FOV / 2 - (endAngle | 0) > hxdoom_common_Environment.PLAYER_FOV) {
-					endAngle = -hxdoom_common_Environment.PLAYER_FOV;
-				}
-				var _v5 = startAngle + 90;
+				start = _v4;
+				var _v5 = end + hxdoom_common_Environment.PLAYER_FOV;
 				if(_v5 > 360) {
 					_v5 -= 360;
 				}
 				if(_v5 < 0) {
 					_v5 += 360;
 				}
-				startAngle = _v5;
-				var _v6 = endAngle + 90;
-				if(_v6 > 360) {
-					_v6 -= 360;
-				}
-				if(_v6 < 0) {
-					_v6 += 360;
-				}
-				endAngle = _v6;
-				var x_start = this.angleToScreen(startAngle);
-				var x_end = this.angleToScreen(endAngle);
-				x_end = Math.min(x_end,this.hwidth) | 0;
+				end = _v5;
+				var x_start = this.angleToScreen(start);
+				var x_end = this.angleToScreen(end);
+				x_end = Math.min(321,x_end) | 0;
 				var _g2 = x_start;
-				var _g11 = x_end;
+				var _g11 = x_end + 1;
 				while(_g2 < _g11) {
 					var x = _g2++;
-					if(this.hor_walldraw[x] == true || this.hor_walldraw[x] == null) {
+					if(this.hor_walldraw[x] == true) {
 						continue;
 					} else {
 						this.hor_walldraw[x] = true;
 						segment.visible = true;
 					}
 				}
+			} else {
+				segment.visible = true;
 			}
 		}
 		this.checkScreenFill();
 	}
 	,checkScreenFill: function() {
+		var pass = 0;
+		var fail = 0;
 		this.hor_walldraw.length = this.hwidth;
 		var _g = 0;
-		var _g1 = this.hwidth + 1;
-		while(_g < _g1) {
+		while(_g < 320) {
 			var x = _g++;
 			if(this.hor_walldraw[x] == true) {
-				continue;
+				++pass;
 			} else {
-				return;
+				++fail;
 			}
 		}
-		this.scanning = false;
+		if(pass >= 320) {
+			haxe_Log.trace(pass,{ fileName : "hxdoom/core/BSPMap.hx", lineNumber : 175, className : "hxdoom.core.BSPMap", methodName : "checkScreenFill", customParams : [fail]});
+		}
 	}
 	,angleToScreen: function(_angle) {
-		var fov = 90;
 		var x = 0;
-		var angle = _angle;
-		if(angle > fov) {
-			var _v = angle - fov;
+		if(_angle > 90) {
+			var _v = _angle - 90;
 			if(_v > 360) {
 				_v -= 360;
 			}
 			if(_v < 0) {
 				_v += 360;
 			}
-			angle = _v;
-			x = (this.hwidth / 2 | 0) - (Math.tan(angle * (Math.PI / 180) * 160) | 0);
+			_angle = _v;
+			x = hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER - Math.round(_angle * (Math.PI / 180) * 160);
 		} else {
-			angle = fov - (angle | 0);
-			x = Math.tan(angle * (Math.PI / 180)) * 160 | 0;
-			x += 160;
+			_angle = 90 - js_Boot.__cast(_angle , Float);
+			x = Math.round(_angle * (Math.PI / 180) * 160);
+			x += hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER;
 		}
 		return x;
 	}
@@ -7804,7 +6620,7 @@ hxdoom_lumps_Iwad.prototype = {
 				}
 				if(this.directories[dir - 9].name == "THINGS" && this.directories[dir - 8].name == "LINEDEFS" && this.directories[dir - 7].name == "SIDEDEFS" && this.directories[dir - 6].name == "VERTEXES" && this.directories[dir - 5].name == "SEGS" && this.directories[dir - 4].name == "SSECTORS" && this.directories[dir - 3].name == "NODES" && this.directories[dir - 2].name == "SECTORS" && this.directories[dir - 1].name == "REJECT" && this.directories[dir].name == "BLOCKMAP") {
 					this.maps.push(new hxdoom_core_BSPMap(dir));
-					this.loadMap(this.maps.length - 1,{ fileName : "src/hxdoom/lumps/Iwad.hx", lineNumber : 107, className : "hxdoom.lumps.Iwad", methodName : "indexMaps"});
+					this.loadMap(this.maps.length - 1,{ fileName : "hxdoom/lumps/Iwad.hx", lineNumber : 107, className : "hxdoom.lumps.Iwad", methodName : "indexMaps"});
 				}
 				break;
 			case "PLAYPAL":
@@ -8285,7 +7101,7 @@ hxdoom_lumps_map_Sector.prototype = {
 	__class__: hxdoom_lumps_map_Sector
 };
 var hxdoom_lumps_map_Segment = function(_lineDefs,_angle,_lineID,_direction,_offset) {
-	this.randswatch = 255 * Math.random() | 0;
+	this.randswatch = (254 * Math.random() | 0) + 1;
 	this.visible = false;
 	this.hasBeenSeen = false;
 	this.r_color = hxdoom_Engine.PLAYPAL.getColor(this.randswatch,0,0,true);
@@ -8303,11 +7119,7 @@ hxdoom_lumps_map_Segment.prototype = {
 		return this.lineDef.start;
 	}
 	,get_sector: function() {
-		if(this.lineDef.backSideDef != null) {
-			return this.lineDef.backSideDef.sector;
-		} else {
-			return this.lineDef.frontSideDef.sector;
-		}
+		return this.lineDef.frontSideDef.sector;
 	}
 	,get_frontSector: function() {
 		return this.lineDef.frontSideDef.sector;
@@ -8367,7 +7179,10 @@ var hxdoom_lumps_map_Vertex = function(_x,_y) {
 $hxClasses["hxdoom.lumps.map.Vertex"] = hxdoom_lumps_map_Vertex;
 hxdoom_lumps_map_Vertex.__name__ = "hxdoom.lumps.map.Vertex";
 hxdoom_lumps_map_Vertex.prototype = {
-	__class__: hxdoom_lumps_map_Vertex
+	toString: function() {
+		return "{x: " + this.xpos + ", y:" + this.ypos + "}";
+	}
+	,__class__: hxdoom_lumps_map_Vertex
 };
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
@@ -23591,7 +22406,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 935434;
+	this.version = 587336;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -35121,7 +33936,7 @@ while(_g2 < _g3) {
 }
 lime_system_CFFI.available = false;
 lime_system_CFFI.enabled = false;
-lime_utils_Log.level = 4;
+lime_utils_Log.level = 3;
 if(typeof console == "undefined") {
 	console = {}
 }
@@ -35141,11 +33956,14 @@ haxe_zip_InflateImpl.LEN_BASE_VAL_TBL = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,3
 haxe_zip_InflateImpl.DIST_EXTRA_BITS_TBL = [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,-1,-1];
 haxe_zip_InflateImpl.DIST_BASE_VAL_TBL = [1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
 haxe_zip_InflateImpl.CODE_LENGTHS_POS = [16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
-hxdoom_common_Environment.PLAYER_FOV = 90;
+hxdoom_common_CheatHandler.json_cheat = "{\r\n\t\"doom\": {\r\n\t\t\"iddqd\": [\r\n      \"pseudoinvul\"\r\n    ],\r\n    \"idspispopd\": [\r\n      \"disablecollision\"\r\n    ],\r\n    \"idclip\": [\r\n      \"disablecollision\"\r\n    ],\r\n    \"idkfa\": [\r\n      \"grantfullammo\",\r\n      \"grantallweapons\",\r\n      \"grantfullhealth\",\r\n      \"grantfullarmor\",\r\n      \"grantallkeys\"\r\n    ],\r\n    \"idfa\": [\r\n      \"grantfullammo\",\r\n      \"grantweapons\",\r\n      \"grantfullhealth\",\r\n      \"grantfullarmor\"\r\n    ],\r\n    \"idclev\": [\r\n      \"anticipatelevelchange\"\r\n    ],\r\n    \"idmus\": [\r\n      \"anticipatemusicchange\"\r\n    ],\r\n    \"idbehold\": [\r\n      \"anticipatekitemgive\"\r\n    ],\r\n    \"idchoppers\": [\r\n      \"grantitem:doomchainsaw\"\r\n    ],\r\n    \"iddt\": [\r\n      \"cyclemapdetail\"\r\n    ],\r\n    \"idmypos\": [\r\n      \"logplayerposition\"\r\n    ],\r\n    \"fhall\": [\r\n      \"killall:enemies\"\r\n    ],\r\n    \"fhshh\": [\r\n      \"makeblind:enemies\"\r\n    ]\r\n\t}\r\n\t}";
 hxdoom_common_Environment.AUTOMAP_ZOOM = 0.001;
+hxdoom_common_Environment.PLAYER_FOV = 110;
+hxdoom_common_Environment.PLAYER_VIEW_HEIGHT = 41;
+hxdoom_common_Environment.SCREEN_DISTANCE_FROM_VIEWER = 0;
+hxdoom_common_Environment.AUTOMAP_ROTATES_WITH_PLAYER = false;
 hxdoom_common_Environment.CHEAT_CLIPPING = false;
 hxdoom_common_Environment.CHEAT_INVULNERABILITY = false;
-hxdoom_common_Environment.AUTOMAP_ROTATES_WITH_PLAYER = false;
 hxdoom_common_Environment.IS_IN_AUTOMAP = false;
 hxdoom_common_Environment.NEEDS_TO_REBUILD_AUTOMAP = false;
 hxdoom_common_Environment.PLAYER_MOVING_FORWARD = false;
@@ -35154,7 +33972,6 @@ hxdoom_common_Environment.PLAYER_STRAFING_LEFT = false;
 hxdoom_common_Environment.PLAYER_STRAFING_RIGHT = false;
 hxdoom_common_Environment.PLAYER_TURNING_LEFT = false;
 hxdoom_common_Environment.PLAYER_TURNING_RIGHT = false;
-hxdoom_common_Environment.PLAYER_VIEW_HEIGHT = 41;
 hxdoom_core_Reader.VERTEX_LUMP_SIZE = 4;
 hxdoom_core_Reader.LINEDEF_LUMP_SIZE = 14;
 hxdoom_core_Reader.THING_LUMP_SIZE = 10;
@@ -36551,7 +35368,6 @@ render_citrusGL_programs_GLMapGeometry.fragment_source = ["precision mediump flo
 ApplicationMain.main();
 })(typeof exports != "undefined" ? exports : typeof window != "undefined" ? window : typeof self != "undefined" ? self : this, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
-//# sourceMappingURL=Citrus%20Doom.js.map
 });
 $hx_exports.lime = $hx_exports.lime || {};
 $hx_exports.lime.$scripts = $hx_exports.lime.$scripts || {};
