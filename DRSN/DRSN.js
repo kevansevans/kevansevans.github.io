@@ -4234,7 +4234,10 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__properties__: $extend(openfl_display_DisplayObjectContainer.prototype.__properties__,{get_graphics:"get_graphics",set_buttonMode:"set_buttonMode",get_buttonMode:"get_buttonMode"})
 });
 var Main = function() {
+	var _gthis = this;
 	openfl_display_Sprite.call(this);
+	haxe_ui_Toolkit.set_scaleX(1.25);
+	haxe_ui_Toolkit.set_scaleY(1.25);
 	haxe_ui_Toolkit.init();
 	this.roottab = new haxe_ui_containers_TabView();
 	this.addChild(this.roottab);
@@ -4244,6 +4247,17 @@ var Main = function() {
 	this.engines = new pages_Engines();
 	this.roottab.addComponent(this.home);
 	this.roottab.addComponent(this.engines);
+	this.roottab.set_onChange(function(e) {
+		switch(_gthis.roottab.get_selectedPage().get_text().toUpperCase()) {
+		case "ENGINES":
+			_gthis.engines.startLoading();
+			break;
+		case "HOME":
+			break;
+		default:
+			haxe_Log.trace("No handler!",{ fileName : "src/Main.hx", lineNumber : 51, className : "Main", methodName : "new", customParams : [_gthis.roottab.get_selectedPage()]});
+		}
+	});
 };
 $hxClasses["Main"] = Main;
 Main.__name__ = "Main";
@@ -57158,7 +57172,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 827823;
+	this.version = 366176;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -59809,37 +59823,47 @@ lime_utils__$UInt8ClampedArray_UInt8ClampedArray_$Impl_$._clamp = function(_in) 
 	}
 };
 var network_RepoBox = function() {
+	this.nextmodule = null;
 	haxe_ui_containers_VBox.call(this);
 	this.set_width(400);
-	this.set_height(300);
 	this.set_backgroundColor(haxe_ui_util__$Color_Color_$Impl_$.fromComponents(136,136,136,255));
 	this.title = new haxe_ui_components_Label();
-	this.title.set_text("GZDoom");
+	this.title.set_text("Loading repository...");
 	this.addComponent(this.title);
+	this.version = new haxe_ui_components_Label();
+	this.addComponent(this.version);
 	this.item_dropdown = new haxe_ui_components_DropDown();
 	this.download_button = new haxe_ui_components_Button();
 	this.download_button.set_text("Download Package");
-	var hbox_download = new haxe_ui_containers_HBox();
+	this.hbox_download = new haxe_ui_containers_HBox();
 	this.dropdown_items = new haxe_ui_data_ArrayDataSource();
-	hbox_download.addComponent(this.item_dropdown);
-	hbox_download.addComponent(this.download_button);
-	this.addComponent(hbox_download);
+	this.hbox_download.addComponent(this.item_dropdown);
+	this.hbox_download.addComponent(this.download_button);
 };
 $hxClasses["network.RepoBox"] = network_RepoBox;
 network_RepoBox.__name__ = "network.RepoBox";
 network_RepoBox.__super__ = haxe_ui_containers_VBox;
 network_RepoBox.prototype = $extend(haxe_ui_containers_VBox.prototype,{
 	items: null
+	,nextmodule: null
 	,title: null
+	,version: null
 	,item_dropdown: null
 	,download_button: null
 	,dropdown_items: null
-	,loadRepo: function(_repository) {
+	,hbox_download: null
+	,repo: null
+	,loadRepo: function() {
 		var _gthis = this;
 		this.items = new haxe_ds_StringMap();
-		var repo = new haxe_http_HttpJs("https://api.github.com/repos/coelckers/gzdoom/releases/latest");
-		repo.onData = function(_packet) {
+		var apiurl = "https://api.github.com/repos/";
+		var repo_loc = HxOverrides.substr(this.repo,this.repo.indexOf(".com/") + 5,this.repo.length);
+		var release = apiurl + repo_loc + "/releases/latest";
+		var http_repo = new haxe_http_HttpJs(release);
+		http_repo.onData = function(_packet) {
 			var data = JSON.parse(_packet);
+			_gthis.title.set_text(data.name);
+			_gthis.version.set_text(data.tag_name);
 			var dlArray = data.assets;
 			var _g = 0;
 			while(_g < dlArray.length) {
@@ -59857,13 +59881,20 @@ network_RepoBox.prototype = $extend(haxe_ui_containers_VBox.prototype,{
 			}
 			_gthis.item_dropdown.set_dataSource(_gthis.dropdown_items);
 			_gthis.item_dropdown.updateComponentDisplay();
+			_gthis.addComponent(_gthis.hbox_download);
+			if(_gthis.nextmodule != null) {
+				_gthis.nextmodule.loadRepo();
+			}
 			_gthis.download_button.set_onClick($bind(_gthis,_gthis.downloadPackage));
 		};
-		repo.onError = function(_packet1) {
-			haxe_Log.trace(_packet1,{ fileName : "src/network/RepoBox.hx", lineNumber : 77, className : "network.RepoBox", methodName : "loadRepo"});
+		http_repo.onError = function(_packet1) {
+			_gthis.title.set_text("Failed to load repository");
+			if(_gthis.nextmodule != null) {
+				_gthis.nextmodule.loadRepo();
+			}
 		};
-		repo.setHeader("User-Agent","DRSN");
-		repo.request();
+		http_repo.setHeader("User-Agent","DRSN");
+		http_repo.request();
 	}
 	,downloadPackage: function(e) {
 		var this1 = this.items;
@@ -106506,26 +106537,49 @@ haxe_lang_Iterable.prototype = {
 	,__class__: haxe_lang_Iterable
 };
 var pages_Engines = function() {
-	this.repo_gzdoom = "https://github.com/coelckers/gzdoom/releases";
+	this.engine_repos = ["https://github.com/coelckers/gzdoom","https://github.com/chocolate-doom/chocolate-doom","https://github.com/fabiangreffrath/crispy-doom"];
+	this.page_loaded = false;
 	haxe_ui_containers_Box.call(this);
 	this.set_text("Engines");
 	this.vscroll = new haxe_ui_containers_VBox();
 	this.addComponent(this.vscroll);
 	this.itemgrid = new haxe_ui_containers_Grid();
 	this.vscroll.addComponent(this.itemgrid);
-	var gzdoom_item = new network_RepoBox();
-	gzdoom_item.loadRepo(this.repo_gzdoom);
-	if(gzdoom_item != null) {
-		this.itemgrid.addComponent(gzdoom_item);
-	}
+	this.repoboxes = [];
 };
 $hxClasses["pages.Engines"] = pages_Engines;
 pages_Engines.__name__ = "pages.Engines";
 pages_Engines.__super__ = haxe_ui_containers_Box;
 pages_Engines.prototype = $extend(haxe_ui_containers_Box.prototype,{
-	repo_gzdoom: null
-	,vscroll: null
+	vscroll: null
 	,itemgrid: null
+	,page_loaded: null
+	,engine_repos: null
+	,repoboxes: null
+	,startLoading: function() {
+		if(!this.page_loaded) {
+			var _g = 0;
+			var _g1 = this.engine_repos;
+			while(_g < _g1.length) {
+				var url = _g1[_g];
+				++_g;
+				var repobox = new network_RepoBox();
+				repobox.repo = url;
+				this.repoboxes.push(repobox);
+			}
+			var _g2 = 0;
+			var _g3 = this.repoboxes.length;
+			while(_g2 < _g3) {
+				var index = _g2++;
+				if(this.repoboxes[index + 1] != null) {
+					this.repoboxes[index].nextmodule = this.repoboxes[index + 1];
+				}
+				this.itemgrid.addComponent(this.repoboxes[index]);
+			}
+			this.repoboxes[0].loadRepo();
+			this.page_loaded = true;
+		}
+	}
 	,registerBehaviours: function() {
 		haxe_ui_containers_Box.prototype.registerBehaviours.call(this);
 	}
