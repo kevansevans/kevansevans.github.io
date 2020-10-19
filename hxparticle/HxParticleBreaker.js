@@ -868,13 +868,13 @@ ApplicationMain.main = function() {
 ApplicationMain.create = function(config) {
 	var app = new openfl_display_Application();
 	ManifestResources.init(config);
-	app.meta.h["build"] = "2";
+	app.meta.h["build"] = "3";
 	app.meta.h["company"] = "Kaelan";
 	app.meta.h["file"] = "HxParticleBreaker";
 	app.meta.h["name"] = "HxParticleBreaker";
 	app.meta.h["packageName"] = "HxParticleBreaker";
 	app.meta.h["version"] = "1.0.0";
-	var attributes = { allowHighDPI : false, alwaysOnTop : false, borderless : false, element : null, frameRate : 30, height : 600, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, title : "HxParticleBreaker", width : 800, x : null, y : null};
+	var attributes = { allowHighDPI : false, alwaysOnTop : false, borderless : false, element : null, frameRate : 30, height : 720, hidden : false, maximized : false, minimized : false, parameters : { }, resizable : true, title : "HxParticleBreaker", width : 1280, x : null, y : null};
 	attributes.context = { antialiasing : 0, background : 0, colorDepth : 32, depth : true, hardware : true, stencil : true, type : null, vsync : false};
 	if(app.__window == null) {
 		if(config != null) {
@@ -4015,28 +4015,45 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__class__: openfl_display_Sprite
 });
 var Main = function() {
+	this.auto = false;
 	var _gthis = this;
 	openfl_display_Sprite.call(this);
 	Main.WIDTH = openfl_Lib.get_current().stage.stageWidth;
 	Main.HEIGHT = openfl_Lib.get_current().stage.stageHeight;
 	this._canvas = new openfl_display_BitmapData(Main.WIDTH,Main.HEIGHT,false,0);
-	this.addChild(new openfl_display_Bitmap(this._canvas));
-	var b = new openfl_display_BitmapData(50 * (this.get_width() / 465) | 0,10,false,65280);
+	this.addChild(this._canvasBitmap = new openfl_display_Bitmap(this._canvas));
+	var b = new openfl_display_BitmapData(50 * (this.get_width() / 465) | 0,15,false,65280);
 	this.addChild(this._bar = new openfl_display_Bitmap(b));
-	this._blocks = new Blocks(Main.WIDTH,175);
+	this.fade = new openfl_geom_ColorTransform(0.9,0.5,0.9);
+	this._blocks = new Blocks(Main.WIDTH,Main.HEIGHT * 0.3 | 0);
 	this._fallBlocks = [];
 	this._bar.set_y(Main.HEIGHT - 50);
 	var _ball = new Particle(Main.WIDTH / 2,Main.HEIGHT / 2);
-	_ball.vx = Math.random() * 10;
+	_ball.vx = Math.random() * 10 * ((Math.random() * 10 | 0) % 2 == 0 ? 1 : -1);
 	_ball.vy = Math.random() * 9 - 1;
 	_ball.color = 16777215;
 	this._balls = [];
 	this._balls.push(_ball);
 	this.addEventListener("enterFrame",$bind(this,this.update));
 	this.stage.addEventListener("keyUp",function(e) {
-		if(e.keyCode == 32) {
+		switch(e.keyCode) {
+		case 32:
 			_gthis.reset();
+			break;
+		case 65:
+			_gthis.auto = !_gthis.auto;
+			break;
+		case 70:
+			if(openfl_Lib.get_current().stage.get_displayState() == 2) {
+				openfl_Lib.get_current().stage.set_displayState(0);
+			} else {
+				openfl_Lib.get_current().stage.set_displayState(2);
+			}
+			break;
 		}
+	});
+	this.stage.addEventListener("resize",function(e) {
+		_gthis.reset();
 	});
 };
 $hxClasses["Main"] = Main;
@@ -4044,11 +4061,16 @@ Main.__name__ = "Main";
 Main.__super__ = openfl_display_Sprite;
 Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	reset: function() {
-		this._blocks = new Blocks(Main.WIDTH,175);
+		Main.WIDTH = openfl_Lib.get_current().stage.stageWidth;
+		Main.HEIGHT = openfl_Lib.get_current().stage.stageHeight;
+		this._canvas = new openfl_display_BitmapData(Main.WIDTH,Main.HEIGHT,false,0);
+		this.removeChild(this._canvasBitmap);
+		this.addChildAt(this._canvasBitmap = new openfl_display_Bitmap(this._canvas),0);
+		this._blocks = new Blocks(Main.WIDTH,Main.HEIGHT * 0.3 | 0);
 		this._fallBlocks = [];
 		this._bar.set_y(Main.HEIGHT - 50);
 		var _ball = new Particle(Main.WIDTH / 2,Main.HEIGHT / 2);
-		_ball.vx = Math.random() * 10;
+		_ball.vx = Math.random() * 10 * ((Math.random() * 10 | 0) % 2 == 0 ? 1 : -1);
 		_ball.vy = Math.random() * 9 - 1;
 		_ball.color = 16777215;
 		this._balls = [];
@@ -4059,7 +4081,7 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 	}
 	,update: function(e) {
 		this._canvas.lock();
-		this._canvas.colorTransform(this._canvas.rect,new openfl_geom_ColorTransform(0.9,0.5,0.9));
+		this._canvas.colorTransform(this._canvas.rect,this.fade);
 		var _g = 0;
 		var _g1 = this._blocks.values;
 		while(_g < _g1.length) {
@@ -4088,7 +4110,7 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 				var hitParticle = this._blocks.getParticle(ball.x | 0,ball.y | 0);
 				if(hitParticle != null) {
 					var removedP = this._blocks.removeParticle(ball.x | 0,ball.y | 0);
-					removedP.vx = Math.cos(bradius + Math.PI * 2 / (30 * Math.random()) - 15) * 3;
+					removedP.vx = Math.cos(bradius + Math.PI * 2 / (30 * Math.random()) - 15) * 3 * ((Math.random() * 10 | 0) % 2 == 0 ? 1 : -1);
 					removedP.vy = 1;
 					removedP.color = hitParticle.color;
 					this._fallBlocks.push(removedP);
@@ -4127,10 +4149,13 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 			fallP.vy += 0.1;
 			fallP.x += fallP.vx;
 			fallP.y += fallP.vy;
+			if(fallP.x < 0 && fallP.vx < 0 || fallP.x > Main.WIDTH && fallP.vx > 0) {
+				fallP.vx = -fallP.vx;
+			}
 			this._canvas.setPixel(fallP.x | 0,fallP.y | 0,fallP.color);
 			if(this._bar.hitTestPoint(fallP.x,fallP.y)) {
 				var newball = new Particle(fallP.x,fallP.y);
-				newball.vx = Math.random() * 10;
+				newball.vx = Math.random() * 10 * ((Math.random() * 10 | 0) % 2 == 0 ? 1 : -1);
 				newball.vy = Math.random() * 9 + 1;
 				newball.color = fallP.color;
 				this._balls.push(newball);
@@ -4148,16 +4173,32 @@ Main.prototype = $extend(openfl_display_Sprite.prototype,{
 				this._fallBlocks.splice(index,1);
 			}
 		}
-		this._bar.set_x(this.stage.get_mouseX() - this._bar.get_width() / 2);
+		if(!this.auto) {
+			this._bar.set_x(this.stage.get_mouseX() - this._bar.get_width() / 2);
+		} else {
+			this._bar.set_x(this._balls[0].x - this._bar.get_width() / 2);
+		}
+		if(this._bar.get_x() <= 0) {
+			this._bar.set_x(0);
+		}
+		if(this._bar.get_x() + this._bar.get_width() >= Main.WIDTH) {
+			this._bar.set_x(Main.WIDTH - this._bar.get_width());
+		}
 		this._canvas.unlock();
 		if(this._blocks.count == 0) {
-			this.removeEventListener("enterFrame",$bind(this,this.update));
-			var clearTF = new openfl_text_TextField();
-			clearTF.set_text("CLEAR!\nおめでと");
-			clearTF.set_textColor(16777215);
-			clearTF.set_autoSize(1);
-			this._canvas.draw(clearTF,new openfl_geom_Matrix(5,0,0,5,Main.WIDTH / 2 - clearTF.get_width() * 5 / 2,Main.HEIGHT / 2 - clearTF.get_height() * 5 / 2));
+			this.freeze_game("CLEAR!\nおめでと");
 		}
+		if(this._balls.length == 0) {
+			this.freeze_game("Press space to reset\nスペースを押してリセットします");
+		}
+	}
+	,freeze_game: function(_message) {
+		this.removeEventListener("enterFrame",$bind(this,this.update));
+		var clearTF = new openfl_text_TextField();
+		clearTF.set_text(_message);
+		clearTF.set_textColor(16777215);
+		clearTF.set_autoSize(1);
+		this._canvas.draw(clearTF,new openfl_geom_Matrix(3,0,0,3,Main.WIDTH / 2 - clearTF.get_width() * 5 / 2,Main.HEIGHT / 2 - clearTF.get_height() * 5 / 2));
 	}
 	,__class__: Main
 });
@@ -23331,7 +23372,7 @@ var lime_utils_AssetCache = function() {
 	this.audio = new haxe_ds_StringMap();
 	this.font = new haxe_ds_StringMap();
 	this.image = new haxe_ds_StringMap();
-	this.version = 541316;
+	this.version = 46621;
 };
 $hxClasses["lime.utils.AssetCache"] = lime_utils_AssetCache;
 lime_utils_AssetCache.__name__ = "lime.utils.AssetCache";
@@ -30016,6 +30057,2350 @@ openfl_display_DisplayObjectShader.__name__ = "openfl.display.DisplayObjectShade
 openfl_display_DisplayObjectShader.__super__ = openfl_display_Shader;
 openfl_display_DisplayObjectShader.prototype = $extend(openfl_display_Shader.prototype,{
 	__class__: openfl_display_DisplayObjectShader
+});
+var openfl_text_TextField = function() {
+	this.__forceCachedBitmapUpdate = false;
+	this.__renderedOnCanvasWhileOnDOM = false;
+	openfl_display_InteractiveObject.call(this);
+	this.__caretIndex = -1;
+	this.__displayAsPassword = false;
+	this.__graphics = new openfl_display_Graphics(this);
+	this.__textEngine = new openfl_text__$internal_TextEngine(this);
+	this.__layoutDirty = true;
+	this.__offsetX = 0;
+	this.__offsetY = 0;
+	this.__mouseWheelEnabled = true;
+	this.__text = "";
+	this.doubleClickEnabled = true;
+	if(openfl_text_TextField.__defaultTextFormat == null) {
+		openfl_text_TextField.__defaultTextFormat = new openfl_text_TextFormat("Times New Roman",12,0,false,false,false,"","",3,0,0,0,0);
+		openfl_text_TextField.__defaultTextFormat.blockIndent = 0;
+		openfl_text_TextField.__defaultTextFormat.bullet = false;
+		openfl_text_TextField.__defaultTextFormat.letterSpacing = 0;
+		openfl_text_TextField.__defaultTextFormat.kerning = false;
+	}
+	this.__textFormat = openfl_text_TextField.__defaultTextFormat.clone();
+	this.__textEngine.textFormatRanges.push(new openfl_text__$internal_TextFormatRange(this.__textFormat,0,0));
+	this.addEventListener("mouseDown",$bind(this,this.this_onMouseDown));
+	this.addEventListener("focusIn",$bind(this,this.this_onFocusIn));
+	this.addEventListener("focusOut",$bind(this,this.this_onFocusOut));
+	this.addEventListener("keyDown",$bind(this,this.this_onKeyDown));
+	this.addEventListener("mouseWheel",$bind(this,this.this_onMouseWheel));
+	this.addEventListener("doubleClick",$bind(this,this.this_onDoubleClick));
+};
+$hxClasses["openfl.text.TextField"] = openfl_text_TextField;
+openfl_text_TextField.__name__ = "openfl.text.TextField";
+openfl_text_TextField.__super__ = openfl_display_InteractiveObject;
+openfl_text_TextField.prototype = $extend(openfl_display_InteractiveObject.prototype,{
+	appendText: function(text) {
+		if(text == null || text == "") {
+			return;
+		}
+		this.__dirty = true;
+		this.__layoutDirty = true;
+		if(!this.__renderDirty) {
+			this.__renderDirty = true;
+			this.__setParentRenderDirty();
+		}
+		this.__updateText(this.__text + text);
+		this.__textEngine.textFormatRanges.get(this.__textEngine.textFormatRanges.get_length() - 1).end = this.__text.length;
+		this.__updateScrollV();
+		this.__updateScrollH();
+	}
+	,getCharBoundaries: function(charIndex) {
+		if(charIndex < 0 || charIndex > this.__text.length - 1) {
+			return null;
+		}
+		var rect = new openfl_geom_Rectangle();
+		if(this.__getCharBoundaries(charIndex,rect)) {
+			return rect;
+		} else {
+			return null;
+		}
+	}
+	,getCharIndexAtPoint: function(x,y) {
+		if(x <= 2 || x > this.get_width() + 4 || y <= 0 || y > this.get_height() + 4) {
+			return -1;
+		}
+		this.__updateLayout();
+		x += this.get_scrollH();
+		var _g = 0;
+		var _g1 = this.get_scrollV() - 1;
+		while(_g < _g1) {
+			var i = _g++;
+			y += this.__textEngine.lineHeights.get(i);
+		}
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(y >= group1.offsetY && y <= group1.offsetY + group1.height) {
+				if(x >= group1.offsetX && x <= group1.offsetX + group1.width) {
+					var advance = 0.0;
+					var _g = 0;
+					var _g1 = group1.positions.length;
+					while(_g < _g1) {
+						var i = _g++;
+						advance += group1.positions[i];
+						if(x <= group1.offsetX + advance) {
+							return group1.startIndex + i;
+						}
+					}
+					return group1.endIndex;
+				}
+			}
+		}
+		return -1;
+	}
+	,getFirstCharInParagraph: function(charIndex) {
+		if(charIndex < 0 || charIndex > this.get_text().length) {
+			return -1;
+		}
+		var index = this.__textEngine.getLineBreakIndex();
+		var startIndex = 0;
+		while(index > -1) {
+			if(index < charIndex) {
+				startIndex = index + 1;
+			} else if(index >= charIndex) {
+				break;
+			}
+			index = this.__textEngine.getLineBreakIndex(index + 1);
+		}
+		return startIndex;
+	}
+	,getLineIndexAtPoint: function(x,y) {
+		this.__updateLayout();
+		if(x <= 2 || x > this.get_width() + 4 || y <= 0 || y > this.get_height() + 4) {
+			return -1;
+		}
+		var _g = 0;
+		var _g1 = this.get_scrollV() - 1;
+		while(_g < _g1) {
+			var i = _g++;
+			y += this.__textEngine.lineHeights.get(i);
+		}
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(y >= group1.offsetY && y <= group1.offsetY + group1.height) {
+				return group1.lineIndex;
+			}
+		}
+		return -1;
+	}
+	,getLineIndexOfChar: function(charIndex) {
+		if(charIndex < 0 || charIndex > this.__text.length) {
+			return -1;
+		}
+		this.__updateLayout();
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(group1.startIndex <= charIndex && group1.endIndex >= charIndex) {
+				return group1.lineIndex;
+			}
+		}
+		return -1;
+	}
+	,getLineLength: function(lineIndex) {
+		this.__updateLayout();
+		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
+			return 0;
+		}
+		var startIndex = -1;
+		var endIndex = -1;
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(group1.lineIndex == lineIndex) {
+				if(startIndex == -1) {
+					startIndex = group1.startIndex;
+				}
+			} else if(group1.lineIndex == lineIndex + 1) {
+				endIndex = group1.startIndex;
+				break;
+			}
+		}
+		if(endIndex == -1) {
+			endIndex = this.__text.length;
+		}
+		return endIndex - startIndex;
+	}
+	,getLineMetrics: function(lineIndex) {
+		this.__updateLayout();
+		var ascender = this.__textEngine.lineAscents.get(lineIndex);
+		var descender = this.__textEngine.lineDescents.get(lineIndex);
+		var leading = this.__textEngine.lineLeadings.get(lineIndex);
+		var lineHeight = this.__textEngine.lineHeights.get(lineIndex);
+		var lineWidth = this.__textEngine.lineWidths.get(lineIndex);
+		var margin;
+		switch(this.__textFormat.align) {
+		case 0:
+			margin = (this.__textEngine.width - lineWidth) / 2;
+			break;
+		case 1:case 4:
+			margin = this.__textEngine.width - lineWidth - 2;
+			break;
+		case 2:case 3:case 5:
+			margin = 2;
+			break;
+		}
+		return new openfl_text_TextLineMetrics(margin,lineWidth,lineHeight,ascender,descender,leading);
+	}
+	,getLineOffset: function(lineIndex) {
+		this.__updateLayout();
+		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
+			return -1;
+		}
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(group1.lineIndex == lineIndex) {
+				return group1.startIndex;
+			}
+		}
+		return 0;
+	}
+	,getLineText: function(lineIndex) {
+		this.__updateLayout();
+		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
+			return null;
+		}
+		var startIndex = -1;
+		var endIndex = -1;
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(group1.lineIndex == lineIndex) {
+				if(startIndex == -1) {
+					startIndex = group1.startIndex;
+				}
+			} else if(group1.lineIndex == lineIndex + 1) {
+				endIndex = group1.startIndex;
+				break;
+			}
+		}
+		if(endIndex == -1) {
+			endIndex = this.__text.length;
+		}
+		return this.__textEngine.text.substring(startIndex,endIndex);
+	}
+	,getParagraphLength: function(charIndex) {
+		if(charIndex < 0 || charIndex > this.get_text().length) {
+			return -1;
+		}
+		var startIndex = this.getFirstCharInParagraph(charIndex);
+		if(charIndex >= this.get_text().length) {
+			return this.get_text().length - startIndex + 1;
+		}
+		var endIndex = this.__textEngine.getLineBreakIndex(charIndex) + 1;
+		if(endIndex == 0) {
+			endIndex = this.__text.length;
+		}
+		return endIndex - startIndex;
+	}
+	,getTextFormat: function(beginIndex,endIndex) {
+		if(endIndex == null) {
+			endIndex = -1;
+		}
+		if(beginIndex == null) {
+			beginIndex = -1;
+		}
+		var format = null;
+		if(beginIndex >= this.get_text().length || beginIndex < -1 || endIndex > this.get_text().length || endIndex < -1) {
+			throw haxe_Exception.thrown(new openfl_errors_RangeError("The supplied index is out of bounds"));
+		}
+		if(beginIndex == -1) {
+			beginIndex = 0;
+		}
+		if(endIndex == -1) {
+			endIndex = this.get_text().length;
+		}
+		if(beginIndex >= endIndex) {
+			return new openfl_text_TextFormat();
+		}
+		var group = this.__textEngine.textFormatRanges.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(group1.start <= beginIndex && group1.end > beginIndex || group1.start < endIndex && group1.end >= endIndex) {
+				if(format == null) {
+					format = group1.format.clone();
+				} else {
+					if(group1.format.font != format.font) {
+						format.font = null;
+					}
+					if(group1.format.size != format.size) {
+						format.size = null;
+					}
+					if(group1.format.color != format.color) {
+						format.color = null;
+					}
+					if(group1.format.bold != format.bold) {
+						format.bold = null;
+					}
+					if(group1.format.italic != format.italic) {
+						format.italic = null;
+					}
+					if(group1.format.underline != format.underline) {
+						format.underline = null;
+					}
+					if(group1.format.url != format.url) {
+						format.url = null;
+					}
+					if(group1.format.target != format.target) {
+						format.target = null;
+					}
+					if(group1.format.align != format.align) {
+						format.align = null;
+					}
+					if(group1.format.leftMargin != format.leftMargin) {
+						format.leftMargin = null;
+					}
+					if(group1.format.rightMargin != format.rightMargin) {
+						format.rightMargin = null;
+					}
+					if(group1.format.indent != format.indent) {
+						format.indent = null;
+					}
+					if(group1.format.leading != format.leading) {
+						format.leading = null;
+					}
+					if(group1.format.blockIndent != format.blockIndent) {
+						format.blockIndent = null;
+					}
+					if(group1.format.bullet != format.bullet) {
+						format.bullet = null;
+					}
+					if(group1.format.kerning != format.kerning) {
+						format.kerning = null;
+					}
+					if(group1.format.letterSpacing != format.letterSpacing) {
+						format.letterSpacing = null;
+					}
+					if(group1.format.tabStops != format.tabStops) {
+						format.tabStops = null;
+					}
+				}
+			}
+		}
+		if(format == null) {
+			format = new openfl_text_TextFormat();
+		}
+		return format;
+	}
+	,replaceSelectedText: function(value) {
+		this.__replaceSelectedText(value,false);
+	}
+	,replaceText: function(beginIndex,endIndex,newText) {
+		this.__replaceText(beginIndex,endIndex,newText,false);
+	}
+	,setSelection: function(beginIndex,endIndex) {
+		this.__selectionIndex = beginIndex;
+		this.__caretIndex = endIndex;
+		this.__updateScrollV();
+		this.__stopCursorTimer();
+		this.__startCursorTimer();
+	}
+	,setTextFormat: function(format,beginIndex,endIndex) {
+		if(endIndex == null) {
+			endIndex = 0;
+		}
+		if(beginIndex == null) {
+			beginIndex = 0;
+		}
+		var max = this.get_text().length;
+		var range;
+		if(beginIndex < 0) {
+			beginIndex = 0;
+		}
+		if(endIndex < 0) {
+			endIndex = 0;
+		}
+		if(endIndex == 0) {
+			if(beginIndex == 0) {
+				endIndex = max;
+			} else {
+				endIndex = beginIndex + 1;
+			}
+		}
+		if(endIndex < beginIndex) {
+			return;
+		}
+		if(beginIndex == 0 && endIndex >= max) {
+			this.__textFormat.__merge(format);
+			var _g = 0;
+			var _g1 = this.__textEngine.textFormatRanges.get_length();
+			while(_g < _g1) {
+				var i = _g++;
+				range = this.__textEngine.textFormatRanges.get(i);
+				range.format.__merge(format);
+			}
+		} else {
+			var index = 0;
+			var newRange;
+			while(index < this.__textEngine.textFormatRanges.get_length()) {
+				range = this.__textEngine.textFormatRanges.get(index);
+				if(range.start == beginIndex && range.end == endIndex) {
+					range.format.__merge(format);
+					break;
+				} else if(range.start >= beginIndex && range.end <= endIndex) {
+					range.format.__merge(format);
+				} else if(range.start >= beginIndex && range.start < endIndex && range.end > beginIndex) {
+					newRange = new openfl_text__$internal_TextFormatRange(range.format.clone(),range.start,endIndex);
+					newRange.format.__merge(format);
+					this.__textEngine.textFormatRanges.insertAt(index,newRange);
+					range.start = endIndex;
+					++index;
+				} else if(range.start < beginIndex && range.end > beginIndex && range.end >= endIndex) {
+					newRange = new openfl_text__$internal_TextFormatRange(range.format.clone(),beginIndex,range.end);
+					newRange.format.__merge(format);
+					this.__textEngine.textFormatRanges.insertAt(index + 1,newRange);
+					range.end = beginIndex;
+					++index;
+				}
+				++index;
+			}
+		}
+		this.__dirty = true;
+		this.__layoutDirty = true;
+		if(!this.__renderDirty) {
+			this.__renderDirty = true;
+			this.__setParentRenderDirty();
+		}
+	}
+	,__allowMouseFocus: function() {
+		if(!(this.__textEngine.type == 1 || this.get_tabEnabled())) {
+			return this.get_selectable();
+		} else {
+			return true;
+		}
+	}
+	,__caretBeginningOfLine: function() {
+		if(this.__selectionIndex == this.__caretIndex || this.__caretIndex < this.__selectionIndex) {
+			this.__caretIndex = this.getLineOffset(this.getLineIndexOfChar(this.__caretIndex));
+		} else {
+			this.__selectionIndex = this.getLineOffset(this.getLineIndexOfChar(this.__selectionIndex));
+		}
+	}
+	,__caretEndOfLine: function() {
+		var lineIndex;
+		if(this.__selectionIndex == this.__caretIndex) {
+			lineIndex = this.getLineIndexOfChar(this.__caretIndex);
+		} else {
+			lineIndex = this.getLineIndexOfChar(Math.max(this.__caretIndex,this.__selectionIndex) | 0);
+		}
+		if(lineIndex < this.__textEngine.numLines - 1) {
+			this.__caretIndex = this.getLineOffset(lineIndex + 1) - 1;
+		} else {
+			this.__caretIndex = this.__text.length;
+		}
+	}
+	,__caretNextCharacter: function() {
+		if(this.__caretIndex < this.__text.length) {
+			this.__caretIndex++;
+		}
+	}
+	,__caretNextLine: function(lineIndex,caretIndex) {
+		if(lineIndex == null) {
+			lineIndex = this.getLineIndexOfChar(this.__caretIndex);
+		}
+		if(lineIndex < this.__textEngine.numLines - 1) {
+			if(caretIndex == null) {
+				caretIndex = this.__caretIndex;
+			}
+			this.__caretIndex = this.__getCharIndexOnDifferentLine(caretIndex,lineIndex + 1);
+		} else {
+			this.__caretIndex = this.__text.length;
+		}
+	}
+	,__caretPreviousCharacter: function() {
+		if(this.__caretIndex > 0) {
+			this.__caretIndex--;
+		}
+	}
+	,__caretPreviousLine: function(lineIndex,caretIndex) {
+		if(lineIndex == null) {
+			lineIndex = this.getLineIndexOfChar(this.__caretIndex);
+		}
+		if(lineIndex > 0) {
+			if(caretIndex == null) {
+				caretIndex = this.__caretIndex;
+			}
+			this.__caretIndex = this.__getCharIndexOnDifferentLine(caretIndex,lineIndex - 1);
+		} else {
+			this.__caretIndex = 0;
+		}
+	}
+	,__disableInput: function() {
+		if(this.__inputEnabled && this.stage != null) {
+			this.stage.window.__backend.setTextInputEnabled(false);
+			this.stage.window.onTextInput.remove($bind(this,this.window_onTextInput));
+			this.stage.window.onKeyDown.remove($bind(this,this.window_onKeyDown));
+			this.__inputEnabled = false;
+			this.__stopCursorTimer();
+		}
+	}
+	,__dispatch: function(event) {
+		if(event.eventPhase == 2 && event.type == "mouseUp") {
+			var event1 = event;
+			var group = this.__getGroup(this.get_mouseX(),this.get_mouseY(),true);
+			if(group != null) {
+				var url = group.format.url;
+				if(url != null && url != "") {
+					if(StringTools.startsWith(url,"event:")) {
+						this.dispatchEvent(new openfl_events_TextEvent("link",false,false,HxOverrides.substr(url,6,null)));
+					} else {
+						openfl_Lib.getURL(new openfl_net_URLRequest(url));
+					}
+				}
+			}
+		}
+		return openfl_display_InteractiveObject.prototype.__dispatch.call(this,event);
+	}
+	,__enableInput: function() {
+		if(this.stage != null) {
+			this.stage.window.__backend.setTextInputEnabled(true);
+			if(!this.__inputEnabled) {
+				this.stage.window.__backend.setTextInputEnabled(true);
+				if(!this.stage.window.onTextInput.has($bind(this,this.window_onTextInput))) {
+					this.stage.window.onTextInput.add($bind(this,this.window_onTextInput));
+					this.stage.window.onKeyDown.add($bind(this,this.window_onKeyDown));
+				}
+				this.__inputEnabled = true;
+				this.__startCursorTimer();
+			}
+		}
+	}
+	,__getAdvance: function(position) {
+		return position;
+	}
+	,__getBounds: function(rect,matrix) {
+		this.__updateLayout();
+		var bounds = openfl_geom_Rectangle.__pool.get();
+		bounds.copyFrom(this.__textEngine.bounds);
+		matrix.tx += this.__offsetX;
+		matrix.ty += this.__offsetY;
+		bounds.__transform(bounds,matrix);
+		rect.__expand(bounds.x,bounds.y,bounds.width,bounds.height);
+		openfl_geom_Rectangle.__pool.release(bounds);
+	}
+	,__getCharBoundaries: function(charIndex,rect) {
+		if(charIndex < 0 || charIndex > this.__text.length - 1) {
+			return false;
+		}
+		this.__updateLayout();
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(charIndex >= group1.startIndex && charIndex < group1.endIndex) {
+				try {
+					var x = group1.offsetX;
+					var _g = 0;
+					var _g1 = charIndex - group1.startIndex;
+					while(_g < _g1) {
+						var i = _g++;
+						x += group1.positions[i];
+					}
+					var lastPosition = group1.positions[charIndex - group1.startIndex];
+					rect.setTo(x,group1.offsetY,lastPosition,group1.ascent + group1.descent);
+					return true;
+				} catch( _g2 ) {
+					haxe_NativeStackTrace.lastError = _g2;
+				}
+			}
+		}
+		return false;
+	}
+	,__getCharIndexOnDifferentLine: function(charIndex,lineIndex) {
+		if(charIndex < 0 || charIndex > this.__text.length) {
+			return -1;
+		}
+		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
+			return -1;
+		}
+		var x = null;
+		var y = null;
+		var group = this.__textEngine.layoutGroups.iterator();
+		while(group.hasNext()) {
+			var group1 = group.next();
+			if(charIndex >= group1.startIndex && charIndex <= group1.endIndex) {
+				x = group1.offsetX;
+				var _g = 0;
+				var _g1 = charIndex - group1.startIndex;
+				while(_g < _g1) {
+					var i = _g++;
+					x += group1.positions[i];
+				}
+				if(y != null) {
+					return this.__getPosition(x,y);
+				}
+			}
+			if(group1.lineIndex == lineIndex) {
+				y = group1.offsetY + group1.height / 2;
+				var _g2 = 0;
+				var _g3 = this.get_scrollV() - 1;
+				while(_g2 < _g3) {
+					var i1 = _g2++;
+					y -= this.__textEngine.lineHeights.get(i1);
+				}
+				if(x != null) {
+					return this.__getPosition(x,y);
+				}
+			}
+		}
+		return -1;
+	}
+	,__getCursor: function() {
+		var group = this.__getGroup(this.get_mouseX(),this.get_mouseY(),true);
+		if(group != null && group.format.url != "") {
+			return "button";
+		} else if(this.__textEngine.selectable) {
+			return "ibeam";
+		}
+		return null;
+	}
+	,__getGroup: function(x,y,precise) {
+		if(precise == null) {
+			precise = false;
+		}
+		this.__updateLayout();
+		x += this.get_scrollH();
+		var _g = 0;
+		var _g1 = this.get_scrollV() - 1;
+		while(_g < _g1) {
+			var i = _g++;
+			y += this.__textEngine.lineHeights.get(i);
+		}
+		if(!precise && y > this.__textEngine.textHeight) {
+			y = this.__textEngine.textHeight;
+		}
+		var firstGroup = true;
+		var group;
+		var nextGroup;
+		var _g = 0;
+		var _g1 = this.__textEngine.layoutGroups.get_length();
+		while(_g < _g1) {
+			var i = _g++;
+			group = this.__textEngine.layoutGroups.get(i);
+			if(i < this.__textEngine.layoutGroups.get_length() - 1) {
+				nextGroup = this.__textEngine.layoutGroups.get(i + 1);
+			} else {
+				nextGroup = null;
+			}
+			if(firstGroup) {
+				if(y < group.offsetY) {
+					y = group.offsetY;
+				}
+				if(x < group.offsetX) {
+					x = group.offsetX;
+				}
+				firstGroup = false;
+			}
+			if(y >= group.offsetY && y <= group.offsetY + group.height || !precise && nextGroup == null) {
+				if(x >= group.offsetX && x <= group.offsetX + group.width || !precise && (nextGroup == null || nextGroup.lineIndex != group.lineIndex)) {
+					return group;
+				}
+			}
+		}
+		return null;
+	}
+	,__getPosition: function(x,y) {
+		var group = this.__getGroup(x,y);
+		if(group == null) {
+			return this.__text.length;
+		}
+		var advance = 0.0;
+		var _g = 0;
+		var _g1 = group.positions.length;
+		while(_g < _g1) {
+			var i = _g++;
+			advance += group.positions[i];
+			if(x <= group.offsetX + advance) {
+				if(x <= group.offsetX + (advance - group.positions[i]) + group.positions[i] / 2) {
+					return group.startIndex + i;
+				} else if(group.startIndex + i < group.endIndex) {
+					return group.startIndex + i + 1;
+				} else {
+					return group.endIndex;
+				}
+			}
+		}
+		return group.endIndex;
+	}
+	,__hitTest: function(x,y,shapeFlag,stack,interactiveOnly,hitObject) {
+		if(!hitObject.get_visible() || this.__isMask || interactiveOnly && !this.mouseEnabled) {
+			return false;
+		}
+		if(this.get_mask() != null && !this.get_mask().__hitTestMask(x,y)) {
+			return false;
+		}
+		this.__getRenderTransform();
+		this.__updateLayout();
+		var _this = this.__renderTransform;
+		var norm = _this.a * _this.d - _this.b * _this.c;
+		var px = norm == 0 ? -_this.tx : 1.0 / norm * (_this.c * (_this.ty - y) + _this.d * (x - _this.tx));
+		var _this = this.__renderTransform;
+		var norm = _this.a * _this.d - _this.b * _this.c;
+		var py = norm == 0 ? -_this.ty : 1.0 / norm * (_this.a * (y - _this.ty) + _this.b * (_this.tx - x));
+		if(this.__textEngine.bounds.contains(px,py)) {
+			if(stack != null) {
+				stack.push(hitObject);
+			}
+			return true;
+		}
+		return false;
+	}
+	,__hitTestMask: function(x,y) {
+		this.__getRenderTransform();
+		this.__updateLayout();
+		var _this = this.__renderTransform;
+		var norm = _this.a * _this.d - _this.b * _this.c;
+		var px = norm == 0 ? -_this.tx : 1.0 / norm * (_this.c * (_this.ty - y) + _this.d * (x - _this.tx));
+		var _this = this.__renderTransform;
+		var norm = _this.a * _this.d - _this.b * _this.c;
+		var py = norm == 0 ? -_this.ty : 1.0 / norm * (_this.a * (y - _this.ty) + _this.b * (_this.tx - x));
+		if(this.__textEngine.bounds.contains(px,py)) {
+			return true;
+		}
+		return false;
+	}
+	,__renderCairo: function(renderer) {
+	}
+	,__renderCanvas: function(renderer) {
+		if(renderer.__isDOM && !this.__renderedOnCanvasWhileOnDOM) {
+			this.__renderedOnCanvasWhileOnDOM = true;
+			if(this.get_type() == 1) {
+				this.replaceText(0,this.__text.length,this.__text);
+			}
+			if(this.__isHTML) {
+				this.__updateText(openfl__$internal_formats_html_HTMLParser.parse(this.__text,this.__textFormat,this.__textEngine.textFormatRanges));
+			}
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		if(this.get_mask() == null || this.get_mask().get_width() > 0 && this.get_mask().get_height() > 0) {
+			this.__updateCacheBitmap(renderer,this.__dirty);
+			if(this.__cacheBitmap != null && !this.__isCacheBitmapRender) {
+				var bitmap = this.__cacheBitmap;
+				if(bitmap.__renderable) {
+					var alpha = renderer.__getAlpha(bitmap.__worldAlpha);
+					if(alpha > 0 && bitmap.__bitmapData != null && bitmap.__bitmapData.__isValid && bitmap.__bitmapData.readable) {
+						var context = renderer.context;
+						renderer.__setBlendMode(bitmap.__worldBlendMode);
+						renderer.__pushMaskObject(bitmap,false);
+						lime__$internal_graphics_ImageCanvasUtil.convertToCanvas(bitmap.__bitmapData.image);
+						context.globalAlpha = alpha;
+						var scrollRect = bitmap.__scrollRect;
+						renderer.setTransform(bitmap.__renderTransform,context);
+						if(!renderer.__allowSmoothing || !bitmap.smoothing) {
+							context.imageSmoothingEnabled = false;
+						}
+						if(scrollRect == null) {
+							context.drawImage(bitmap.__bitmapData.image.get_src(),0,0,bitmap.__bitmapData.image.width,bitmap.__bitmapData.image.height);
+						} else {
+							context.drawImage(bitmap.__bitmapData.image.get_src(),scrollRect.x,scrollRect.y,scrollRect.width,scrollRect.height);
+						}
+						if(!renderer.__allowSmoothing || !bitmap.smoothing) {
+							context.imageSmoothingEnabled = true;
+						}
+						renderer.__popMaskObject(bitmap,false);
+					}
+				}
+			} else {
+				var transform = this.__worldTransform;
+				var textEngine = this.__textEngine;
+				var bounds = textEngine.background || textEngine.border ? textEngine.bounds : textEngine.textBounds;
+				var graphics = this.__graphics;
+				if(this.__dirty) {
+					this.__updateLayout();
+					if(graphics.__bounds == null) {
+						graphics.__bounds = new openfl_geom_Rectangle();
+					}
+					graphics.__bounds.copyFrom(bounds);
+				}
+				graphics.__update(renderer.__worldTransform);
+				if(this.__dirty || graphics.__softwareDirty) {
+					var width = graphics.__width;
+					var height = graphics.__height;
+					if((textEngine.text == null || textEngine.text == "") && !textEngine.background && !textEngine.border && !textEngine.__hasFocus && (textEngine.type != 1 || !textEngine.selectable) || (textEngine.width <= 0 || textEngine.height <= 0) && textEngine.autoSize != 2) {
+						this.__graphics.__canvas = null;
+						this.__graphics.__context = null;
+						this.__graphics.__bitmap = null;
+						this.__graphics.__softwareDirty = false;
+						this.__graphics.set___dirty(false);
+						this.__dirty = false;
+					} else {
+						if(this.__graphics.__canvas == null) {
+							this.__graphics.__canvas = window.document.createElement("canvas");
+							this.__graphics.__context = this.__graphics.__canvas.getContext("2d");
+						}
+						openfl_display__$internal_CanvasTextField.context = graphics.__context;
+						var transform = graphics.__renderTransform;
+						if(renderer.__isDOM) {
+							var scale = renderer.pixelRatio;
+							graphics.__canvas.width = width * scale | 0;
+							graphics.__canvas.height = height * scale | 0;
+							graphics.__canvas.style.width = width + "px";
+							graphics.__canvas.style.height = height + "px";
+							var matrix = openfl_geom_Matrix.__pool.get();
+							matrix.copyFrom(transform);
+							matrix.scale(scale,scale);
+							renderer.setTransform(matrix,openfl_display__$internal_CanvasTextField.context);
+							openfl_geom_Matrix.__pool.release(matrix);
+						} else {
+							graphics.__canvas.width = width;
+							graphics.__canvas.height = height;
+							openfl_display__$internal_CanvasTextField.context.setTransform(transform.a,transform.b,transform.c,transform.d,transform.tx,transform.ty);
+						}
+						if(openfl_display__$internal_CanvasTextField.clearRect == null) {
+							openfl_display__$internal_CanvasTextField.clearRect = (typeof navigator !== 'undefined' && typeof navigator['isCocoonJS'] !== 'undefined');
+						}
+						if(openfl_display__$internal_CanvasTextField.clearRect) {
+							openfl_display__$internal_CanvasTextField.context.clearRect(0,0,graphics.__canvas.width,graphics.__canvas.height);
+						}
+						if(textEngine.text != null && textEngine.text != "" || textEngine.__hasFocus) {
+							var text = textEngine.text;
+							if(!renderer.__allowSmoothing || textEngine.antiAliasType == 0 && textEngine.sharpness == 400) {
+								graphics.__context.imageSmoothingEnabled = false;
+							} else {
+								graphics.__context.imageSmoothingEnabled = true;
+							}
+							if(textEngine.border || textEngine.background) {
+								openfl_display__$internal_CanvasTextField.context.rect(0.5,0.5,bounds.width - 1,bounds.height - 1);
+								if(textEngine.background) {
+									var tmp = StringTools.hex(textEngine.backgroundColor & 16777215,6);
+									openfl_display__$internal_CanvasTextField.context.fillStyle = "#" + tmp;
+									openfl_display__$internal_CanvasTextField.context.fill();
+								}
+								if(textEngine.border) {
+									openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
+									var tmp = StringTools.hex(textEngine.borderColor & 16777215,6);
+									openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
+									openfl_display__$internal_CanvasTextField.context.stroke();
+								}
+							}
+							openfl_display__$internal_CanvasTextField.context.textBaseline = "alphabetic";
+							openfl_display__$internal_CanvasTextField.context.textAlign = "start";
+							var scrollX = -this.get_scrollH();
+							var scrollY = 0.0;
+							var _g = 0;
+							var _g1 = this.get_scrollV() - 1;
+							while(_g < _g1) {
+								var i = _g++;
+								scrollY -= textEngine.lineHeights.get(i);
+							}
+							var advance;
+							var group = textEngine.layoutGroups.iterator();
+							while(group.hasNext()) {
+								var group1 = group.next();
+								if(group1.lineIndex < this.get_scrollV() - 1) {
+									continue;
+								}
+								if(group1.lineIndex > textEngine.get_bottomScrollV() - 1) {
+									break;
+								}
+								var color = "#" + StringTools.hex(group1.format.color & 16777215,6);
+								openfl_display__$internal_CanvasTextField.context.font = openfl_text__$internal_TextEngine.getFont(group1.format);
+								openfl_display__$internal_CanvasTextField.context.fillStyle = color;
+								openfl_display__$internal_CanvasTextField.context.fillText(text.substring(group1.startIndex,group1.endIndex),group1.offsetX + scrollX - bounds.x,group1.offsetY + group1.ascent + scrollY - bounds.y);
+								if(this.__caretIndex > -1 && textEngine.selectable) {
+									if(this.__selectionIndex == this.__caretIndex) {
+										if(this.__showCursor && group1.startIndex <= this.__caretIndex && group1.endIndex >= this.__caretIndex) {
+											advance = 0.0;
+											var _g = 0;
+											var _g1 = this.__caretIndex - group1.startIndex;
+											while(_g < _g1) {
+												var i = _g++;
+												if(group1.positions.length <= i) {
+													break;
+												}
+												advance += group1.positions[i];
+											}
+											var scrollY1 = 0.0;
+											var _g2 = this.get_scrollV();
+											var _g3 = group1.lineIndex + 1;
+											while(_g2 < _g3) {
+												var i1 = _g2++;
+												scrollY1 += textEngine.lineHeights.get(i1 - 1);
+											}
+											openfl_display__$internal_CanvasTextField.context.beginPath();
+											var tmp = StringTools.hex(group1.format.color & 16777215,6);
+											openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
+											openfl_display__$internal_CanvasTextField.context.moveTo(group1.offsetX + advance - this.get_scrollH() - bounds.x,scrollY1 + 2 - bounds.y);
+											openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
+											openfl_display__$internal_CanvasTextField.context.lineTo(group1.offsetX + advance - this.get_scrollH() - bounds.x,scrollY1 + openfl_text__$internal_TextEngine.getFormatHeight(this.get_defaultTextFormat()) - 1 - bounds.y);
+											openfl_display__$internal_CanvasTextField.context.stroke();
+											openfl_display__$internal_CanvasTextField.context.closePath();
+										}
+									} else if(group1.startIndex <= this.__caretIndex && group1.endIndex >= this.__caretIndex || group1.startIndex <= this.__selectionIndex && group1.endIndex >= this.__selectionIndex || group1.startIndex > this.__caretIndex && group1.endIndex < this.__selectionIndex || group1.startIndex > this.__selectionIndex && group1.endIndex < this.__caretIndex) {
+										var selectionStart = Math.min(this.__selectionIndex,this.__caretIndex) | 0;
+										var selectionEnd = Math.max(this.__selectionIndex,this.__caretIndex) | 0;
+										if(group1.startIndex > selectionStart) {
+											selectionStart = group1.startIndex;
+										}
+										if(group1.endIndex < selectionEnd) {
+											selectionEnd = group1.endIndex;
+										}
+										var end;
+										var start = this.getCharBoundaries(selectionStart);
+										if(selectionEnd >= group1.endIndex) {
+											end = this.getCharBoundaries(group1.endIndex - 1);
+											if(end != null) {
+												end.x += end.width + 2;
+											}
+										} else {
+											end = this.getCharBoundaries(selectionEnd);
+										}
+										if(start != null && end != null) {
+											openfl_display__$internal_CanvasTextField.context.fillStyle = "#000000";
+											openfl_display__$internal_CanvasTextField.context.fillRect(start.x + scrollX,start.y + scrollY,end.x - start.x,group1.height);
+											openfl_display__$internal_CanvasTextField.context.fillStyle = "#FFFFFF";
+											openfl_display__$internal_CanvasTextField.context.fillText(text.substring(selectionStart,selectionEnd),scrollX + start.x,group1.offsetY + group1.ascent + scrollY);
+										}
+									}
+								}
+								if(group1.format.underline) {
+									openfl_display__$internal_CanvasTextField.context.beginPath();
+									openfl_display__$internal_CanvasTextField.context.strokeStyle = color;
+									openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
+									var x = group1.offsetX + scrollX - bounds.x;
+									var y = Math.floor(group1.offsetY + scrollY + group1.ascent - bounds.y) + 0.5;
+									openfl_display__$internal_CanvasTextField.context.moveTo(x,y);
+									openfl_display__$internal_CanvasTextField.context.lineTo(x + group1.width,y);
+									openfl_display__$internal_CanvasTextField.context.stroke();
+									openfl_display__$internal_CanvasTextField.context.closePath();
+								}
+							}
+						} else {
+							if(textEngine.border || textEngine.background) {
+								if(textEngine.border) {
+									openfl_display__$internal_CanvasTextField.context.rect(0.5,0.5,bounds.width - 1,bounds.height - 1);
+								} else {
+									openfl_display__$internal_CanvasTextField.context.rect(0,0,bounds.width,bounds.height);
+								}
+								if(textEngine.background) {
+									var tmp = StringTools.hex(textEngine.backgroundColor & 16777215,6);
+									openfl_display__$internal_CanvasTextField.context.fillStyle = "#" + tmp;
+									openfl_display__$internal_CanvasTextField.context.fill();
+								}
+								if(textEngine.border) {
+									openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
+									openfl_display__$internal_CanvasTextField.context.lineCap = "square";
+									var tmp = StringTools.hex(textEngine.borderColor & 16777215,6);
+									openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
+									openfl_display__$internal_CanvasTextField.context.stroke();
+								}
+							}
+							if(this.__caretIndex > -1 && textEngine.selectable && this.__showCursor) {
+								var scrollX = -this.get_scrollH();
+								var scrollY = 0.0;
+								var _g = 0;
+								var _g1 = this.get_scrollV() - 1;
+								while(_g < _g1) {
+									var i = _g++;
+									scrollY += textEngine.lineHeights.get(i);
+								}
+								openfl_display__$internal_CanvasTextField.context.beginPath();
+								var tmp = StringTools.hex(this.get_defaultTextFormat().color & 16777215,6);
+								openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
+								openfl_display__$internal_CanvasTextField.context.moveTo(scrollX + 2.5,scrollY + 2.5);
+								openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
+								openfl_display__$internal_CanvasTextField.context.lineTo(scrollX + 2.5,scrollY + openfl_text__$internal_TextEngine.getFormatHeight(this.get_defaultTextFormat()) - 1);
+								openfl_display__$internal_CanvasTextField.context.stroke();
+								openfl_display__$internal_CanvasTextField.context.closePath();
+							}
+						}
+						graphics.__bitmap = openfl_display_BitmapData.fromCanvas(this.__graphics.__canvas);
+						graphics.__visible = true;
+						this.__dirty = false;
+						graphics.__softwareDirty = false;
+						graphics.set___dirty(false);
+					}
+				}
+				var smoothingEnabled = false;
+				if(this.__textEngine.antiAliasType == 0 && this.__textEngine.gridFitType == 1) {
+					smoothingEnabled = renderer.context.imageSmoothingEnabled;
+					if(smoothingEnabled) {
+						renderer.context.imageSmoothingEnabled = false;
+					}
+				}
+				if(!(this.opaqueBackground == null && this.__graphics == null)) {
+					if(this.__renderable) {
+						var alpha = renderer.__getAlpha(this.__worldAlpha);
+						if(!(alpha <= 0)) {
+							if(this.opaqueBackground != null && !this.__isCacheBitmapRender && this.get_width() > 0 && this.get_height() > 0) {
+								renderer.__setBlendMode(this.__worldBlendMode);
+								renderer.__pushMaskObject(this);
+								var context = renderer.context;
+								renderer.setTransform(this.__renderTransform,context);
+								var color = this.opaqueBackground;
+								context.fillStyle = "rgb(" + (color >>> 16 & 255) + "," + (color >>> 8 & 255) + "," + (color & 255) + ")";
+								context.fillRect(0,0,this.get_width(),this.get_height());
+								renderer.__popMaskObject(this);
+							}
+							if(this.__graphics != null) {
+								if(this.__renderable) {
+									var alpha = renderer.__getAlpha(this.__worldAlpha);
+									if(!(alpha <= 0)) {
+										var graphics = this.__graphics;
+										if(graphics != null) {
+											openfl_display__$internal_CanvasGraphics.render(graphics,renderer);
+											var width = graphics.__width;
+											var height = graphics.__height;
+											var canvas = graphics.__canvas;
+											if(canvas != null && graphics.__visible && width >= 1 && height >= 1) {
+												var transform = graphics.__worldTransform;
+												var context = renderer.context;
+												var scrollRect = this.__scrollRect;
+												var scale9Grid = this.__worldScale9Grid;
+												if(scrollRect == null || scrollRect.width > 0 && scrollRect.height > 0) {
+													renderer.__setBlendMode(this.__worldBlendMode);
+													renderer.__pushMaskObject(this);
+													context.globalAlpha = alpha;
+													if(scale9Grid != null && transform.b == 0 && transform.c == 0) {
+														context.setTransform(1,0,0,1,transform.tx,transform.ty);
+														var bounds = graphics.__bounds;
+														var scaleX = graphics.__renderTransform.a;
+														var scaleY = graphics.__renderTransform.d;
+														var renderScaleX = transform.a;
+														var renderScaleY = transform.d;
+														var left = Math.max(1,Math.round(scale9Grid.x * scaleX));
+														var top = Math.round(scale9Grid.y * scaleY);
+														var right = Math.max(1,Math.round((bounds.get_right() - scale9Grid.get_right()) * scaleX));
+														var bottom = Math.round((bounds.get_bottom() - scale9Grid.get_bottom()) * scaleY);
+														var centerWidth = Math.round(scale9Grid.width * scaleX);
+														var centerHeight = Math.round(scale9Grid.height * scaleY);
+														var renderLeft = Math.round(scale9Grid.x * renderScaleX);
+														var renderTop = Math.round(scale9Grid.y * renderScaleY);
+														var renderRight = Math.round((bounds.get_right() - scale9Grid.get_right()) * renderScaleX);
+														var renderBottom = Math.round((bounds.get_bottom() - scale9Grid.get_bottom()) * renderScaleY);
+														var renderCenterWidth = Math.round(width * renderScaleX) - renderLeft - renderRight;
+														var renderCenterHeight = Math.round(height * renderScaleY) - renderTop - renderBottom;
+														renderer.applySmoothing(context,false);
+														if(centerWidth != 0 && centerHeight != 0) {
+															context.drawImage(canvas,0,0,left,top,0,0,renderLeft,renderTop);
+															context.drawImage(canvas,left,0,centerWidth,top,renderLeft,0,renderCenterWidth,renderTop);
+															context.drawImage(canvas,left + centerWidth,0,right,top,renderLeft + renderCenterWidth,0,renderRight,renderTop);
+															context.drawImage(canvas,0,top,left,centerHeight,0,renderTop,renderLeft,renderCenterHeight);
+															context.drawImage(canvas,left,top,centerWidth,centerHeight,renderLeft,renderTop,renderCenterWidth,renderCenterHeight);
+															context.drawImage(canvas,left + centerWidth,top,right,centerHeight,renderLeft + renderCenterWidth,renderTop,renderRight,renderCenterHeight);
+															context.drawImage(canvas,0,top + centerHeight,left,bottom,0,renderTop + renderCenterHeight,renderLeft,renderBottom);
+															context.drawImage(canvas,left,top + centerHeight,centerWidth,bottom,renderLeft,renderTop + renderCenterHeight,renderCenterWidth,renderBottom);
+															context.drawImage(canvas,left + centerWidth,top + centerHeight,right,bottom,renderLeft + renderCenterWidth,renderTop + renderCenterHeight,renderRight,renderBottom);
+														} else if(centerWidth == 0 && centerHeight != 0) {
+															var renderWidth = renderLeft + renderCenterWidth + renderRight;
+															context.drawImage(canvas,0,0,width,top,0,0,renderWidth,renderTop);
+															context.drawImage(canvas,0,top,width,centerHeight,0,renderTop,renderWidth,renderCenterHeight);
+															context.drawImage(canvas,0,top + centerHeight,width,bottom,0,renderTop + renderCenterHeight,renderWidth,renderBottom);
+														} else if(centerHeight == 0 && centerWidth != 0) {
+															var renderHeight = renderTop + renderCenterHeight + renderBottom;
+															context.drawImage(canvas,0,0,left,height,0,0,renderLeft,renderHeight);
+															context.drawImage(canvas,left,0,centerWidth,height,renderLeft,0,renderCenterWidth,renderHeight);
+															context.drawImage(canvas,left + centerWidth,0,right,height,renderLeft + renderCenterWidth,0,renderRight,renderHeight);
+														}
+													} else {
+														renderer.setTransform(transform,context);
+														if(renderer.__isDOM) {
+															var reverseScale = 1 / renderer.pixelRatio;
+															context.scale(reverseScale,reverseScale);
+														}
+														context.drawImage(canvas,0,0,width,height);
+													}
+													renderer.__popMaskObject(this);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				if(smoothingEnabled) {
+					renderer.context.imageSmoothingEnabled = true;
+				}
+			}
+		}
+	}
+	,__renderDOM: function(renderer) {
+		this.__domRender = true;
+		this.__updateCacheBitmap(renderer,this.__forceCachedBitmapUpdate);
+		this.__forceCachedBitmapUpdate = false;
+		this.__domRender = false;
+		if(this.__cacheBitmap != null && !this.__isCacheBitmapRender) {
+			this.__renderDOMClear(renderer);
+			this.__cacheBitmap.stage = this.stage;
+			var bitmap = this.__cacheBitmap;
+			if(bitmap.stage != null && bitmap.__worldVisible && bitmap.__renderable && bitmap.__bitmapData != null && bitmap.__bitmapData.__isValid && bitmap.__bitmapData.readable) {
+				renderer.__pushMaskObject(bitmap);
+				if(bitmap.__bitmapData.image.buffer.__srcImage != null) {
+					openfl_display__$internal_DOMBitmap.renderImage(bitmap,renderer);
+				} else {
+					openfl_display__$internal_DOMBitmap.renderCanvas(bitmap,renderer);
+				}
+				renderer.__popMaskObject(bitmap);
+			} else {
+				openfl_display__$internal_DOMBitmap.clear(bitmap,renderer);
+			}
+		} else {
+			if(this.__renderedOnCanvasWhileOnDOM) {
+				this.__renderedOnCanvasWhileOnDOM = false;
+				if(this.__isHTML && this.__rawHtmlText != null) {
+					this.__updateText(this.__rawHtmlText);
+					this.__dirty = true;
+					this.__layoutDirty = true;
+					if(!this.__renderDirty) {
+						this.__renderDirty = true;
+						this.__setParentRenderDirty();
+					}
+				}
+			}
+			var textField = this;
+			var textEngine = textField.__textEngine;
+			if(textField.stage != null && textField.__worldVisible && textField.__renderable) {
+				if(textField.__dirty || textField.__renderTransformChanged || textField.__div == null) {
+					if(textEngine.text != "" || textEngine.background || textEngine.border || textEngine.type == 1) {
+						if(textField.__div == null) {
+							textField.__div = window.document.createElement("div");
+							renderer.__initializeElement(textField,textField.__div);
+							textField.__style.setProperty("outline","none",null);
+							textField.__div.addEventListener("input",function(event) {
+								event.preventDefault();
+								if(textField.get_htmlText() != textField.__div.innerHTML) {
+									textField.set_htmlText(textField.__div.innerHTML);
+									var textField1 = textField.__displayAsPassword;
+									textField.__dirty = false;
+									textField.dispatchEvent(new openfl_events_TextEvent("textInput",false,false,textField.get_htmlText()));
+								}
+							},true);
+						}
+						if(!textEngine.wordWrap) {
+							textField.__style.setProperty("white-space","nowrap",null);
+						} else {
+							textField.__style.setProperty("word-wrap","break-word",null);
+						}
+						textField.__style.setProperty("overflow","hidden",null);
+						if(textEngine.selectable) {
+							textField.__style.setProperty("cursor","text",null);
+							textField.__style.setProperty("-webkit-user-select","text",null);
+							textField.__style.setProperty("-moz-user-select","text",null);
+							textField.__style.setProperty("-ms-user-select","text",null);
+							textField.__style.setProperty("-o-user-select","text",null);
+						} else {
+							textField.__style.setProperty("cursor","inherit",null);
+						}
+						var div = textField.__div;
+						div.contentEditable = textEngine.type == 1;
+						var style = textField.__style;
+						if(textEngine.background) {
+							style.setProperty("background-color","#" + StringTools.hex(textEngine.backgroundColor & 16777215,6),null);
+						} else {
+							style.removeProperty("background-color");
+						}
+						var w = textEngine.width;
+						var h = textEngine.height;
+						var scale = 1;
+						var unscaledSize = textField.__textFormat.size;
+						var scaledSize = unscaledSize;
+						var t = textField.__renderTransform;
+						if(t.a != 1.0 || t.d != 1.0) {
+							if(t.a == t.d) {
+								scale = t.a;
+								t.a = t.d = 1.0;
+							} else if(t.a > t.d) {
+								scale = t.a;
+								t.d /= t.a;
+								t.a = 1.0;
+							} else {
+								scale = t.d;
+								t.a /= t.d;
+								t.d = 1.0;
+							}
+							scaledSize *= scale;
+							w = Math.ceil(w * scale);
+							h = Math.ceil(h * scale);
+						}
+						textField.__textFormat.size = scaledSize;
+						var text = textEngine.text;
+						var adjustment = 0;
+						if(!textField.__isHTML) {
+							text = StringTools.htmlEscape(text);
+						} else {
+							var matchText = text;
+							while(openfl_display__$internal_DOMTextField.__regexFont.match(matchText)) {
+								var fontText = openfl_display__$internal_DOMTextField.__regexFont.matched(0);
+								var style1 = "";
+								if(openfl_display__$internal_DOMTextField.__regexFace.match(fontText)) {
+									style1 += "font-family:'" + openfl_display__$internal_DOMTextField.__getAttributeMatch(openfl_display__$internal_DOMTextField.__regexFace) + "';";
+								}
+								if(openfl_display__$internal_DOMTextField.__regexColor.match(fontText)) {
+									style1 += "color:#" + openfl_display__$internal_DOMTextField.__getAttributeMatch(openfl_display__$internal_DOMTextField.__regexColor) + ";";
+								}
+								if(openfl_display__$internal_DOMTextField.__regexSize.match(fontText)) {
+									var sizeAttr = openfl_display__$internal_DOMTextField.__getAttributeMatch(openfl_display__$internal_DOMTextField.__regexSize);
+									var firstChar = HxOverrides.cca(sizeAttr,0);
+									var size;
+									adjustment = parseFloat(sizeAttr) * scale;
+									if(firstChar == 43 || firstChar == 45) {
+										size = scaledSize + adjustment;
+									} else {
+										size = adjustment;
+									}
+									style1 += "font-size:" + size + "px;";
+								}
+								text = StringTools.replace(text,fontText,"<span style='" + style1 + "'>");
+								matchText = openfl_display__$internal_DOMTextField.__regexFont.matchedRight();
+							}
+							text = text.replace(openfl_display__$internal_DOMTextField.__regexCloseFont.r,"</span>");
+						}
+						text = StringTools.replace(text,"<p ","<p style='margin-top:0; margin-bottom:0;' ");
+						var unscaledLeading = textField.__textFormat.leading;
+						textField.__textFormat.leading += adjustment | 0;
+						var _this_r = new RegExp("\r\n","g".split("u").join(""));
+						var tmp = text.replace(_this_r,"<br>");
+						textField.__div.innerHTML = tmp;
+						var _this_r = new RegExp("\n","g".split("u").join(""));
+						var tmp = textField.__div.innerHTML.replace(_this_r,"<br>");
+						textField.__div.innerHTML = tmp;
+						var _this_r = new RegExp("\r","g".split("u").join(""));
+						var tmp = textField.__div.innerHTML.replace(_this_r,"<br>");
+						textField.__div.innerHTML = tmp;
+						style.setProperty("font",openfl_text__$internal_TextEngine.getFont(textField.__textFormat),null);
+						textField.__textFormat.size = unscaledSize;
+						textField.__textFormat.leading = unscaledLeading;
+						style.setProperty("top","3px",null);
+						if(textEngine.border) {
+							style.setProperty("border","solid 1px #" + StringTools.hex(textEngine.borderColor & 16777215,6),null);
+							textField.__renderTransform.translate(-1,-1);
+							textField.__renderTransformChanged = true;
+							textField.__transformDirty = true;
+						} else if(style.border != "") {
+							style.removeProperty("border");
+							textField.__renderTransformChanged = true;
+						}
+						style.setProperty("color","#" + StringTools.hex(textField.__textFormat.color & 16777215,6),null);
+						style.setProperty("width",w + "px",null);
+						style.setProperty("height",h + "px",null);
+						switch(textField.__textFormat.align) {
+						case 0:
+							style.setProperty("text-align","center",null);
+							break;
+						case 4:
+							style.setProperty("text-align","right",null);
+							break;
+						default:
+							style.setProperty("text-align","left",null);
+						}
+						textField.__dirty = false;
+					} else if(textField.__div != null) {
+						renderer.element.removeChild(textField.__div);
+						textField.__div = null;
+					}
+				}
+				if(textField.__div != null) {
+					var old = renderer.__roundPixels;
+					renderer.__roundPixels = true;
+					renderer.__updateClip(textField);
+					renderer.__applyStyle(textField,true,true,true);
+					renderer.__roundPixels = old;
+				}
+			} else {
+				openfl_display__$internal_DOMTextField.clear(textField,renderer);
+			}
+		}
+		this.__renderEvent(renderer);
+	}
+	,__renderDOMClear: function(renderer) {
+		openfl_display__$internal_DOMTextField.clear(this,renderer);
+	}
+	,__renderGL: function(renderer) {
+		this.__updateCacheBitmap(renderer,false);
+		if(this.__cacheBitmap != null && !this.__isCacheBitmapRender) {
+			openfl_display__$internal_Context3DBitmap.render(this.__cacheBitmap,renderer);
+		} else {
+			openfl_display__$internal_Context3DTextField.render(this,renderer);
+			if(!(this.opaqueBackground == null && this.__graphics == null)) {
+				if(!(!this.__renderable || this.__worldAlpha <= 0)) {
+					if(this.opaqueBackground != null && !this.__isCacheBitmapRender && this.get_width() > 0 && this.get_height() > 0) {
+						renderer.__setBlendMode(this.__worldBlendMode);
+						renderer.__pushMaskObject(this);
+						var context = renderer.__context3D;
+						var rect = openfl_geom_Rectangle.__pool.get();
+						rect.setTo(0,0,this.get_width(),this.get_height());
+						renderer.__pushMaskRect(rect,this.__renderTransform);
+						var color = this.opaqueBackground;
+						context.clear((color >>> 16 & 255) / 255,(color >>> 8 & 255) / 255,(color & 255) / 255,1,0,0,1);
+						renderer.__popMaskRect();
+						renderer.__popMaskObject(this);
+						openfl_geom_Rectangle.__pool.release(rect);
+					}
+					if(this.__graphics != null) {
+						openfl_display__$internal_Context3DShape.render(this,renderer);
+					}
+				}
+			}
+		}
+		this.__renderEvent(renderer);
+	}
+	,__renderGLMask: function(renderer) {
+		openfl_display__$internal_Context3DTextField.renderMask(this,renderer);
+		openfl_display_InteractiveObject.prototype.__renderGLMask.call(this,renderer);
+	}
+	,__replaceSelectedText: function(value,restrict) {
+		if(restrict == null) {
+			restrict = true;
+		}
+		if(value == null) {
+			value = "";
+		}
+		if(value == "" && this.__selectionIndex == this.__caretIndex) {
+			return;
+		}
+		var startIndex = this.__caretIndex < this.__selectionIndex ? this.__caretIndex : this.__selectionIndex;
+		var endIndex = this.__caretIndex > this.__selectionIndex ? this.__caretIndex : this.__selectionIndex;
+		if(startIndex == endIndex && this.__textEngine.maxChars > 0 && this.__text.length == this.__textEngine.maxChars) {
+			return;
+		}
+		if(startIndex > this.__text.length) {
+			startIndex = this.__text.length;
+		}
+		if(endIndex > this.__text.length) {
+			endIndex = this.__text.length;
+		}
+		if(endIndex < startIndex) {
+			var cache = endIndex;
+			endIndex = startIndex;
+			startIndex = cache;
+		}
+		if(startIndex < 0) {
+			startIndex = 0;
+		}
+		this.__replaceText(startIndex,endIndex,value,restrict);
+		var i = startIndex + (js_Boot.__cast(value , String)).length;
+		if(i > this.__text.length) {
+			i = this.__text.length;
+		}
+		this.setSelection(i,i);
+		this.__updateScrollH();
+	}
+	,__replaceText: function(beginIndex,endIndex,newText,restrict) {
+		if(endIndex < beginIndex || beginIndex < 0 || endIndex > this.__text.length || newText == null) {
+			return;
+		}
+		if(restrict) {
+			newText = this.__textEngine.restrictText(newText);
+			if(this.__textEngine.maxChars > 0) {
+				var removeLength = endIndex - beginIndex;
+				var maxLength = this.__textEngine.maxChars - this.__text.length + removeLength;
+				if(maxLength <= 0) {
+					newText = "";
+				} else if(maxLength < newText.length) {
+					newText = HxOverrides.substr(newText,0,maxLength);
+				}
+			}
+		}
+		this.__updateText(this.__text.substring(0,beginIndex) + newText + this.__text.substring(endIndex));
+		if(endIndex > this.__text.length) {
+			endIndex = this.__text.length;
+		}
+		var offset = newText.length - (endIndex - beginIndex);
+		var i = 0;
+		var range;
+		while(i < this.__textEngine.textFormatRanges.get_length()) {
+			range = this.__textEngine.textFormatRanges.get(i);
+			if(range.start <= beginIndex && range.end >= endIndex) {
+				range.end += offset;
+				++i;
+			} else if(range.start >= beginIndex && range.end <= endIndex) {
+				if(i > 0) {
+					this.__textEngine.textFormatRanges.splice(i,1);
+				} else {
+					range.start = 0;
+					range.end = beginIndex + newText.length;
+					++i;
+				}
+				offset -= range.end - range.start;
+			} else if(range.start > beginIndex && range.start <= endIndex) {
+				range.start += offset;
+				++i;
+			} else {
+				++i;
+			}
+		}
+		this.__updateScrollV();
+		this.__updateScrollH();
+		this.__dirty = true;
+		this.__layoutDirty = true;
+		if(!this.__renderDirty) {
+			this.__renderDirty = true;
+			this.__setParentRenderDirty();
+		}
+	}
+	,__shouldCacheHardware: function(value) {
+		if(value == true) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	,__startCursorTimer: function() {
+		this.__cursorTimer = haxe_Timer.delay($bind(this,this.__startCursorTimer),600);
+		this.__showCursor = !this.__showCursor;
+		this.__dirty = true;
+		if(!this.__renderDirty) {
+			this.__renderDirty = true;
+			this.__setParentRenderDirty();
+		}
+	}
+	,__startTextInput: function() {
+		if(this.__caretIndex < 0) {
+			this.__caretIndex = this.__text.length;
+			this.__selectionIndex = this.__caretIndex;
+		}
+		var enableInput = openfl_display_DisplayObject.__supportDOM ? this.__renderedOnCanvasWhileOnDOM : true;
+		if(enableInput) {
+			this.__enableInput();
+		}
+	}
+	,__stopCursorTimer: function() {
+		if(this.__cursorTimer != null) {
+			this.__cursorTimer.stop();
+			this.__cursorTimer = null;
+		}
+		if(this.__showCursor) {
+			this.__showCursor = false;
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+	}
+	,__stopTextInput: function() {
+		var disableInput = openfl_display_DisplayObject.__supportDOM ? this.__renderedOnCanvasWhileOnDOM : true;
+		if(disableInput) {
+			this.__disableInput();
+		}
+	}
+	,__updateCacheBitmap: function(renderer,force) {
+		if(this.__filters == null && renderer.__type == "opengl" && this.__cacheBitmap == null && !this.__domRender) {
+			return false;
+		}
+		if(force) {
+			this.__renderDirty = true;
+		}
+		if(openfl_display_InteractiveObject.prototype.__updateCacheBitmap.call(this,renderer,force || this.__dirty)) {
+			if(this.__cacheBitmap != null) {
+				this.__cacheBitmap.__renderTransform.tx -= this.__offsetX;
+				this.__cacheBitmap.__renderTransform.ty -= this.__offsetY;
+			}
+			return true;
+		}
+		return false;
+	}
+	,__updateLayout: function() {
+		if(this.__layoutDirty) {
+			var cacheWidth = this.__textEngine.width;
+			this.__textEngine.update();
+			if(this.__textEngine.autoSize != 2) {
+				if(this.__textEngine.width != cacheWidth) {
+					switch(this.__textEngine.autoSize) {
+					case 0:
+						var _g = this;
+						_g.set_x(_g.get_x() + (cacheWidth - this.__textEngine.width) / 2);
+						break;
+					case 3:
+						var _g = this;
+						_g.set_x(_g.get_x() + (cacheWidth - this.__textEngine.width));
+						break;
+					default:
+					}
+				}
+				this.__textEngine.getBounds();
+			}
+			this.__layoutDirty = false;
+		}
+	}
+	,__updateScrollH: function() {
+		if(!this.get_multiline() && this.get_type() == 1) {
+			this.__layoutDirty = true;
+			this.__updateLayout();
+			var offsetX = this.__textEngine.textWidth - this.__textEngine.width + 4;
+			if(offsetX > 0) {
+				if(this.__caretIndex >= this.get_text().length) {
+					this.set_scrollH(Math.ceil(offsetX));
+				} else {
+					var caret = openfl_geom_Rectangle.__pool.get();
+					this.__getCharBoundaries(this.__caretIndex,caret);
+					if(caret.x < this.get_scrollH()) {
+						this.set_scrollH(Math.floor(caret.x - 2));
+					} else if(caret.x > this.get_scrollH() + this.__textEngine.width) {
+						this.set_scrollH(Math.ceil(caret.x - this.__textEngine.width - 2));
+					}
+					openfl_geom_Rectangle.__pool.release(caret);
+				}
+			} else {
+				this.set_scrollH(0);
+			}
+		}
+	}
+	,__updateScrollV: function() {
+		this.__layoutDirty = true;
+		this.__updateLayout();
+		var lineIndex = this.getLineIndexOfChar(this.__caretIndex);
+		if(lineIndex == -1 && this.__caretIndex > 0) {
+			lineIndex = this.getLineIndexOfChar(this.__caretIndex - 1) + 1;
+		}
+		if(lineIndex + 1 < this.get_scrollV()) {
+			this.set_scrollV(lineIndex + 1);
+		} else if(lineIndex + 1 > this.get_bottomScrollV()) {
+			var i = lineIndex;
+			var tempHeight = 0.0;
+			while(i >= 0) if(tempHeight + this.__textEngine.lineHeights.get(i) <= this.get_height() - 4) {
+				tempHeight += this.__textEngine.lineHeights.get(i);
+				--i;
+			} else {
+				break;
+			}
+			this.set_scrollV(i + 2);
+		} else {
+			this.set_scrollV(this.get_scrollV());
+		}
+	}
+	,__updateText: function(value) {
+		if(openfl_display_DisplayObject.__supportDOM && this.__renderedOnCanvasWhileOnDOM) {
+			this.__forceCachedBitmapUpdate = this.__text != value;
+		}
+		this.__textEngine.set_text(value);
+		this.__text = this.__textEngine.text;
+		if(this.__text.length < this.__caretIndex) {
+			this.__selectionIndex = this.__caretIndex = this.__text.length;
+		}
+		if(!this.__displayAsPassword || openfl_display_DisplayObject.__supportDOM && !this.__renderedOnCanvasWhileOnDOM) {
+			this.__textEngine.set_text(this.__text);
+		} else {
+			var length = this.get_text().length;
+			var mask = "";
+			var _g = 0;
+			var _g1 = length;
+			while(_g < _g1) {
+				var i = _g++;
+				mask += "*";
+			}
+			this.__textEngine.set_text(mask);
+		}
+	}
+	,__updateTransforms: function(overrideTransform) {
+		openfl_display_InteractiveObject.prototype.__updateTransforms.call(this,overrideTransform);
+		var _this = this.__renderTransform;
+		var px = this.__offsetX;
+		var py = this.__offsetY;
+		_this.tx = px * _this.a + py * _this.c + _this.tx;
+		_this.ty = px * _this.b + py * _this.d + _this.ty;
+	}
+	,get_antiAliasType: function() {
+		return this.__textEngine.antiAliasType;
+	}
+	,set_antiAliasType: function(value) {
+		var tmp = value != this.__textEngine.antiAliasType;
+		return this.__textEngine.antiAliasType = value;
+	}
+	,get_autoSize: function() {
+		return this.__textEngine.autoSize;
+	}
+	,set_autoSize: function(value) {
+		if(value != this.__textEngine.autoSize) {
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.autoSize = value;
+	}
+	,get_background: function() {
+		return this.__textEngine.background;
+	}
+	,set_background: function(value) {
+		if(value != this.__textEngine.background) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.background = value;
+	}
+	,get_backgroundColor: function() {
+		return this.__textEngine.backgroundColor;
+	}
+	,set_backgroundColor: function(value) {
+		if(value != this.__textEngine.backgroundColor) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.backgroundColor = value;
+	}
+	,get_border: function() {
+		return this.__textEngine.border;
+	}
+	,set_border: function(value) {
+		if(value != this.__textEngine.border) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.border = value;
+	}
+	,get_borderColor: function() {
+		return this.__textEngine.borderColor;
+	}
+	,set_borderColor: function(value) {
+		if(value != this.__textEngine.borderColor) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.borderColor = value;
+	}
+	,get_bottomScrollV: function() {
+		this.__updateLayout();
+		return this.__textEngine.get_bottomScrollV();
+	}
+	,get_caretIndex: function() {
+		return this.__caretIndex;
+	}
+	,get_defaultTextFormat: function() {
+		return this.__textFormat.clone();
+	}
+	,set_defaultTextFormat: function(value) {
+		this.__textFormat.__merge(value);
+		this.__layoutDirty = true;
+		this.__dirty = true;
+		if(!this.__renderDirty) {
+			this.__renderDirty = true;
+			this.__setParentRenderDirty();
+		}
+		return value;
+	}
+	,get_displayAsPassword: function() {
+		return this.__displayAsPassword;
+	}
+	,set_displayAsPassword: function(value) {
+		if(value != this.__displayAsPassword) {
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+			this.__displayAsPassword = value;
+			this.__updateText(this.__text);
+		}
+		return value;
+	}
+	,get_embedFonts: function() {
+		return this.__textEngine.embedFonts;
+	}
+	,set_embedFonts: function(value) {
+		return this.__textEngine.embedFonts = value;
+	}
+	,get_gridFitType: function() {
+		return this.__textEngine.gridFitType;
+	}
+	,set_gridFitType: function(value) {
+		return this.__textEngine.gridFitType = value;
+	}
+	,get_height: function() {
+		this.__updateLayout();
+		return this.__textEngine.height * Math.abs(this.get_scaleY());
+	}
+	,set_height: function(value) {
+		if(value != this.__textEngine.height) {
+			this.__setTransformDirty();
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+			this.__textEngine.height = value;
+		}
+		return this.__textEngine.height * Math.abs(this.get_scaleY());
+	}
+	,get_htmlText: function() {
+		if(this.__isHTML) {
+			return this.__rawHtmlText;
+		} else {
+			return this.__text;
+		}
+	}
+	,set_htmlText: function(value) {
+		if(!this.__isHTML || this.__text != value) {
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		this.__isHTML = true;
+		this.__rawHtmlText = value;
+		value = openfl__$internal_formats_html_HTMLParser.parse(value,this.__textFormat,this.__textEngine.textFormatRanges);
+		if(openfl_display_DisplayObject.__supportDOM) {
+			if(this.__textEngine.textFormatRanges.get_length() > 1) {
+				this.__textEngine.textFormatRanges.splice(1,this.__textEngine.textFormatRanges.get_length() - 1);
+			}
+			var range = this.__textEngine.textFormatRanges.get(0);
+			range.format = this.__textFormat;
+			range.start = 0;
+			if(this.__renderedOnCanvasWhileOnDOM) {
+				range.end = value.length;
+				this.__updateText(value);
+			} else {
+				range.end = this.__rawHtmlText.length;
+				this.__updateText(this.__rawHtmlText);
+			}
+		} else {
+			this.__updateText(value);
+		}
+		this.__updateScrollV();
+		return value;
+	}
+	,get_length: function() {
+		if(this.__text != null) {
+			return this.__text.length;
+		}
+		return 0;
+	}
+	,get_maxChars: function() {
+		return this.__textEngine.maxChars;
+	}
+	,set_maxChars: function(value) {
+		if(value != this.__textEngine.maxChars) {
+			this.__textEngine.maxChars = value;
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return value;
+	}
+	,get_maxScrollH: function() {
+		this.__updateLayout();
+		return this.__textEngine.maxScrollH;
+	}
+	,get_maxScrollV: function() {
+		this.__updateLayout();
+		return this.__textEngine.get_maxScrollV();
+	}
+	,get_mouseWheelEnabled: function() {
+		return this.__mouseWheelEnabled;
+	}
+	,set_mouseWheelEnabled: function(value) {
+		return this.__mouseWheelEnabled = value;
+	}
+	,get_multiline: function() {
+		return this.__textEngine.multiline;
+	}
+	,set_multiline: function(value) {
+		if(value != this.__textEngine.multiline) {
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			this.__updateText(this.__text);
+			this.__updateScrollH();
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.multiline = value;
+	}
+	,get_numLines: function() {
+		this.__updateLayout();
+		return this.__textEngine.numLines;
+	}
+	,get_restrict: function() {
+		return this.__textEngine.restrict;
+	}
+	,set_restrict: function(value) {
+		if(this.__textEngine.restrict != value) {
+			this.__textEngine.set_restrict(value);
+			this.__updateText(this.__text);
+		}
+		return value;
+	}
+	,get_scrollH: function() {
+		return this.__textEngine.scrollH;
+	}
+	,set_scrollH: function(value) {
+		this.__updateLayout();
+		if(value > this.__textEngine.maxScrollH) {
+			value = this.__textEngine.maxScrollH;
+		}
+		if(value < 0) {
+			value = 0;
+		}
+		if(value != this.__textEngine.scrollH) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+			this.__textEngine.scrollH = value;
+			this.dispatchEvent(new openfl_events_Event("scroll"));
+		}
+		return this.__textEngine.scrollH;
+	}
+	,get_scrollV: function() {
+		return this.__textEngine.get_scrollV();
+	}
+	,set_scrollV: function(value) {
+		this.__updateLayout();
+		if(value > 0 && value != this.__textEngine.get_scrollV()) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+			this.__textEngine.set_scrollV(value);
+			this.dispatchEvent(new openfl_events_Event("scroll"));
+		}
+		return this.__textEngine.get_scrollV();
+	}
+	,get_selectable: function() {
+		return this.__textEngine.selectable;
+	}
+	,set_selectable: function(value) {
+		if(value != this.__textEngine.selectable && this.get_type() == 1) {
+			if(this.stage != null && this.stage.get_focus() == this) {
+				this.__startTextInput();
+			} else if(!value) {
+				this.__stopTextInput();
+			}
+		}
+		return this.__textEngine.selectable = value;
+	}
+	,get_selectionBeginIndex: function() {
+		return Math.min(this.__caretIndex,this.__selectionIndex) | 0;
+	}
+	,get_selectionEndIndex: function() {
+		return Math.max(this.__caretIndex,this.__selectionIndex) | 0;
+	}
+	,get_sharpness: function() {
+		return this.__textEngine.sharpness;
+	}
+	,set_sharpness: function(value) {
+		if(value != this.__textEngine.sharpness) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.sharpness = value;
+	}
+	,get_tabEnabled: function() {
+		if(this.__tabEnabled == null) {
+			return this.__textEngine.type == 1;
+		} else {
+			return this.__tabEnabled;
+		}
+	}
+	,get_text: function() {
+		return this.__text;
+	}
+	,set_text: function(value) {
+		if(this.__isHTML || this.__text != value) {
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		} else {
+			return value;
+		}
+		if(this.__textEngine.textFormatRanges.get_length() > 1) {
+			this.__textEngine.textFormatRanges.splice(1,this.__textEngine.textFormatRanges.get_length() - 1);
+		}
+		var utfValue = value;
+		var range = this.__textEngine.textFormatRanges.get(0);
+		range.format = this.__textFormat;
+		range.start = 0;
+		range.end = utfValue.length;
+		this.__isHTML = false;
+		this.__updateText(value);
+		this.__updateScrollV();
+		return value;
+	}
+	,get_textColor: function() {
+		return this.__textFormat.color;
+	}
+	,set_textColor: function(value) {
+		if(value != this.__textFormat.color) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		var range = this.__textEngine.textFormatRanges.iterator();
+		while(range.hasNext()) {
+			var range1 = range.next();
+			range1.format.color = value;
+		}
+		return this.__textFormat.color = value;
+	}
+	,get_textWidth: function() {
+		this.__updateLayout();
+		return this.__textEngine.textWidth;
+	}
+	,get_textHeight: function() {
+		this.__updateLayout();
+		return this.__textEngine.textHeight;
+	}
+	,get_type: function() {
+		return this.__textEngine.type;
+	}
+	,set_type: function(value) {
+		if(value != this.__textEngine.type) {
+			if(value == 1) {
+				this.addEventListener("addedToStage",$bind(this,this.this_onAddedToStage));
+				this.this_onFocusIn(null);
+				this.__textEngine.__useIntAdvances = true;
+			} else {
+				this.removeEventListener("addedToStage",$bind(this,this.this_onAddedToStage));
+				this.__stopTextInput();
+				this.__textEngine.__useIntAdvances = null;
+			}
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.type = value;
+	}
+	,get_width: function() {
+		this.__updateLayout();
+		return this.__textEngine.width * Math.abs(this.__scaleX);
+	}
+	,set_width: function(value) {
+		if(value != this.__textEngine.width) {
+			this.__setTransformDirty();
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+			this.__textEngine.width = value;
+		}
+		return this.__textEngine.width * Math.abs(this.__scaleX);
+	}
+	,get_wordWrap: function() {
+		return this.__textEngine.wordWrap;
+	}
+	,set_wordWrap: function(value) {
+		if(value != this.__textEngine.wordWrap) {
+			this.__dirty = true;
+			this.__layoutDirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		return this.__textEngine.wordWrap = value;
+	}
+	,get_x: function() {
+		return this.__transform.tx + this.__offsetX;
+	}
+	,set_x: function(value) {
+		if(value != this.__transform.tx + this.__offsetX) {
+			this.__setTransformDirty();
+		}
+		return this.__transform.tx = value - this.__offsetX;
+	}
+	,get_y: function() {
+		return this.__transform.ty + this.__offsetY;
+	}
+	,set_y: function(value) {
+		if(value != this.__transform.ty + this.__offsetY) {
+			this.__setTransformDirty();
+		}
+		return this.__transform.ty = value - this.__offsetY;
+	}
+	,stage_onMouseMove: function(event) {
+		if(this.stage == null) {
+			return;
+		}
+		if(this.get_selectable() && this.__selectionIndex >= 0) {
+			this.__updateLayout();
+			var position = this.__getPosition(this.get_mouseX() + this.get_scrollH(),this.get_mouseY());
+			if(position != this.__caretIndex) {
+				this.__caretIndex = position;
+				var setDirty = true;
+				if(openfl_display_DisplayObject.__supportDOM) {
+					if(this.__renderedOnCanvasWhileOnDOM) {
+						this.__forceCachedBitmapUpdate = true;
+					}
+					setDirty = false;
+				}
+				if(setDirty) {
+					this.__dirty = true;
+					if(!this.__renderDirty) {
+						this.__renderDirty = true;
+						this.__setParentRenderDirty();
+					}
+				}
+			}
+		}
+	}
+	,stage_onMouseUp: function(event) {
+		if(this.stage == null) {
+			return;
+		}
+		this.stage.removeEventListener("mouseMove",$bind(this,this.stage_onMouseMove));
+		this.stage.removeEventListener("mouseUp",$bind(this,this.stage_onMouseUp));
+		if(this.stage.get_focus() == this) {
+			this.__getWorldTransform();
+			this.__updateLayout();
+			var upPos = this.__getPosition(this.get_mouseX() + this.get_scrollH(),this.get_mouseY());
+			var leftPos = Math.min(this.__selectionIndex,upPos) | 0;
+			var rightPos = Math.max(this.__selectionIndex,upPos) | 0;
+			this.__selectionIndex = leftPos;
+			this.__caretIndex = rightPos;
+			if(this.__inputEnabled) {
+				this.this_onFocusIn(null);
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+				if(openfl_display_DisplayObject.__supportDOM && this.__renderedOnCanvasWhileOnDOM) {
+					this.__forceCachedBitmapUpdate = true;
+				}
+			}
+		}
+	}
+	,this_onAddedToStage: function(event) {
+		this.this_onFocusIn(null);
+	}
+	,this_onFocusIn: function(event) {
+		if(this.get_type() == 1 && this.stage != null && this.stage.get_focus() == this) {
+			this.__startTextInput();
+		}
+	}
+	,this_onFocusOut: function(event) {
+		this.__stopCursorTimer();
+		if(event.relatedObject == null || !((event.relatedObject) instanceof openfl_text_TextField)) {
+			this.__stopTextInput();
+		} else {
+			if(this.stage != null) {
+				this.stage.window.onTextInput.remove($bind(this,this.window_onTextInput));
+				this.stage.window.onKeyDown.remove($bind(this,this.window_onKeyDown));
+			}
+			this.__inputEnabled = false;
+		}
+		if(this.__selectionIndex != this.__caretIndex) {
+			this.__selectionIndex = this.__caretIndex;
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+	}
+	,this_onKeyDown: function(event) {
+		if(this.get_selectable() && this.get_type() != 1 && event.keyCode == 67 && (event.commandKey || event.ctrlKey)) {
+			if(this.__caretIndex != this.__selectionIndex) {
+				lime_system_Clipboard.set_text(this.__text.substring(this.__caretIndex,this.__selectionIndex));
+			}
+		}
+	}
+	,this_onMouseDown: function(event) {
+		if(!this.get_selectable() && this.get_type() != 1) {
+			return;
+		}
+		this.__updateLayout();
+		this.__caretIndex = this.__getPosition(this.get_mouseX() + this.get_scrollH(),this.get_mouseY());
+		this.__selectionIndex = this.__caretIndex;
+		if(!openfl_display_DisplayObject.__supportDOM) {
+			this.__dirty = true;
+			if(!this.__renderDirty) {
+				this.__renderDirty = true;
+				this.__setParentRenderDirty();
+			}
+		}
+		this.stage.addEventListener("mouseMove",$bind(this,this.stage_onMouseMove));
+		this.stage.addEventListener("mouseUp",$bind(this,this.stage_onMouseUp));
+	}
+	,this_onMouseWheel: function(event) {
+		if(this.get_mouseWheelEnabled()) {
+			var _g = this;
+			_g.set_scrollV(_g.get_scrollV() - event.delta);
+		}
+	}
+	,this_onDoubleClick: function(event) {
+		if(this.get_selectable()) {
+			this.__updateLayout();
+			var delimiters = ["\n",".","!","?",","," ",";",":","(",")","-","_","/"];
+			var txtStr = this.__text;
+			var leftPos = -1;
+			var rightPos = txtStr.length;
+			var pos = 0;
+			var startPos = Math.max(this.__caretIndex,1) | 0;
+			if(txtStr.length > 0 && this.__caretIndex >= 0 && rightPos >= this.__caretIndex) {
+				var _g = 0;
+				while(_g < delimiters.length) {
+					var c = delimiters[_g];
+					++_g;
+					pos = txtStr.lastIndexOf(c,startPos - 1);
+					if(pos > leftPos) {
+						leftPos = pos + 1;
+					}
+					pos = txtStr.indexOf(c,startPos);
+					if(pos < rightPos && pos != -1) {
+						rightPos = pos;
+					}
+				}
+				if(leftPos != rightPos) {
+					this.setSelection(leftPos,rightPos);
+					var setDirty = true;
+					if(openfl_display_DisplayObject.__supportDOM) {
+						if(this.__renderedOnCanvasWhileOnDOM) {
+							this.__forceCachedBitmapUpdate = true;
+						}
+						setDirty = false;
+					}
+					if(setDirty) {
+						this.__dirty = true;
+						if(!this.__renderDirty) {
+							this.__renderDirty = true;
+							this.__setParentRenderDirty();
+						}
+					}
+				}
+			}
+		}
+	}
+	,window_onKeyDown: function(key,modifier) {
+		switch(key) {
+		case 8:
+			if(this.__selectionIndex == this.__caretIndex && this.__caretIndex > 0) {
+				this.__selectionIndex = this.__caretIndex - 1;
+			}
+			if(this.__selectionIndex != this.__caretIndex) {
+				this.replaceSelectedText("");
+				this.__selectionIndex = this.__caretIndex;
+				this.dispatchEvent(new openfl_events_Event("change",true));
+			}
+			break;
+		case 97:
+			if(this.get_selectable()) {
+				if(lime_ui_KeyModifier.get_metaKey(modifier) || lime_ui_KeyModifier.get_ctrlKey(modifier)) {
+					this.__caretIndex = this.__text.length;
+					this.__selectionIndex = 0;
+				}
+			}
+			break;
+		case 99:
+			if(lime_ui_KeyModifier.get_metaKey(modifier) || lime_ui_KeyModifier.get_ctrlKey(modifier)) {
+				if(this.__caretIndex != this.__selectionIndex) {
+					lime_system_Clipboard.set_text(this.__text.substring(this.__caretIndex,this.__selectionIndex));
+				}
+			}
+			break;
+		case 120:
+			if(lime_ui_KeyModifier.get_metaKey(modifier) || lime_ui_KeyModifier.get_ctrlKey(modifier)) {
+				if(this.__caretIndex != this.__selectionIndex) {
+					lime_system_Clipboard.set_text(this.__text.substring(this.__caretIndex,this.__selectionIndex));
+					this.replaceSelectedText("");
+					this.dispatchEvent(new openfl_events_Event("change",true));
+				}
+			}
+			break;
+		case 127:
+			if(this.__selectionIndex == this.__caretIndex && this.__caretIndex < this.__text.length) {
+				this.__selectionIndex = this.__caretIndex + 1;
+			}
+			if(this.__selectionIndex != this.__caretIndex) {
+				this.replaceSelectedText("");
+				this.__selectionIndex = this.__caretIndex;
+				this.dispatchEvent(new openfl_events_Event("change",true));
+			}
+			break;
+		case 1073741898:
+			if(this.get_selectable()) {
+				this.__caretBeginningOfLine();
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+			}
+			break;
+		case 1073741901:
+			if(this.get_selectable()) {
+				this.__caretEndOfLine();
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+			}
+			break;
+		case 1073741903:
+			if(this.get_selectable()) {
+				if(lime_ui_KeyModifier.get_metaKey(modifier)) {
+					this.__caretEndOfLine();
+					if(!lime_ui_KeyModifier.get_shiftKey(modifier)) {
+						this.__selectionIndex = this.__caretIndex;
+					}
+				} else if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
+					this.__caretNextCharacter();
+				} else {
+					if(this.__selectionIndex == this.__caretIndex) {
+						this.__caretNextCharacter();
+					} else {
+						this.__caretIndex = Math.max(this.__caretIndex,this.__selectionIndex) | 0;
+					}
+					this.__selectionIndex = this.__caretIndex;
+				}
+				this.__updateScrollH();
+				this.__updateScrollV();
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+			}
+			break;
+		case 1073741904:
+			if(this.get_selectable()) {
+				if(lime_ui_KeyModifier.get_metaKey(modifier)) {
+					this.__caretBeginningOfLine();
+					if(!lime_ui_KeyModifier.get_shiftKey(modifier)) {
+						this.__selectionIndex = this.__caretIndex;
+					}
+				} else if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
+					this.__caretPreviousCharacter();
+				} else {
+					if(this.__selectionIndex == this.__caretIndex) {
+						this.__caretPreviousCharacter();
+					} else {
+						this.__caretIndex = Math.min(this.__caretIndex,this.__selectionIndex) | 0;
+					}
+					this.__selectionIndex = this.__caretIndex;
+				}
+				this.__updateScrollH();
+				this.__updateScrollV();
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+			}
+			break;
+		case 1073741905:
+			if(this.get_selectable()) {
+				if(!this.__textEngine.multiline) {
+					return;
+				}
+				if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
+					this.__caretNextLine();
+				} else {
+					if(this.__selectionIndex == this.__caretIndex) {
+						this.__caretNextLine();
+					} else {
+						var lineIndex = this.getLineIndexOfChar(Math.max(this.__caretIndex,this.__selectionIndex) | 0);
+						this.__caretNextLine(lineIndex,Math.min(this.__caretIndex,this.__selectionIndex) | 0);
+					}
+					this.__selectionIndex = this.__caretIndex;
+				}
+				this.__updateScrollV();
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+			}
+			break;
+		case 1073741906:
+			if(this.get_selectable()) {
+				if(!this.__textEngine.multiline) {
+					return;
+				}
+				if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
+					this.__caretPreviousLine();
+				} else {
+					if(this.__selectionIndex == this.__caretIndex) {
+						this.__caretPreviousLine();
+					} else {
+						var lineIndex = this.getLineIndexOfChar(Math.min(this.__caretIndex,this.__selectionIndex) | 0);
+						this.__caretPreviousLine(lineIndex,Math.min(this.__caretIndex,this.__selectionIndex) | 0);
+					}
+					this.__selectionIndex = this.__caretIndex;
+				}
+				this.__updateScrollV();
+				this.__stopCursorTimer();
+				this.__startCursorTimer();
+			}
+			break;
+		case 13:case 1073741912:
+			if(this.__textEngine.multiline) {
+				var te = new openfl_events_TextEvent("textInput",true,true,"\n");
+				this.dispatchEvent(te);
+				if(!te.isDefaultPrevented()) {
+					this.__replaceSelectedText("\n",true);
+					this.dispatchEvent(new openfl_events_Event("change",true));
+				}
+			}
+			break;
+		default:
+		}
+	}
+	,window_onTextInput: function(value) {
+		this.__replaceSelectedText(value,true);
+		this.dispatchEvent(new openfl_events_Event("change",true));
+	}
+	,__class__: openfl_text_TextField
+});
+var openfl_display_FPS = function(x,y,color) {
+	if(color == null) {
+		color = 0;
+	}
+	if(y == null) {
+		y = 10;
+	}
+	if(x == null) {
+		x = 10;
+	}
+	openfl_text_TextField.call(this);
+	this.set_x(x);
+	this.set_y(y);
+	this.currentFPS = 0;
+	this.set_selectable(false);
+	this.mouseEnabled = false;
+	this.set_defaultTextFormat(new openfl_text_TextFormat("_sans",12,color));
+	this.set_text("FPS: ");
+	this.cacheCount = 0;
+	this.currentTime = 0;
+	this.times = [];
+};
+$hxClasses["openfl.display.FPS"] = openfl_display_FPS;
+openfl_display_FPS.__name__ = "openfl.display.FPS";
+openfl_display_FPS.__super__ = openfl_text_TextField;
+openfl_display_FPS.prototype = $extend(openfl_text_TextField.prototype,{
+	__enterFrame: function(deltaTime) {
+		this.currentTime += deltaTime;
+		this.times.push(this.currentTime);
+		while(this.times[0] < this.currentTime - 1000) this.times.shift();
+		var currentCount = this.times.length;
+		this.currentFPS = Math.round((currentCount + this.cacheCount) / 2);
+		if(currentCount != this.cacheCount) {
+			this.set_text("FPS: " + this.currentFPS);
+		}
+		this.cacheCount = currentCount;
+	}
+	,__class__: openfl_display_FPS
 });
 var openfl_display_FrameLabel = function(name,frame) {
 	openfl_events_EventDispatcher.call(this);
@@ -61340,2311 +63725,6 @@ openfl_text_GridFitType.toString = function(this1) {
 		return null;
 	}
 };
-var openfl_text_TextField = function() {
-	this.__forceCachedBitmapUpdate = false;
-	this.__renderedOnCanvasWhileOnDOM = false;
-	openfl_display_InteractiveObject.call(this);
-	this.__caretIndex = -1;
-	this.__displayAsPassword = false;
-	this.__graphics = new openfl_display_Graphics(this);
-	this.__textEngine = new openfl_text__$internal_TextEngine(this);
-	this.__layoutDirty = true;
-	this.__offsetX = 0;
-	this.__offsetY = 0;
-	this.__mouseWheelEnabled = true;
-	this.__text = "";
-	this.doubleClickEnabled = true;
-	if(openfl_text_TextField.__defaultTextFormat == null) {
-		openfl_text_TextField.__defaultTextFormat = new openfl_text_TextFormat("Times New Roman",12,0,false,false,false,"","",3,0,0,0,0);
-		openfl_text_TextField.__defaultTextFormat.blockIndent = 0;
-		openfl_text_TextField.__defaultTextFormat.bullet = false;
-		openfl_text_TextField.__defaultTextFormat.letterSpacing = 0;
-		openfl_text_TextField.__defaultTextFormat.kerning = false;
-	}
-	this.__textFormat = openfl_text_TextField.__defaultTextFormat.clone();
-	this.__textEngine.textFormatRanges.push(new openfl_text__$internal_TextFormatRange(this.__textFormat,0,0));
-	this.addEventListener("mouseDown",$bind(this,this.this_onMouseDown));
-	this.addEventListener("focusIn",$bind(this,this.this_onFocusIn));
-	this.addEventListener("focusOut",$bind(this,this.this_onFocusOut));
-	this.addEventListener("keyDown",$bind(this,this.this_onKeyDown));
-	this.addEventListener("mouseWheel",$bind(this,this.this_onMouseWheel));
-	this.addEventListener("doubleClick",$bind(this,this.this_onDoubleClick));
-};
-$hxClasses["openfl.text.TextField"] = openfl_text_TextField;
-openfl_text_TextField.__name__ = "openfl.text.TextField";
-openfl_text_TextField.__super__ = openfl_display_InteractiveObject;
-openfl_text_TextField.prototype = $extend(openfl_display_InteractiveObject.prototype,{
-	appendText: function(text) {
-		if(text == null || text == "") {
-			return;
-		}
-		this.__dirty = true;
-		this.__layoutDirty = true;
-		if(!this.__renderDirty) {
-			this.__renderDirty = true;
-			this.__setParentRenderDirty();
-		}
-		this.__updateText(this.__text + text);
-		this.__textEngine.textFormatRanges.get(this.__textEngine.textFormatRanges.get_length() - 1).end = this.__text.length;
-		this.__updateScrollV();
-		this.__updateScrollH();
-	}
-	,getCharBoundaries: function(charIndex) {
-		if(charIndex < 0 || charIndex > this.__text.length - 1) {
-			return null;
-		}
-		var rect = new openfl_geom_Rectangle();
-		if(this.__getCharBoundaries(charIndex,rect)) {
-			return rect;
-		} else {
-			return null;
-		}
-	}
-	,getCharIndexAtPoint: function(x,y) {
-		if(x <= 2 || x > this.get_width() + 4 || y <= 0 || y > this.get_height() + 4) {
-			return -1;
-		}
-		this.__updateLayout();
-		x += this.get_scrollH();
-		var _g = 0;
-		var _g1 = this.get_scrollV() - 1;
-		while(_g < _g1) {
-			var i = _g++;
-			y += this.__textEngine.lineHeights.get(i);
-		}
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(y >= group1.offsetY && y <= group1.offsetY + group1.height) {
-				if(x >= group1.offsetX && x <= group1.offsetX + group1.width) {
-					var advance = 0.0;
-					var _g = 0;
-					var _g1 = group1.positions.length;
-					while(_g < _g1) {
-						var i = _g++;
-						advance += group1.positions[i];
-						if(x <= group1.offsetX + advance) {
-							return group1.startIndex + i;
-						}
-					}
-					return group1.endIndex;
-				}
-			}
-		}
-		return -1;
-	}
-	,getFirstCharInParagraph: function(charIndex) {
-		if(charIndex < 0 || charIndex > this.get_text().length) {
-			return -1;
-		}
-		var index = this.__textEngine.getLineBreakIndex();
-		var startIndex = 0;
-		while(index > -1) {
-			if(index < charIndex) {
-				startIndex = index + 1;
-			} else if(index >= charIndex) {
-				break;
-			}
-			index = this.__textEngine.getLineBreakIndex(index + 1);
-		}
-		return startIndex;
-	}
-	,getLineIndexAtPoint: function(x,y) {
-		this.__updateLayout();
-		if(x <= 2 || x > this.get_width() + 4 || y <= 0 || y > this.get_height() + 4) {
-			return -1;
-		}
-		var _g = 0;
-		var _g1 = this.get_scrollV() - 1;
-		while(_g < _g1) {
-			var i = _g++;
-			y += this.__textEngine.lineHeights.get(i);
-		}
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(y >= group1.offsetY && y <= group1.offsetY + group1.height) {
-				return group1.lineIndex;
-			}
-		}
-		return -1;
-	}
-	,getLineIndexOfChar: function(charIndex) {
-		if(charIndex < 0 || charIndex > this.__text.length) {
-			return -1;
-		}
-		this.__updateLayout();
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(group1.startIndex <= charIndex && group1.endIndex >= charIndex) {
-				return group1.lineIndex;
-			}
-		}
-		return -1;
-	}
-	,getLineLength: function(lineIndex) {
-		this.__updateLayout();
-		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
-			return 0;
-		}
-		var startIndex = -1;
-		var endIndex = -1;
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(group1.lineIndex == lineIndex) {
-				if(startIndex == -1) {
-					startIndex = group1.startIndex;
-				}
-			} else if(group1.lineIndex == lineIndex + 1) {
-				endIndex = group1.startIndex;
-				break;
-			}
-		}
-		if(endIndex == -1) {
-			endIndex = this.__text.length;
-		}
-		return endIndex - startIndex;
-	}
-	,getLineMetrics: function(lineIndex) {
-		this.__updateLayout();
-		var ascender = this.__textEngine.lineAscents.get(lineIndex);
-		var descender = this.__textEngine.lineDescents.get(lineIndex);
-		var leading = this.__textEngine.lineLeadings.get(lineIndex);
-		var lineHeight = this.__textEngine.lineHeights.get(lineIndex);
-		var lineWidth = this.__textEngine.lineWidths.get(lineIndex);
-		var margin;
-		switch(this.__textFormat.align) {
-		case 0:
-			margin = (this.__textEngine.width - lineWidth) / 2;
-			break;
-		case 1:case 4:
-			margin = this.__textEngine.width - lineWidth - 2;
-			break;
-		case 2:case 3:case 5:
-			margin = 2;
-			break;
-		}
-		return new openfl_text_TextLineMetrics(margin,lineWidth,lineHeight,ascender,descender,leading);
-	}
-	,getLineOffset: function(lineIndex) {
-		this.__updateLayout();
-		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
-			return -1;
-		}
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(group1.lineIndex == lineIndex) {
-				return group1.startIndex;
-			}
-		}
-		return 0;
-	}
-	,getLineText: function(lineIndex) {
-		this.__updateLayout();
-		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
-			return null;
-		}
-		var startIndex = -1;
-		var endIndex = -1;
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(group1.lineIndex == lineIndex) {
-				if(startIndex == -1) {
-					startIndex = group1.startIndex;
-				}
-			} else if(group1.lineIndex == lineIndex + 1) {
-				endIndex = group1.startIndex;
-				break;
-			}
-		}
-		if(endIndex == -1) {
-			endIndex = this.__text.length;
-		}
-		return this.__textEngine.text.substring(startIndex,endIndex);
-	}
-	,getParagraphLength: function(charIndex) {
-		if(charIndex < 0 || charIndex > this.get_text().length) {
-			return -1;
-		}
-		var startIndex = this.getFirstCharInParagraph(charIndex);
-		if(charIndex >= this.get_text().length) {
-			return this.get_text().length - startIndex + 1;
-		}
-		var endIndex = this.__textEngine.getLineBreakIndex(charIndex) + 1;
-		if(endIndex == 0) {
-			endIndex = this.__text.length;
-		}
-		return endIndex - startIndex;
-	}
-	,getTextFormat: function(beginIndex,endIndex) {
-		if(endIndex == null) {
-			endIndex = -1;
-		}
-		if(beginIndex == null) {
-			beginIndex = -1;
-		}
-		var format = null;
-		if(beginIndex >= this.get_text().length || beginIndex < -1 || endIndex > this.get_text().length || endIndex < -1) {
-			throw haxe_Exception.thrown(new openfl_errors_RangeError("The supplied index is out of bounds"));
-		}
-		if(beginIndex == -1) {
-			beginIndex = 0;
-		}
-		if(endIndex == -1) {
-			endIndex = this.get_text().length;
-		}
-		if(beginIndex >= endIndex) {
-			return new openfl_text_TextFormat();
-		}
-		var group = this.__textEngine.textFormatRanges.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(group1.start <= beginIndex && group1.end > beginIndex || group1.start < endIndex && group1.end >= endIndex) {
-				if(format == null) {
-					format = group1.format.clone();
-				} else {
-					if(group1.format.font != format.font) {
-						format.font = null;
-					}
-					if(group1.format.size != format.size) {
-						format.size = null;
-					}
-					if(group1.format.color != format.color) {
-						format.color = null;
-					}
-					if(group1.format.bold != format.bold) {
-						format.bold = null;
-					}
-					if(group1.format.italic != format.italic) {
-						format.italic = null;
-					}
-					if(group1.format.underline != format.underline) {
-						format.underline = null;
-					}
-					if(group1.format.url != format.url) {
-						format.url = null;
-					}
-					if(group1.format.target != format.target) {
-						format.target = null;
-					}
-					if(group1.format.align != format.align) {
-						format.align = null;
-					}
-					if(group1.format.leftMargin != format.leftMargin) {
-						format.leftMargin = null;
-					}
-					if(group1.format.rightMargin != format.rightMargin) {
-						format.rightMargin = null;
-					}
-					if(group1.format.indent != format.indent) {
-						format.indent = null;
-					}
-					if(group1.format.leading != format.leading) {
-						format.leading = null;
-					}
-					if(group1.format.blockIndent != format.blockIndent) {
-						format.blockIndent = null;
-					}
-					if(group1.format.bullet != format.bullet) {
-						format.bullet = null;
-					}
-					if(group1.format.kerning != format.kerning) {
-						format.kerning = null;
-					}
-					if(group1.format.letterSpacing != format.letterSpacing) {
-						format.letterSpacing = null;
-					}
-					if(group1.format.tabStops != format.tabStops) {
-						format.tabStops = null;
-					}
-				}
-			}
-		}
-		if(format == null) {
-			format = new openfl_text_TextFormat();
-		}
-		return format;
-	}
-	,replaceSelectedText: function(value) {
-		this.__replaceSelectedText(value,false);
-	}
-	,replaceText: function(beginIndex,endIndex,newText) {
-		this.__replaceText(beginIndex,endIndex,newText,false);
-	}
-	,setSelection: function(beginIndex,endIndex) {
-		this.__selectionIndex = beginIndex;
-		this.__caretIndex = endIndex;
-		this.__updateScrollV();
-		this.__stopCursorTimer();
-		this.__startCursorTimer();
-	}
-	,setTextFormat: function(format,beginIndex,endIndex) {
-		if(endIndex == null) {
-			endIndex = 0;
-		}
-		if(beginIndex == null) {
-			beginIndex = 0;
-		}
-		var max = this.get_text().length;
-		var range;
-		if(beginIndex < 0) {
-			beginIndex = 0;
-		}
-		if(endIndex < 0) {
-			endIndex = 0;
-		}
-		if(endIndex == 0) {
-			if(beginIndex == 0) {
-				endIndex = max;
-			} else {
-				endIndex = beginIndex + 1;
-			}
-		}
-		if(endIndex < beginIndex) {
-			return;
-		}
-		if(beginIndex == 0 && endIndex >= max) {
-			this.__textFormat.__merge(format);
-			var _g = 0;
-			var _g1 = this.__textEngine.textFormatRanges.get_length();
-			while(_g < _g1) {
-				var i = _g++;
-				range = this.__textEngine.textFormatRanges.get(i);
-				range.format.__merge(format);
-			}
-		} else {
-			var index = 0;
-			var newRange;
-			while(index < this.__textEngine.textFormatRanges.get_length()) {
-				range = this.__textEngine.textFormatRanges.get(index);
-				if(range.start == beginIndex && range.end == endIndex) {
-					range.format.__merge(format);
-					break;
-				} else if(range.start >= beginIndex && range.end <= endIndex) {
-					range.format.__merge(format);
-				} else if(range.start >= beginIndex && range.start < endIndex && range.end > beginIndex) {
-					newRange = new openfl_text__$internal_TextFormatRange(range.format.clone(),range.start,endIndex);
-					newRange.format.__merge(format);
-					this.__textEngine.textFormatRanges.insertAt(index,newRange);
-					range.start = endIndex;
-					++index;
-				} else if(range.start < beginIndex && range.end > beginIndex && range.end >= endIndex) {
-					newRange = new openfl_text__$internal_TextFormatRange(range.format.clone(),beginIndex,range.end);
-					newRange.format.__merge(format);
-					this.__textEngine.textFormatRanges.insertAt(index + 1,newRange);
-					range.end = beginIndex;
-					++index;
-				}
-				++index;
-			}
-		}
-		this.__dirty = true;
-		this.__layoutDirty = true;
-		if(!this.__renderDirty) {
-			this.__renderDirty = true;
-			this.__setParentRenderDirty();
-		}
-	}
-	,__allowMouseFocus: function() {
-		if(!(this.__textEngine.type == 1 || this.get_tabEnabled())) {
-			return this.get_selectable();
-		} else {
-			return true;
-		}
-	}
-	,__caretBeginningOfLine: function() {
-		if(this.__selectionIndex == this.__caretIndex || this.__caretIndex < this.__selectionIndex) {
-			this.__caretIndex = this.getLineOffset(this.getLineIndexOfChar(this.__caretIndex));
-		} else {
-			this.__selectionIndex = this.getLineOffset(this.getLineIndexOfChar(this.__selectionIndex));
-		}
-	}
-	,__caretEndOfLine: function() {
-		var lineIndex;
-		if(this.__selectionIndex == this.__caretIndex) {
-			lineIndex = this.getLineIndexOfChar(this.__caretIndex);
-		} else {
-			lineIndex = this.getLineIndexOfChar(Math.max(this.__caretIndex,this.__selectionIndex) | 0);
-		}
-		if(lineIndex < this.__textEngine.numLines - 1) {
-			this.__caretIndex = this.getLineOffset(lineIndex + 1) - 1;
-		} else {
-			this.__caretIndex = this.__text.length;
-		}
-	}
-	,__caretNextCharacter: function() {
-		if(this.__caretIndex < this.__text.length) {
-			this.__caretIndex++;
-		}
-	}
-	,__caretNextLine: function(lineIndex,caretIndex) {
-		if(lineIndex == null) {
-			lineIndex = this.getLineIndexOfChar(this.__caretIndex);
-		}
-		if(lineIndex < this.__textEngine.numLines - 1) {
-			if(caretIndex == null) {
-				caretIndex = this.__caretIndex;
-			}
-			this.__caretIndex = this.__getCharIndexOnDifferentLine(caretIndex,lineIndex + 1);
-		} else {
-			this.__caretIndex = this.__text.length;
-		}
-	}
-	,__caretPreviousCharacter: function() {
-		if(this.__caretIndex > 0) {
-			this.__caretIndex--;
-		}
-	}
-	,__caretPreviousLine: function(lineIndex,caretIndex) {
-		if(lineIndex == null) {
-			lineIndex = this.getLineIndexOfChar(this.__caretIndex);
-		}
-		if(lineIndex > 0) {
-			if(caretIndex == null) {
-				caretIndex = this.__caretIndex;
-			}
-			this.__caretIndex = this.__getCharIndexOnDifferentLine(caretIndex,lineIndex - 1);
-		} else {
-			this.__caretIndex = 0;
-		}
-	}
-	,__disableInput: function() {
-		if(this.__inputEnabled && this.stage != null) {
-			this.stage.window.__backend.setTextInputEnabled(false);
-			this.stage.window.onTextInput.remove($bind(this,this.window_onTextInput));
-			this.stage.window.onKeyDown.remove($bind(this,this.window_onKeyDown));
-			this.__inputEnabled = false;
-			this.__stopCursorTimer();
-		}
-	}
-	,__dispatch: function(event) {
-		if(event.eventPhase == 2 && event.type == "mouseUp") {
-			var event1 = event;
-			var group = this.__getGroup(this.get_mouseX(),this.get_mouseY(),true);
-			if(group != null) {
-				var url = group.format.url;
-				if(url != null && url != "") {
-					if(StringTools.startsWith(url,"event:")) {
-						this.dispatchEvent(new openfl_events_TextEvent("link",false,false,HxOverrides.substr(url,6,null)));
-					} else {
-						openfl_Lib.getURL(new openfl_net_URLRequest(url));
-					}
-				}
-			}
-		}
-		return openfl_display_InteractiveObject.prototype.__dispatch.call(this,event);
-	}
-	,__enableInput: function() {
-		if(this.stage != null) {
-			this.stage.window.__backend.setTextInputEnabled(true);
-			if(!this.__inputEnabled) {
-				this.stage.window.__backend.setTextInputEnabled(true);
-				if(!this.stage.window.onTextInput.has($bind(this,this.window_onTextInput))) {
-					this.stage.window.onTextInput.add($bind(this,this.window_onTextInput));
-					this.stage.window.onKeyDown.add($bind(this,this.window_onKeyDown));
-				}
-				this.__inputEnabled = true;
-				this.__startCursorTimer();
-			}
-		}
-	}
-	,__getAdvance: function(position) {
-		return position;
-	}
-	,__getBounds: function(rect,matrix) {
-		this.__updateLayout();
-		var bounds = openfl_geom_Rectangle.__pool.get();
-		bounds.copyFrom(this.__textEngine.bounds);
-		matrix.tx += this.__offsetX;
-		matrix.ty += this.__offsetY;
-		bounds.__transform(bounds,matrix);
-		rect.__expand(bounds.x,bounds.y,bounds.width,bounds.height);
-		openfl_geom_Rectangle.__pool.release(bounds);
-	}
-	,__getCharBoundaries: function(charIndex,rect) {
-		if(charIndex < 0 || charIndex > this.__text.length - 1) {
-			return false;
-		}
-		this.__updateLayout();
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(charIndex >= group1.startIndex && charIndex < group1.endIndex) {
-				try {
-					var x = group1.offsetX;
-					var _g = 0;
-					var _g1 = charIndex - group1.startIndex;
-					while(_g < _g1) {
-						var i = _g++;
-						x += group1.positions[i];
-					}
-					var lastPosition = group1.positions[charIndex - group1.startIndex];
-					rect.setTo(x,group1.offsetY,lastPosition,group1.ascent + group1.descent);
-					return true;
-				} catch( _g2 ) {
-					haxe_NativeStackTrace.lastError = _g2;
-				}
-			}
-		}
-		return false;
-	}
-	,__getCharIndexOnDifferentLine: function(charIndex,lineIndex) {
-		if(charIndex < 0 || charIndex > this.__text.length) {
-			return -1;
-		}
-		if(lineIndex < 0 || lineIndex > this.__textEngine.numLines - 1) {
-			return -1;
-		}
-		var x = null;
-		var y = null;
-		var group = this.__textEngine.layoutGroups.iterator();
-		while(group.hasNext()) {
-			var group1 = group.next();
-			if(charIndex >= group1.startIndex && charIndex <= group1.endIndex) {
-				x = group1.offsetX;
-				var _g = 0;
-				var _g1 = charIndex - group1.startIndex;
-				while(_g < _g1) {
-					var i = _g++;
-					x += group1.positions[i];
-				}
-				if(y != null) {
-					return this.__getPosition(x,y);
-				}
-			}
-			if(group1.lineIndex == lineIndex) {
-				y = group1.offsetY + group1.height / 2;
-				var _g2 = 0;
-				var _g3 = this.get_scrollV() - 1;
-				while(_g2 < _g3) {
-					var i1 = _g2++;
-					y -= this.__textEngine.lineHeights.get(i1);
-				}
-				if(x != null) {
-					return this.__getPosition(x,y);
-				}
-			}
-		}
-		return -1;
-	}
-	,__getCursor: function() {
-		var group = this.__getGroup(this.get_mouseX(),this.get_mouseY(),true);
-		if(group != null && group.format.url != "") {
-			return "button";
-		} else if(this.__textEngine.selectable) {
-			return "ibeam";
-		}
-		return null;
-	}
-	,__getGroup: function(x,y,precise) {
-		if(precise == null) {
-			precise = false;
-		}
-		this.__updateLayout();
-		x += this.get_scrollH();
-		var _g = 0;
-		var _g1 = this.get_scrollV() - 1;
-		while(_g < _g1) {
-			var i = _g++;
-			y += this.__textEngine.lineHeights.get(i);
-		}
-		if(!precise && y > this.__textEngine.textHeight) {
-			y = this.__textEngine.textHeight;
-		}
-		var firstGroup = true;
-		var group;
-		var nextGroup;
-		var _g = 0;
-		var _g1 = this.__textEngine.layoutGroups.get_length();
-		while(_g < _g1) {
-			var i = _g++;
-			group = this.__textEngine.layoutGroups.get(i);
-			if(i < this.__textEngine.layoutGroups.get_length() - 1) {
-				nextGroup = this.__textEngine.layoutGroups.get(i + 1);
-			} else {
-				nextGroup = null;
-			}
-			if(firstGroup) {
-				if(y < group.offsetY) {
-					y = group.offsetY;
-				}
-				if(x < group.offsetX) {
-					x = group.offsetX;
-				}
-				firstGroup = false;
-			}
-			if(y >= group.offsetY && y <= group.offsetY + group.height || !precise && nextGroup == null) {
-				if(x >= group.offsetX && x <= group.offsetX + group.width || !precise && (nextGroup == null || nextGroup.lineIndex != group.lineIndex)) {
-					return group;
-				}
-			}
-		}
-		return null;
-	}
-	,__getPosition: function(x,y) {
-		var group = this.__getGroup(x,y);
-		if(group == null) {
-			return this.__text.length;
-		}
-		var advance = 0.0;
-		var _g = 0;
-		var _g1 = group.positions.length;
-		while(_g < _g1) {
-			var i = _g++;
-			advance += group.positions[i];
-			if(x <= group.offsetX + advance) {
-				if(x <= group.offsetX + (advance - group.positions[i]) + group.positions[i] / 2) {
-					return group.startIndex + i;
-				} else if(group.startIndex + i < group.endIndex) {
-					return group.startIndex + i + 1;
-				} else {
-					return group.endIndex;
-				}
-			}
-		}
-		return group.endIndex;
-	}
-	,__hitTest: function(x,y,shapeFlag,stack,interactiveOnly,hitObject) {
-		if(!hitObject.get_visible() || this.__isMask || interactiveOnly && !this.mouseEnabled) {
-			return false;
-		}
-		if(this.get_mask() != null && !this.get_mask().__hitTestMask(x,y)) {
-			return false;
-		}
-		this.__getRenderTransform();
-		this.__updateLayout();
-		var _this = this.__renderTransform;
-		var norm = _this.a * _this.d - _this.b * _this.c;
-		var px = norm == 0 ? -_this.tx : 1.0 / norm * (_this.c * (_this.ty - y) + _this.d * (x - _this.tx));
-		var _this = this.__renderTransform;
-		var norm = _this.a * _this.d - _this.b * _this.c;
-		var py = norm == 0 ? -_this.ty : 1.0 / norm * (_this.a * (y - _this.ty) + _this.b * (_this.tx - x));
-		if(this.__textEngine.bounds.contains(px,py)) {
-			if(stack != null) {
-				stack.push(hitObject);
-			}
-			return true;
-		}
-		return false;
-	}
-	,__hitTestMask: function(x,y) {
-		this.__getRenderTransform();
-		this.__updateLayout();
-		var _this = this.__renderTransform;
-		var norm = _this.a * _this.d - _this.b * _this.c;
-		var px = norm == 0 ? -_this.tx : 1.0 / norm * (_this.c * (_this.ty - y) + _this.d * (x - _this.tx));
-		var _this = this.__renderTransform;
-		var norm = _this.a * _this.d - _this.b * _this.c;
-		var py = norm == 0 ? -_this.ty : 1.0 / norm * (_this.a * (y - _this.ty) + _this.b * (_this.tx - x));
-		if(this.__textEngine.bounds.contains(px,py)) {
-			return true;
-		}
-		return false;
-	}
-	,__renderCairo: function(renderer) {
-	}
-	,__renderCanvas: function(renderer) {
-		if(renderer.__isDOM && !this.__renderedOnCanvasWhileOnDOM) {
-			this.__renderedOnCanvasWhileOnDOM = true;
-			if(this.get_type() == 1) {
-				this.replaceText(0,this.__text.length,this.__text);
-			}
-			if(this.__isHTML) {
-				this.__updateText(openfl__$internal_formats_html_HTMLParser.parse(this.__text,this.__textFormat,this.__textEngine.textFormatRanges));
-			}
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		if(this.get_mask() == null || this.get_mask().get_width() > 0 && this.get_mask().get_height() > 0) {
-			this.__updateCacheBitmap(renderer,this.__dirty);
-			if(this.__cacheBitmap != null && !this.__isCacheBitmapRender) {
-				var bitmap = this.__cacheBitmap;
-				if(bitmap.__renderable) {
-					var alpha = renderer.__getAlpha(bitmap.__worldAlpha);
-					if(alpha > 0 && bitmap.__bitmapData != null && bitmap.__bitmapData.__isValid && bitmap.__bitmapData.readable) {
-						var context = renderer.context;
-						renderer.__setBlendMode(bitmap.__worldBlendMode);
-						renderer.__pushMaskObject(bitmap,false);
-						lime__$internal_graphics_ImageCanvasUtil.convertToCanvas(bitmap.__bitmapData.image);
-						context.globalAlpha = alpha;
-						var scrollRect = bitmap.__scrollRect;
-						renderer.setTransform(bitmap.__renderTransform,context);
-						if(!renderer.__allowSmoothing || !bitmap.smoothing) {
-							context.imageSmoothingEnabled = false;
-						}
-						if(scrollRect == null) {
-							context.drawImage(bitmap.__bitmapData.image.get_src(),0,0,bitmap.__bitmapData.image.width,bitmap.__bitmapData.image.height);
-						} else {
-							context.drawImage(bitmap.__bitmapData.image.get_src(),scrollRect.x,scrollRect.y,scrollRect.width,scrollRect.height);
-						}
-						if(!renderer.__allowSmoothing || !bitmap.smoothing) {
-							context.imageSmoothingEnabled = true;
-						}
-						renderer.__popMaskObject(bitmap,false);
-					}
-				}
-			} else {
-				var transform = this.__worldTransform;
-				var textEngine = this.__textEngine;
-				var bounds = textEngine.background || textEngine.border ? textEngine.bounds : textEngine.textBounds;
-				var graphics = this.__graphics;
-				if(this.__dirty) {
-					this.__updateLayout();
-					if(graphics.__bounds == null) {
-						graphics.__bounds = new openfl_geom_Rectangle();
-					}
-					graphics.__bounds.copyFrom(bounds);
-				}
-				graphics.__update(renderer.__worldTransform);
-				if(this.__dirty || graphics.__softwareDirty) {
-					var width = graphics.__width;
-					var height = graphics.__height;
-					if((textEngine.text == null || textEngine.text == "") && !textEngine.background && !textEngine.border && !textEngine.__hasFocus && (textEngine.type != 1 || !textEngine.selectable) || (textEngine.width <= 0 || textEngine.height <= 0) && textEngine.autoSize != 2) {
-						this.__graphics.__canvas = null;
-						this.__graphics.__context = null;
-						this.__graphics.__bitmap = null;
-						this.__graphics.__softwareDirty = false;
-						this.__graphics.set___dirty(false);
-						this.__dirty = false;
-					} else {
-						if(this.__graphics.__canvas == null) {
-							this.__graphics.__canvas = window.document.createElement("canvas");
-							this.__graphics.__context = this.__graphics.__canvas.getContext("2d");
-						}
-						openfl_display__$internal_CanvasTextField.context = graphics.__context;
-						var transform = graphics.__renderTransform;
-						if(renderer.__isDOM) {
-							var scale = renderer.pixelRatio;
-							graphics.__canvas.width = width * scale | 0;
-							graphics.__canvas.height = height * scale | 0;
-							graphics.__canvas.style.width = width + "px";
-							graphics.__canvas.style.height = height + "px";
-							var matrix = openfl_geom_Matrix.__pool.get();
-							matrix.copyFrom(transform);
-							matrix.scale(scale,scale);
-							renderer.setTransform(matrix,openfl_display__$internal_CanvasTextField.context);
-							openfl_geom_Matrix.__pool.release(matrix);
-						} else {
-							graphics.__canvas.width = width;
-							graphics.__canvas.height = height;
-							openfl_display__$internal_CanvasTextField.context.setTransform(transform.a,transform.b,transform.c,transform.d,transform.tx,transform.ty);
-						}
-						if(openfl_display__$internal_CanvasTextField.clearRect == null) {
-							openfl_display__$internal_CanvasTextField.clearRect = (typeof navigator !== 'undefined' && typeof navigator['isCocoonJS'] !== 'undefined');
-						}
-						if(openfl_display__$internal_CanvasTextField.clearRect) {
-							openfl_display__$internal_CanvasTextField.context.clearRect(0,0,graphics.__canvas.width,graphics.__canvas.height);
-						}
-						if(textEngine.text != null && textEngine.text != "" || textEngine.__hasFocus) {
-							var text = textEngine.text;
-							if(!renderer.__allowSmoothing || textEngine.antiAliasType == 0 && textEngine.sharpness == 400) {
-								graphics.__context.imageSmoothingEnabled = false;
-							} else {
-								graphics.__context.imageSmoothingEnabled = true;
-							}
-							if(textEngine.border || textEngine.background) {
-								openfl_display__$internal_CanvasTextField.context.rect(0.5,0.5,bounds.width - 1,bounds.height - 1);
-								if(textEngine.background) {
-									var tmp = StringTools.hex(textEngine.backgroundColor & 16777215,6);
-									openfl_display__$internal_CanvasTextField.context.fillStyle = "#" + tmp;
-									openfl_display__$internal_CanvasTextField.context.fill();
-								}
-								if(textEngine.border) {
-									openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
-									var tmp = StringTools.hex(textEngine.borderColor & 16777215,6);
-									openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
-									openfl_display__$internal_CanvasTextField.context.stroke();
-								}
-							}
-							openfl_display__$internal_CanvasTextField.context.textBaseline = "alphabetic";
-							openfl_display__$internal_CanvasTextField.context.textAlign = "start";
-							var scrollX = -this.get_scrollH();
-							var scrollY = 0.0;
-							var _g = 0;
-							var _g1 = this.get_scrollV() - 1;
-							while(_g < _g1) {
-								var i = _g++;
-								scrollY -= textEngine.lineHeights.get(i);
-							}
-							var advance;
-							var group = textEngine.layoutGroups.iterator();
-							while(group.hasNext()) {
-								var group1 = group.next();
-								if(group1.lineIndex < this.get_scrollV() - 1) {
-									continue;
-								}
-								if(group1.lineIndex > textEngine.get_bottomScrollV() - 1) {
-									break;
-								}
-								var color = "#" + StringTools.hex(group1.format.color & 16777215,6);
-								openfl_display__$internal_CanvasTextField.context.font = openfl_text__$internal_TextEngine.getFont(group1.format);
-								openfl_display__$internal_CanvasTextField.context.fillStyle = color;
-								openfl_display__$internal_CanvasTextField.context.fillText(text.substring(group1.startIndex,group1.endIndex),group1.offsetX + scrollX - bounds.x,group1.offsetY + group1.ascent + scrollY - bounds.y);
-								if(this.__caretIndex > -1 && textEngine.selectable) {
-									if(this.__selectionIndex == this.__caretIndex) {
-										if(this.__showCursor && group1.startIndex <= this.__caretIndex && group1.endIndex >= this.__caretIndex) {
-											advance = 0.0;
-											var _g = 0;
-											var _g1 = this.__caretIndex - group1.startIndex;
-											while(_g < _g1) {
-												var i = _g++;
-												if(group1.positions.length <= i) {
-													break;
-												}
-												advance += group1.positions[i];
-											}
-											var scrollY1 = 0.0;
-											var _g2 = this.get_scrollV();
-											var _g3 = group1.lineIndex + 1;
-											while(_g2 < _g3) {
-												var i1 = _g2++;
-												scrollY1 += textEngine.lineHeights.get(i1 - 1);
-											}
-											openfl_display__$internal_CanvasTextField.context.beginPath();
-											var tmp = StringTools.hex(group1.format.color & 16777215,6);
-											openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
-											openfl_display__$internal_CanvasTextField.context.moveTo(group1.offsetX + advance - this.get_scrollH() - bounds.x,scrollY1 + 2 - bounds.y);
-											openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
-											openfl_display__$internal_CanvasTextField.context.lineTo(group1.offsetX + advance - this.get_scrollH() - bounds.x,scrollY1 + openfl_text__$internal_TextEngine.getFormatHeight(this.get_defaultTextFormat()) - 1 - bounds.y);
-											openfl_display__$internal_CanvasTextField.context.stroke();
-											openfl_display__$internal_CanvasTextField.context.closePath();
-										}
-									} else if(group1.startIndex <= this.__caretIndex && group1.endIndex >= this.__caretIndex || group1.startIndex <= this.__selectionIndex && group1.endIndex >= this.__selectionIndex || group1.startIndex > this.__caretIndex && group1.endIndex < this.__selectionIndex || group1.startIndex > this.__selectionIndex && group1.endIndex < this.__caretIndex) {
-										var selectionStart = Math.min(this.__selectionIndex,this.__caretIndex) | 0;
-										var selectionEnd = Math.max(this.__selectionIndex,this.__caretIndex) | 0;
-										if(group1.startIndex > selectionStart) {
-											selectionStart = group1.startIndex;
-										}
-										if(group1.endIndex < selectionEnd) {
-											selectionEnd = group1.endIndex;
-										}
-										var end;
-										var start = this.getCharBoundaries(selectionStart);
-										if(selectionEnd >= group1.endIndex) {
-											end = this.getCharBoundaries(group1.endIndex - 1);
-											if(end != null) {
-												end.x += end.width + 2;
-											}
-										} else {
-											end = this.getCharBoundaries(selectionEnd);
-										}
-										if(start != null && end != null) {
-											openfl_display__$internal_CanvasTextField.context.fillStyle = "#000000";
-											openfl_display__$internal_CanvasTextField.context.fillRect(start.x + scrollX,start.y + scrollY,end.x - start.x,group1.height);
-											openfl_display__$internal_CanvasTextField.context.fillStyle = "#FFFFFF";
-											openfl_display__$internal_CanvasTextField.context.fillText(text.substring(selectionStart,selectionEnd),scrollX + start.x,group1.offsetY + group1.ascent + scrollY);
-										}
-									}
-								}
-								if(group1.format.underline) {
-									openfl_display__$internal_CanvasTextField.context.beginPath();
-									openfl_display__$internal_CanvasTextField.context.strokeStyle = color;
-									openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
-									var x = group1.offsetX + scrollX - bounds.x;
-									var y = Math.floor(group1.offsetY + scrollY + group1.ascent - bounds.y) + 0.5;
-									openfl_display__$internal_CanvasTextField.context.moveTo(x,y);
-									openfl_display__$internal_CanvasTextField.context.lineTo(x + group1.width,y);
-									openfl_display__$internal_CanvasTextField.context.stroke();
-									openfl_display__$internal_CanvasTextField.context.closePath();
-								}
-							}
-						} else {
-							if(textEngine.border || textEngine.background) {
-								if(textEngine.border) {
-									openfl_display__$internal_CanvasTextField.context.rect(0.5,0.5,bounds.width - 1,bounds.height - 1);
-								} else {
-									openfl_display__$internal_CanvasTextField.context.rect(0,0,bounds.width,bounds.height);
-								}
-								if(textEngine.background) {
-									var tmp = StringTools.hex(textEngine.backgroundColor & 16777215,6);
-									openfl_display__$internal_CanvasTextField.context.fillStyle = "#" + tmp;
-									openfl_display__$internal_CanvasTextField.context.fill();
-								}
-								if(textEngine.border) {
-									openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
-									openfl_display__$internal_CanvasTextField.context.lineCap = "square";
-									var tmp = StringTools.hex(textEngine.borderColor & 16777215,6);
-									openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
-									openfl_display__$internal_CanvasTextField.context.stroke();
-								}
-							}
-							if(this.__caretIndex > -1 && textEngine.selectable && this.__showCursor) {
-								var scrollX = -this.get_scrollH();
-								var scrollY = 0.0;
-								var _g = 0;
-								var _g1 = this.get_scrollV() - 1;
-								while(_g < _g1) {
-									var i = _g++;
-									scrollY += textEngine.lineHeights.get(i);
-								}
-								openfl_display__$internal_CanvasTextField.context.beginPath();
-								var tmp = StringTools.hex(this.get_defaultTextFormat().color & 16777215,6);
-								openfl_display__$internal_CanvasTextField.context.strokeStyle = "#" + tmp;
-								openfl_display__$internal_CanvasTextField.context.moveTo(scrollX + 2.5,scrollY + 2.5);
-								openfl_display__$internal_CanvasTextField.context.lineWidth = 1;
-								openfl_display__$internal_CanvasTextField.context.lineTo(scrollX + 2.5,scrollY + openfl_text__$internal_TextEngine.getFormatHeight(this.get_defaultTextFormat()) - 1);
-								openfl_display__$internal_CanvasTextField.context.stroke();
-								openfl_display__$internal_CanvasTextField.context.closePath();
-							}
-						}
-						graphics.__bitmap = openfl_display_BitmapData.fromCanvas(this.__graphics.__canvas);
-						graphics.__visible = true;
-						this.__dirty = false;
-						graphics.__softwareDirty = false;
-						graphics.set___dirty(false);
-					}
-				}
-				var smoothingEnabled = false;
-				if(this.__textEngine.antiAliasType == 0 && this.__textEngine.gridFitType == 1) {
-					smoothingEnabled = renderer.context.imageSmoothingEnabled;
-					if(smoothingEnabled) {
-						renderer.context.imageSmoothingEnabled = false;
-					}
-				}
-				if(!(this.opaqueBackground == null && this.__graphics == null)) {
-					if(this.__renderable) {
-						var alpha = renderer.__getAlpha(this.__worldAlpha);
-						if(!(alpha <= 0)) {
-							if(this.opaqueBackground != null && !this.__isCacheBitmapRender && this.get_width() > 0 && this.get_height() > 0) {
-								renderer.__setBlendMode(this.__worldBlendMode);
-								renderer.__pushMaskObject(this);
-								var context = renderer.context;
-								renderer.setTransform(this.__renderTransform,context);
-								var color = this.opaqueBackground;
-								context.fillStyle = "rgb(" + (color >>> 16 & 255) + "," + (color >>> 8 & 255) + "," + (color & 255) + ")";
-								context.fillRect(0,0,this.get_width(),this.get_height());
-								renderer.__popMaskObject(this);
-							}
-							if(this.__graphics != null) {
-								if(this.__renderable) {
-									var alpha = renderer.__getAlpha(this.__worldAlpha);
-									if(!(alpha <= 0)) {
-										var graphics = this.__graphics;
-										if(graphics != null) {
-											openfl_display__$internal_CanvasGraphics.render(graphics,renderer);
-											var width = graphics.__width;
-											var height = graphics.__height;
-											var canvas = graphics.__canvas;
-											if(canvas != null && graphics.__visible && width >= 1 && height >= 1) {
-												var transform = graphics.__worldTransform;
-												var context = renderer.context;
-												var scrollRect = this.__scrollRect;
-												var scale9Grid = this.__worldScale9Grid;
-												if(scrollRect == null || scrollRect.width > 0 && scrollRect.height > 0) {
-													renderer.__setBlendMode(this.__worldBlendMode);
-													renderer.__pushMaskObject(this);
-													context.globalAlpha = alpha;
-													if(scale9Grid != null && transform.b == 0 && transform.c == 0) {
-														context.setTransform(1,0,0,1,transform.tx,transform.ty);
-														var bounds = graphics.__bounds;
-														var scaleX = graphics.__renderTransform.a;
-														var scaleY = graphics.__renderTransform.d;
-														var renderScaleX = transform.a;
-														var renderScaleY = transform.d;
-														var left = Math.max(1,Math.round(scale9Grid.x * scaleX));
-														var top = Math.round(scale9Grid.y * scaleY);
-														var right = Math.max(1,Math.round((bounds.get_right() - scale9Grid.get_right()) * scaleX));
-														var bottom = Math.round((bounds.get_bottom() - scale9Grid.get_bottom()) * scaleY);
-														var centerWidth = Math.round(scale9Grid.width * scaleX);
-														var centerHeight = Math.round(scale9Grid.height * scaleY);
-														var renderLeft = Math.round(scale9Grid.x * renderScaleX);
-														var renderTop = Math.round(scale9Grid.y * renderScaleY);
-														var renderRight = Math.round((bounds.get_right() - scale9Grid.get_right()) * renderScaleX);
-														var renderBottom = Math.round((bounds.get_bottom() - scale9Grid.get_bottom()) * renderScaleY);
-														var renderCenterWidth = Math.round(width * renderScaleX) - renderLeft - renderRight;
-														var renderCenterHeight = Math.round(height * renderScaleY) - renderTop - renderBottom;
-														renderer.applySmoothing(context,false);
-														if(centerWidth != 0 && centerHeight != 0) {
-															context.drawImage(canvas,0,0,left,top,0,0,renderLeft,renderTop);
-															context.drawImage(canvas,left,0,centerWidth,top,renderLeft,0,renderCenterWidth,renderTop);
-															context.drawImage(canvas,left + centerWidth,0,right,top,renderLeft + renderCenterWidth,0,renderRight,renderTop);
-															context.drawImage(canvas,0,top,left,centerHeight,0,renderTop,renderLeft,renderCenterHeight);
-															context.drawImage(canvas,left,top,centerWidth,centerHeight,renderLeft,renderTop,renderCenterWidth,renderCenterHeight);
-															context.drawImage(canvas,left + centerWidth,top,right,centerHeight,renderLeft + renderCenterWidth,renderTop,renderRight,renderCenterHeight);
-															context.drawImage(canvas,0,top + centerHeight,left,bottom,0,renderTop + renderCenterHeight,renderLeft,renderBottom);
-															context.drawImage(canvas,left,top + centerHeight,centerWidth,bottom,renderLeft,renderTop + renderCenterHeight,renderCenterWidth,renderBottom);
-															context.drawImage(canvas,left + centerWidth,top + centerHeight,right,bottom,renderLeft + renderCenterWidth,renderTop + renderCenterHeight,renderRight,renderBottom);
-														} else if(centerWidth == 0 && centerHeight != 0) {
-															var renderWidth = renderLeft + renderCenterWidth + renderRight;
-															context.drawImage(canvas,0,0,width,top,0,0,renderWidth,renderTop);
-															context.drawImage(canvas,0,top,width,centerHeight,0,renderTop,renderWidth,renderCenterHeight);
-															context.drawImage(canvas,0,top + centerHeight,width,bottom,0,renderTop + renderCenterHeight,renderWidth,renderBottom);
-														} else if(centerHeight == 0 && centerWidth != 0) {
-															var renderHeight = renderTop + renderCenterHeight + renderBottom;
-															context.drawImage(canvas,0,0,left,height,0,0,renderLeft,renderHeight);
-															context.drawImage(canvas,left,0,centerWidth,height,renderLeft,0,renderCenterWidth,renderHeight);
-															context.drawImage(canvas,left + centerWidth,0,right,height,renderLeft + renderCenterWidth,0,renderRight,renderHeight);
-														}
-													} else {
-														renderer.setTransform(transform,context);
-														if(renderer.__isDOM) {
-															var reverseScale = 1 / renderer.pixelRatio;
-															context.scale(reverseScale,reverseScale);
-														}
-														context.drawImage(canvas,0,0,width,height);
-													}
-													renderer.__popMaskObject(this);
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				if(smoothingEnabled) {
-					renderer.context.imageSmoothingEnabled = true;
-				}
-			}
-		}
-	}
-	,__renderDOM: function(renderer) {
-		this.__domRender = true;
-		this.__updateCacheBitmap(renderer,this.__forceCachedBitmapUpdate);
-		this.__forceCachedBitmapUpdate = false;
-		this.__domRender = false;
-		if(this.__cacheBitmap != null && !this.__isCacheBitmapRender) {
-			this.__renderDOMClear(renderer);
-			this.__cacheBitmap.stage = this.stage;
-			var bitmap = this.__cacheBitmap;
-			if(bitmap.stage != null && bitmap.__worldVisible && bitmap.__renderable && bitmap.__bitmapData != null && bitmap.__bitmapData.__isValid && bitmap.__bitmapData.readable) {
-				renderer.__pushMaskObject(bitmap);
-				if(bitmap.__bitmapData.image.buffer.__srcImage != null) {
-					openfl_display__$internal_DOMBitmap.renderImage(bitmap,renderer);
-				} else {
-					openfl_display__$internal_DOMBitmap.renderCanvas(bitmap,renderer);
-				}
-				renderer.__popMaskObject(bitmap);
-			} else {
-				openfl_display__$internal_DOMBitmap.clear(bitmap,renderer);
-			}
-		} else {
-			if(this.__renderedOnCanvasWhileOnDOM) {
-				this.__renderedOnCanvasWhileOnDOM = false;
-				if(this.__isHTML && this.__rawHtmlText != null) {
-					this.__updateText(this.__rawHtmlText);
-					this.__dirty = true;
-					this.__layoutDirty = true;
-					if(!this.__renderDirty) {
-						this.__renderDirty = true;
-						this.__setParentRenderDirty();
-					}
-				}
-			}
-			var textField = this;
-			var textEngine = textField.__textEngine;
-			if(textField.stage != null && textField.__worldVisible && textField.__renderable) {
-				if(textField.__dirty || textField.__renderTransformChanged || textField.__div == null) {
-					if(textEngine.text != "" || textEngine.background || textEngine.border || textEngine.type == 1) {
-						if(textField.__div == null) {
-							textField.__div = window.document.createElement("div");
-							renderer.__initializeElement(textField,textField.__div);
-							textField.__style.setProperty("outline","none",null);
-							textField.__div.addEventListener("input",function(event) {
-								event.preventDefault();
-								if(textField.get_htmlText() != textField.__div.innerHTML) {
-									textField.set_htmlText(textField.__div.innerHTML);
-									var textField1 = textField.__displayAsPassword;
-									textField.__dirty = false;
-									textField.dispatchEvent(new openfl_events_TextEvent("textInput",false,false,textField.get_htmlText()));
-								}
-							},true);
-						}
-						if(!textEngine.wordWrap) {
-							textField.__style.setProperty("white-space","nowrap",null);
-						} else {
-							textField.__style.setProperty("word-wrap","break-word",null);
-						}
-						textField.__style.setProperty("overflow","hidden",null);
-						if(textEngine.selectable) {
-							textField.__style.setProperty("cursor","text",null);
-							textField.__style.setProperty("-webkit-user-select","text",null);
-							textField.__style.setProperty("-moz-user-select","text",null);
-							textField.__style.setProperty("-ms-user-select","text",null);
-							textField.__style.setProperty("-o-user-select","text",null);
-						} else {
-							textField.__style.setProperty("cursor","inherit",null);
-						}
-						var div = textField.__div;
-						div.contentEditable = textEngine.type == 1;
-						var style = textField.__style;
-						if(textEngine.background) {
-							style.setProperty("background-color","#" + StringTools.hex(textEngine.backgroundColor & 16777215,6),null);
-						} else {
-							style.removeProperty("background-color");
-						}
-						var w = textEngine.width;
-						var h = textEngine.height;
-						var scale = 1;
-						var unscaledSize = textField.__textFormat.size;
-						var scaledSize = unscaledSize;
-						var t = textField.__renderTransform;
-						if(t.a != 1.0 || t.d != 1.0) {
-							if(t.a == t.d) {
-								scale = t.a;
-								t.a = t.d = 1.0;
-							} else if(t.a > t.d) {
-								scale = t.a;
-								t.d /= t.a;
-								t.a = 1.0;
-							} else {
-								scale = t.d;
-								t.a /= t.d;
-								t.d = 1.0;
-							}
-							scaledSize *= scale;
-							w = Math.ceil(w * scale);
-							h = Math.ceil(h * scale);
-						}
-						textField.__textFormat.size = scaledSize;
-						var text = textEngine.text;
-						var adjustment = 0;
-						if(!textField.__isHTML) {
-							text = StringTools.htmlEscape(text);
-						} else {
-							var matchText = text;
-							while(openfl_display__$internal_DOMTextField.__regexFont.match(matchText)) {
-								var fontText = openfl_display__$internal_DOMTextField.__regexFont.matched(0);
-								var style1 = "";
-								if(openfl_display__$internal_DOMTextField.__regexFace.match(fontText)) {
-									style1 += "font-family:'" + openfl_display__$internal_DOMTextField.__getAttributeMatch(openfl_display__$internal_DOMTextField.__regexFace) + "';";
-								}
-								if(openfl_display__$internal_DOMTextField.__regexColor.match(fontText)) {
-									style1 += "color:#" + openfl_display__$internal_DOMTextField.__getAttributeMatch(openfl_display__$internal_DOMTextField.__regexColor) + ";";
-								}
-								if(openfl_display__$internal_DOMTextField.__regexSize.match(fontText)) {
-									var sizeAttr = openfl_display__$internal_DOMTextField.__getAttributeMatch(openfl_display__$internal_DOMTextField.__regexSize);
-									var firstChar = HxOverrides.cca(sizeAttr,0);
-									var size;
-									adjustment = parseFloat(sizeAttr) * scale;
-									if(firstChar == 43 || firstChar == 45) {
-										size = scaledSize + adjustment;
-									} else {
-										size = adjustment;
-									}
-									style1 += "font-size:" + size + "px;";
-								}
-								text = StringTools.replace(text,fontText,"<span style='" + style1 + "'>");
-								matchText = openfl_display__$internal_DOMTextField.__regexFont.matchedRight();
-							}
-							text = text.replace(openfl_display__$internal_DOMTextField.__regexCloseFont.r,"</span>");
-						}
-						text = StringTools.replace(text,"<p ","<p style='margin-top:0; margin-bottom:0;' ");
-						var unscaledLeading = textField.__textFormat.leading;
-						textField.__textFormat.leading += adjustment | 0;
-						var _this_r = new RegExp("\r\n","g".split("u").join(""));
-						var tmp = text.replace(_this_r,"<br>");
-						textField.__div.innerHTML = tmp;
-						var _this_r = new RegExp("\n","g".split("u").join(""));
-						var tmp = textField.__div.innerHTML.replace(_this_r,"<br>");
-						textField.__div.innerHTML = tmp;
-						var _this_r = new RegExp("\r","g".split("u").join(""));
-						var tmp = textField.__div.innerHTML.replace(_this_r,"<br>");
-						textField.__div.innerHTML = tmp;
-						style.setProperty("font",openfl_text__$internal_TextEngine.getFont(textField.__textFormat),null);
-						textField.__textFormat.size = unscaledSize;
-						textField.__textFormat.leading = unscaledLeading;
-						style.setProperty("top","3px",null);
-						if(textEngine.border) {
-							style.setProperty("border","solid 1px #" + StringTools.hex(textEngine.borderColor & 16777215,6),null);
-							textField.__renderTransform.translate(-1,-1);
-							textField.__renderTransformChanged = true;
-							textField.__transformDirty = true;
-						} else if(style.border != "") {
-							style.removeProperty("border");
-							textField.__renderTransformChanged = true;
-						}
-						style.setProperty("color","#" + StringTools.hex(textField.__textFormat.color & 16777215,6),null);
-						style.setProperty("width",w + "px",null);
-						style.setProperty("height",h + "px",null);
-						switch(textField.__textFormat.align) {
-						case 0:
-							style.setProperty("text-align","center",null);
-							break;
-						case 4:
-							style.setProperty("text-align","right",null);
-							break;
-						default:
-							style.setProperty("text-align","left",null);
-						}
-						textField.__dirty = false;
-					} else if(textField.__div != null) {
-						renderer.element.removeChild(textField.__div);
-						textField.__div = null;
-					}
-				}
-				if(textField.__div != null) {
-					var old = renderer.__roundPixels;
-					renderer.__roundPixels = true;
-					renderer.__updateClip(textField);
-					renderer.__applyStyle(textField,true,true,true);
-					renderer.__roundPixels = old;
-				}
-			} else {
-				openfl_display__$internal_DOMTextField.clear(textField,renderer);
-			}
-		}
-		this.__renderEvent(renderer);
-	}
-	,__renderDOMClear: function(renderer) {
-		openfl_display__$internal_DOMTextField.clear(this,renderer);
-	}
-	,__renderGL: function(renderer) {
-		this.__updateCacheBitmap(renderer,false);
-		if(this.__cacheBitmap != null && !this.__isCacheBitmapRender) {
-			openfl_display__$internal_Context3DBitmap.render(this.__cacheBitmap,renderer);
-		} else {
-			openfl_display__$internal_Context3DTextField.render(this,renderer);
-			if(!(this.opaqueBackground == null && this.__graphics == null)) {
-				if(!(!this.__renderable || this.__worldAlpha <= 0)) {
-					if(this.opaqueBackground != null && !this.__isCacheBitmapRender && this.get_width() > 0 && this.get_height() > 0) {
-						renderer.__setBlendMode(this.__worldBlendMode);
-						renderer.__pushMaskObject(this);
-						var context = renderer.__context3D;
-						var rect = openfl_geom_Rectangle.__pool.get();
-						rect.setTo(0,0,this.get_width(),this.get_height());
-						renderer.__pushMaskRect(rect,this.__renderTransform);
-						var color = this.opaqueBackground;
-						context.clear((color >>> 16 & 255) / 255,(color >>> 8 & 255) / 255,(color & 255) / 255,1,0,0,1);
-						renderer.__popMaskRect();
-						renderer.__popMaskObject(this);
-						openfl_geom_Rectangle.__pool.release(rect);
-					}
-					if(this.__graphics != null) {
-						openfl_display__$internal_Context3DShape.render(this,renderer);
-					}
-				}
-			}
-		}
-		this.__renderEvent(renderer);
-	}
-	,__renderGLMask: function(renderer) {
-		openfl_display__$internal_Context3DTextField.renderMask(this,renderer);
-		openfl_display_InteractiveObject.prototype.__renderGLMask.call(this,renderer);
-	}
-	,__replaceSelectedText: function(value,restrict) {
-		if(restrict == null) {
-			restrict = true;
-		}
-		if(value == null) {
-			value = "";
-		}
-		if(value == "" && this.__selectionIndex == this.__caretIndex) {
-			return;
-		}
-		var startIndex = this.__caretIndex < this.__selectionIndex ? this.__caretIndex : this.__selectionIndex;
-		var endIndex = this.__caretIndex > this.__selectionIndex ? this.__caretIndex : this.__selectionIndex;
-		if(startIndex == endIndex && this.__textEngine.maxChars > 0 && this.__text.length == this.__textEngine.maxChars) {
-			return;
-		}
-		if(startIndex > this.__text.length) {
-			startIndex = this.__text.length;
-		}
-		if(endIndex > this.__text.length) {
-			endIndex = this.__text.length;
-		}
-		if(endIndex < startIndex) {
-			var cache = endIndex;
-			endIndex = startIndex;
-			startIndex = cache;
-		}
-		if(startIndex < 0) {
-			startIndex = 0;
-		}
-		this.__replaceText(startIndex,endIndex,value,restrict);
-		var i = startIndex + (js_Boot.__cast(value , String)).length;
-		if(i > this.__text.length) {
-			i = this.__text.length;
-		}
-		this.setSelection(i,i);
-		this.__updateScrollH();
-	}
-	,__replaceText: function(beginIndex,endIndex,newText,restrict) {
-		if(endIndex < beginIndex || beginIndex < 0 || endIndex > this.__text.length || newText == null) {
-			return;
-		}
-		if(restrict) {
-			newText = this.__textEngine.restrictText(newText);
-			if(this.__textEngine.maxChars > 0) {
-				var removeLength = endIndex - beginIndex;
-				var maxLength = this.__textEngine.maxChars - this.__text.length + removeLength;
-				if(maxLength <= 0) {
-					newText = "";
-				} else if(maxLength < newText.length) {
-					newText = HxOverrides.substr(newText,0,maxLength);
-				}
-			}
-		}
-		this.__updateText(this.__text.substring(0,beginIndex) + newText + this.__text.substring(endIndex));
-		if(endIndex > this.__text.length) {
-			endIndex = this.__text.length;
-		}
-		var offset = newText.length - (endIndex - beginIndex);
-		var i = 0;
-		var range;
-		while(i < this.__textEngine.textFormatRanges.get_length()) {
-			range = this.__textEngine.textFormatRanges.get(i);
-			if(range.start <= beginIndex && range.end >= endIndex) {
-				range.end += offset;
-				++i;
-			} else if(range.start >= beginIndex && range.end <= endIndex) {
-				if(i > 0) {
-					this.__textEngine.textFormatRanges.splice(i,1);
-				} else {
-					range.start = 0;
-					range.end = beginIndex + newText.length;
-					++i;
-				}
-				offset -= range.end - range.start;
-			} else if(range.start > beginIndex && range.start <= endIndex) {
-				range.start += offset;
-				++i;
-			} else {
-				++i;
-			}
-		}
-		this.__updateScrollV();
-		this.__updateScrollH();
-		this.__dirty = true;
-		this.__layoutDirty = true;
-		if(!this.__renderDirty) {
-			this.__renderDirty = true;
-			this.__setParentRenderDirty();
-		}
-	}
-	,__shouldCacheHardware: function(value) {
-		if(value == true) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	,__startCursorTimer: function() {
-		this.__cursorTimer = haxe_Timer.delay($bind(this,this.__startCursorTimer),600);
-		this.__showCursor = !this.__showCursor;
-		this.__dirty = true;
-		if(!this.__renderDirty) {
-			this.__renderDirty = true;
-			this.__setParentRenderDirty();
-		}
-	}
-	,__startTextInput: function() {
-		if(this.__caretIndex < 0) {
-			this.__caretIndex = this.__text.length;
-			this.__selectionIndex = this.__caretIndex;
-		}
-		var enableInput = openfl_display_DisplayObject.__supportDOM ? this.__renderedOnCanvasWhileOnDOM : true;
-		if(enableInput) {
-			this.__enableInput();
-		}
-	}
-	,__stopCursorTimer: function() {
-		if(this.__cursorTimer != null) {
-			this.__cursorTimer.stop();
-			this.__cursorTimer = null;
-		}
-		if(this.__showCursor) {
-			this.__showCursor = false;
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-	}
-	,__stopTextInput: function() {
-		var disableInput = openfl_display_DisplayObject.__supportDOM ? this.__renderedOnCanvasWhileOnDOM : true;
-		if(disableInput) {
-			this.__disableInput();
-		}
-	}
-	,__updateCacheBitmap: function(renderer,force) {
-		if(this.__filters == null && renderer.__type == "opengl" && this.__cacheBitmap == null && !this.__domRender) {
-			return false;
-		}
-		if(force) {
-			this.__renderDirty = true;
-		}
-		if(openfl_display_InteractiveObject.prototype.__updateCacheBitmap.call(this,renderer,force || this.__dirty)) {
-			if(this.__cacheBitmap != null) {
-				this.__cacheBitmap.__renderTransform.tx -= this.__offsetX;
-				this.__cacheBitmap.__renderTransform.ty -= this.__offsetY;
-			}
-			return true;
-		}
-		return false;
-	}
-	,__updateLayout: function() {
-		if(this.__layoutDirty) {
-			var cacheWidth = this.__textEngine.width;
-			this.__textEngine.update();
-			if(this.__textEngine.autoSize != 2) {
-				if(this.__textEngine.width != cacheWidth) {
-					switch(this.__textEngine.autoSize) {
-					case 0:
-						var _g = this;
-						_g.set_x(_g.get_x() + (cacheWidth - this.__textEngine.width) / 2);
-						break;
-					case 3:
-						var _g = this;
-						_g.set_x(_g.get_x() + (cacheWidth - this.__textEngine.width));
-						break;
-					default:
-					}
-				}
-				this.__textEngine.getBounds();
-			}
-			this.__layoutDirty = false;
-		}
-	}
-	,__updateScrollH: function() {
-		if(!this.get_multiline() && this.get_type() == 1) {
-			this.__layoutDirty = true;
-			this.__updateLayout();
-			var offsetX = this.__textEngine.textWidth - this.__textEngine.width + 4;
-			if(offsetX > 0) {
-				if(this.__caretIndex >= this.get_text().length) {
-					this.set_scrollH(Math.ceil(offsetX));
-				} else {
-					var caret = openfl_geom_Rectangle.__pool.get();
-					this.__getCharBoundaries(this.__caretIndex,caret);
-					if(caret.x < this.get_scrollH()) {
-						this.set_scrollH(Math.floor(caret.x - 2));
-					} else if(caret.x > this.get_scrollH() + this.__textEngine.width) {
-						this.set_scrollH(Math.ceil(caret.x - this.__textEngine.width - 2));
-					}
-					openfl_geom_Rectangle.__pool.release(caret);
-				}
-			} else {
-				this.set_scrollH(0);
-			}
-		}
-	}
-	,__updateScrollV: function() {
-		this.__layoutDirty = true;
-		this.__updateLayout();
-		var lineIndex = this.getLineIndexOfChar(this.__caretIndex);
-		if(lineIndex == -1 && this.__caretIndex > 0) {
-			lineIndex = this.getLineIndexOfChar(this.__caretIndex - 1) + 1;
-		}
-		if(lineIndex + 1 < this.get_scrollV()) {
-			this.set_scrollV(lineIndex + 1);
-		} else if(lineIndex + 1 > this.get_bottomScrollV()) {
-			var i = lineIndex;
-			var tempHeight = 0.0;
-			while(i >= 0) if(tempHeight + this.__textEngine.lineHeights.get(i) <= this.get_height() - 4) {
-				tempHeight += this.__textEngine.lineHeights.get(i);
-				--i;
-			} else {
-				break;
-			}
-			this.set_scrollV(i + 2);
-		} else {
-			this.set_scrollV(this.get_scrollV());
-		}
-	}
-	,__updateText: function(value) {
-		if(openfl_display_DisplayObject.__supportDOM && this.__renderedOnCanvasWhileOnDOM) {
-			this.__forceCachedBitmapUpdate = this.__text != value;
-		}
-		this.__textEngine.set_text(value);
-		this.__text = this.__textEngine.text;
-		if(this.__text.length < this.__caretIndex) {
-			this.__selectionIndex = this.__caretIndex = this.__text.length;
-		}
-		if(!this.__displayAsPassword || openfl_display_DisplayObject.__supportDOM && !this.__renderedOnCanvasWhileOnDOM) {
-			this.__textEngine.set_text(this.__text);
-		} else {
-			var length = this.get_text().length;
-			var mask = "";
-			var _g = 0;
-			var _g1 = length;
-			while(_g < _g1) {
-				var i = _g++;
-				mask += "*";
-			}
-			this.__textEngine.set_text(mask);
-		}
-	}
-	,__updateTransforms: function(overrideTransform) {
-		openfl_display_InteractiveObject.prototype.__updateTransforms.call(this,overrideTransform);
-		var _this = this.__renderTransform;
-		var px = this.__offsetX;
-		var py = this.__offsetY;
-		_this.tx = px * _this.a + py * _this.c + _this.tx;
-		_this.ty = px * _this.b + py * _this.d + _this.ty;
-	}
-	,get_antiAliasType: function() {
-		return this.__textEngine.antiAliasType;
-	}
-	,set_antiAliasType: function(value) {
-		var tmp = value != this.__textEngine.antiAliasType;
-		return this.__textEngine.antiAliasType = value;
-	}
-	,get_autoSize: function() {
-		return this.__textEngine.autoSize;
-	}
-	,set_autoSize: function(value) {
-		if(value != this.__textEngine.autoSize) {
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.autoSize = value;
-	}
-	,get_background: function() {
-		return this.__textEngine.background;
-	}
-	,set_background: function(value) {
-		if(value != this.__textEngine.background) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.background = value;
-	}
-	,get_backgroundColor: function() {
-		return this.__textEngine.backgroundColor;
-	}
-	,set_backgroundColor: function(value) {
-		if(value != this.__textEngine.backgroundColor) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.backgroundColor = value;
-	}
-	,get_border: function() {
-		return this.__textEngine.border;
-	}
-	,set_border: function(value) {
-		if(value != this.__textEngine.border) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.border = value;
-	}
-	,get_borderColor: function() {
-		return this.__textEngine.borderColor;
-	}
-	,set_borderColor: function(value) {
-		if(value != this.__textEngine.borderColor) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.borderColor = value;
-	}
-	,get_bottomScrollV: function() {
-		this.__updateLayout();
-		return this.__textEngine.get_bottomScrollV();
-	}
-	,get_caretIndex: function() {
-		return this.__caretIndex;
-	}
-	,get_defaultTextFormat: function() {
-		return this.__textFormat.clone();
-	}
-	,set_defaultTextFormat: function(value) {
-		this.__textFormat.__merge(value);
-		this.__layoutDirty = true;
-		this.__dirty = true;
-		if(!this.__renderDirty) {
-			this.__renderDirty = true;
-			this.__setParentRenderDirty();
-		}
-		return value;
-	}
-	,get_displayAsPassword: function() {
-		return this.__displayAsPassword;
-	}
-	,set_displayAsPassword: function(value) {
-		if(value != this.__displayAsPassword) {
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-			this.__displayAsPassword = value;
-			this.__updateText(this.__text);
-		}
-		return value;
-	}
-	,get_embedFonts: function() {
-		return this.__textEngine.embedFonts;
-	}
-	,set_embedFonts: function(value) {
-		return this.__textEngine.embedFonts = value;
-	}
-	,get_gridFitType: function() {
-		return this.__textEngine.gridFitType;
-	}
-	,set_gridFitType: function(value) {
-		return this.__textEngine.gridFitType = value;
-	}
-	,get_height: function() {
-		this.__updateLayout();
-		return this.__textEngine.height * Math.abs(this.get_scaleY());
-	}
-	,set_height: function(value) {
-		if(value != this.__textEngine.height) {
-			this.__setTransformDirty();
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-			this.__textEngine.height = value;
-		}
-		return this.__textEngine.height * Math.abs(this.get_scaleY());
-	}
-	,get_htmlText: function() {
-		if(this.__isHTML) {
-			return this.__rawHtmlText;
-		} else {
-			return this.__text;
-		}
-	}
-	,set_htmlText: function(value) {
-		if(!this.__isHTML || this.__text != value) {
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		this.__isHTML = true;
-		this.__rawHtmlText = value;
-		value = openfl__$internal_formats_html_HTMLParser.parse(value,this.__textFormat,this.__textEngine.textFormatRanges);
-		if(openfl_display_DisplayObject.__supportDOM) {
-			if(this.__textEngine.textFormatRanges.get_length() > 1) {
-				this.__textEngine.textFormatRanges.splice(1,this.__textEngine.textFormatRanges.get_length() - 1);
-			}
-			var range = this.__textEngine.textFormatRanges.get(0);
-			range.format = this.__textFormat;
-			range.start = 0;
-			if(this.__renderedOnCanvasWhileOnDOM) {
-				range.end = value.length;
-				this.__updateText(value);
-			} else {
-				range.end = this.__rawHtmlText.length;
-				this.__updateText(this.__rawHtmlText);
-			}
-		} else {
-			this.__updateText(value);
-		}
-		this.__updateScrollV();
-		return value;
-	}
-	,get_length: function() {
-		if(this.__text != null) {
-			return this.__text.length;
-		}
-		return 0;
-	}
-	,get_maxChars: function() {
-		return this.__textEngine.maxChars;
-	}
-	,set_maxChars: function(value) {
-		if(value != this.__textEngine.maxChars) {
-			this.__textEngine.maxChars = value;
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return value;
-	}
-	,get_maxScrollH: function() {
-		this.__updateLayout();
-		return this.__textEngine.maxScrollH;
-	}
-	,get_maxScrollV: function() {
-		this.__updateLayout();
-		return this.__textEngine.get_maxScrollV();
-	}
-	,get_mouseWheelEnabled: function() {
-		return this.__mouseWheelEnabled;
-	}
-	,set_mouseWheelEnabled: function(value) {
-		return this.__mouseWheelEnabled = value;
-	}
-	,get_multiline: function() {
-		return this.__textEngine.multiline;
-	}
-	,set_multiline: function(value) {
-		if(value != this.__textEngine.multiline) {
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			this.__updateText(this.__text);
-			this.__updateScrollH();
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.multiline = value;
-	}
-	,get_numLines: function() {
-		this.__updateLayout();
-		return this.__textEngine.numLines;
-	}
-	,get_restrict: function() {
-		return this.__textEngine.restrict;
-	}
-	,set_restrict: function(value) {
-		if(this.__textEngine.restrict != value) {
-			this.__textEngine.set_restrict(value);
-			this.__updateText(this.__text);
-		}
-		return value;
-	}
-	,get_scrollH: function() {
-		return this.__textEngine.scrollH;
-	}
-	,set_scrollH: function(value) {
-		this.__updateLayout();
-		if(value > this.__textEngine.maxScrollH) {
-			value = this.__textEngine.maxScrollH;
-		}
-		if(value < 0) {
-			value = 0;
-		}
-		if(value != this.__textEngine.scrollH) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-			this.__textEngine.scrollH = value;
-			this.dispatchEvent(new openfl_events_Event("scroll"));
-		}
-		return this.__textEngine.scrollH;
-	}
-	,get_scrollV: function() {
-		return this.__textEngine.get_scrollV();
-	}
-	,set_scrollV: function(value) {
-		this.__updateLayout();
-		if(value > 0 && value != this.__textEngine.get_scrollV()) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-			this.__textEngine.set_scrollV(value);
-			this.dispatchEvent(new openfl_events_Event("scroll"));
-		}
-		return this.__textEngine.get_scrollV();
-	}
-	,get_selectable: function() {
-		return this.__textEngine.selectable;
-	}
-	,set_selectable: function(value) {
-		if(value != this.__textEngine.selectable && this.get_type() == 1) {
-			if(this.stage != null && this.stage.get_focus() == this) {
-				this.__startTextInput();
-			} else if(!value) {
-				this.__stopTextInput();
-			}
-		}
-		return this.__textEngine.selectable = value;
-	}
-	,get_selectionBeginIndex: function() {
-		return Math.min(this.__caretIndex,this.__selectionIndex) | 0;
-	}
-	,get_selectionEndIndex: function() {
-		return Math.max(this.__caretIndex,this.__selectionIndex) | 0;
-	}
-	,get_sharpness: function() {
-		return this.__textEngine.sharpness;
-	}
-	,set_sharpness: function(value) {
-		if(value != this.__textEngine.sharpness) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.sharpness = value;
-	}
-	,get_tabEnabled: function() {
-		if(this.__tabEnabled == null) {
-			return this.__textEngine.type == 1;
-		} else {
-			return this.__tabEnabled;
-		}
-	}
-	,get_text: function() {
-		return this.__text;
-	}
-	,set_text: function(value) {
-		if(this.__isHTML || this.__text != value) {
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		} else {
-			return value;
-		}
-		if(this.__textEngine.textFormatRanges.get_length() > 1) {
-			this.__textEngine.textFormatRanges.splice(1,this.__textEngine.textFormatRanges.get_length() - 1);
-		}
-		var utfValue = value;
-		var range = this.__textEngine.textFormatRanges.get(0);
-		range.format = this.__textFormat;
-		range.start = 0;
-		range.end = utfValue.length;
-		this.__isHTML = false;
-		this.__updateText(value);
-		this.__updateScrollV();
-		return value;
-	}
-	,get_textColor: function() {
-		return this.__textFormat.color;
-	}
-	,set_textColor: function(value) {
-		if(value != this.__textFormat.color) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		var range = this.__textEngine.textFormatRanges.iterator();
-		while(range.hasNext()) {
-			var range1 = range.next();
-			range1.format.color = value;
-		}
-		return this.__textFormat.color = value;
-	}
-	,get_textWidth: function() {
-		this.__updateLayout();
-		return this.__textEngine.textWidth;
-	}
-	,get_textHeight: function() {
-		this.__updateLayout();
-		return this.__textEngine.textHeight;
-	}
-	,get_type: function() {
-		return this.__textEngine.type;
-	}
-	,set_type: function(value) {
-		if(value != this.__textEngine.type) {
-			if(value == 1) {
-				this.addEventListener("addedToStage",$bind(this,this.this_onAddedToStage));
-				this.this_onFocusIn(null);
-				this.__textEngine.__useIntAdvances = true;
-			} else {
-				this.removeEventListener("addedToStage",$bind(this,this.this_onAddedToStage));
-				this.__stopTextInput();
-				this.__textEngine.__useIntAdvances = null;
-			}
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.type = value;
-	}
-	,get_width: function() {
-		this.__updateLayout();
-		return this.__textEngine.width * Math.abs(this.__scaleX);
-	}
-	,set_width: function(value) {
-		if(value != this.__textEngine.width) {
-			this.__setTransformDirty();
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-			this.__textEngine.width = value;
-		}
-		return this.__textEngine.width * Math.abs(this.__scaleX);
-	}
-	,get_wordWrap: function() {
-		return this.__textEngine.wordWrap;
-	}
-	,set_wordWrap: function(value) {
-		if(value != this.__textEngine.wordWrap) {
-			this.__dirty = true;
-			this.__layoutDirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		return this.__textEngine.wordWrap = value;
-	}
-	,get_x: function() {
-		return this.__transform.tx + this.__offsetX;
-	}
-	,set_x: function(value) {
-		if(value != this.__transform.tx + this.__offsetX) {
-			this.__setTransformDirty();
-		}
-		return this.__transform.tx = value - this.__offsetX;
-	}
-	,get_y: function() {
-		return this.__transform.ty + this.__offsetY;
-	}
-	,set_y: function(value) {
-		if(value != this.__transform.ty + this.__offsetY) {
-			this.__setTransformDirty();
-		}
-		return this.__transform.ty = value - this.__offsetY;
-	}
-	,stage_onMouseMove: function(event) {
-		if(this.stage == null) {
-			return;
-		}
-		if(this.get_selectable() && this.__selectionIndex >= 0) {
-			this.__updateLayout();
-			var position = this.__getPosition(this.get_mouseX() + this.get_scrollH(),this.get_mouseY());
-			if(position != this.__caretIndex) {
-				this.__caretIndex = position;
-				var setDirty = true;
-				if(openfl_display_DisplayObject.__supportDOM) {
-					if(this.__renderedOnCanvasWhileOnDOM) {
-						this.__forceCachedBitmapUpdate = true;
-					}
-					setDirty = false;
-				}
-				if(setDirty) {
-					this.__dirty = true;
-					if(!this.__renderDirty) {
-						this.__renderDirty = true;
-						this.__setParentRenderDirty();
-					}
-				}
-			}
-		}
-	}
-	,stage_onMouseUp: function(event) {
-		if(this.stage == null) {
-			return;
-		}
-		this.stage.removeEventListener("mouseMove",$bind(this,this.stage_onMouseMove));
-		this.stage.removeEventListener("mouseUp",$bind(this,this.stage_onMouseUp));
-		if(this.stage.get_focus() == this) {
-			this.__getWorldTransform();
-			this.__updateLayout();
-			var upPos = this.__getPosition(this.get_mouseX() + this.get_scrollH(),this.get_mouseY());
-			var leftPos = Math.min(this.__selectionIndex,upPos) | 0;
-			var rightPos = Math.max(this.__selectionIndex,upPos) | 0;
-			this.__selectionIndex = leftPos;
-			this.__caretIndex = rightPos;
-			if(this.__inputEnabled) {
-				this.this_onFocusIn(null);
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-				if(openfl_display_DisplayObject.__supportDOM && this.__renderedOnCanvasWhileOnDOM) {
-					this.__forceCachedBitmapUpdate = true;
-				}
-			}
-		}
-	}
-	,this_onAddedToStage: function(event) {
-		this.this_onFocusIn(null);
-	}
-	,this_onFocusIn: function(event) {
-		if(this.get_type() == 1 && this.stage != null && this.stage.get_focus() == this) {
-			this.__startTextInput();
-		}
-	}
-	,this_onFocusOut: function(event) {
-		this.__stopCursorTimer();
-		if(event.relatedObject == null || !((event.relatedObject) instanceof openfl_text_TextField)) {
-			this.__stopTextInput();
-		} else {
-			if(this.stage != null) {
-				this.stage.window.onTextInput.remove($bind(this,this.window_onTextInput));
-				this.stage.window.onKeyDown.remove($bind(this,this.window_onKeyDown));
-			}
-			this.__inputEnabled = false;
-		}
-		if(this.__selectionIndex != this.__caretIndex) {
-			this.__selectionIndex = this.__caretIndex;
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-	}
-	,this_onKeyDown: function(event) {
-		if(this.get_selectable() && this.get_type() != 1 && event.keyCode == 67 && (event.commandKey || event.ctrlKey)) {
-			if(this.__caretIndex != this.__selectionIndex) {
-				lime_system_Clipboard.set_text(this.__text.substring(this.__caretIndex,this.__selectionIndex));
-			}
-		}
-	}
-	,this_onMouseDown: function(event) {
-		if(!this.get_selectable() && this.get_type() != 1) {
-			return;
-		}
-		this.__updateLayout();
-		this.__caretIndex = this.__getPosition(this.get_mouseX() + this.get_scrollH(),this.get_mouseY());
-		this.__selectionIndex = this.__caretIndex;
-		if(!openfl_display_DisplayObject.__supportDOM) {
-			this.__dirty = true;
-			if(!this.__renderDirty) {
-				this.__renderDirty = true;
-				this.__setParentRenderDirty();
-			}
-		}
-		this.stage.addEventListener("mouseMove",$bind(this,this.stage_onMouseMove));
-		this.stage.addEventListener("mouseUp",$bind(this,this.stage_onMouseUp));
-	}
-	,this_onMouseWheel: function(event) {
-		if(this.get_mouseWheelEnabled()) {
-			var _g = this;
-			_g.set_scrollV(_g.get_scrollV() - event.delta);
-		}
-	}
-	,this_onDoubleClick: function(event) {
-		if(this.get_selectable()) {
-			this.__updateLayout();
-			var delimiters = ["\n",".","!","?",","," ",";",":","(",")","-","_","/"];
-			var txtStr = this.__text;
-			var leftPos = -1;
-			var rightPos = txtStr.length;
-			var pos = 0;
-			var startPos = Math.max(this.__caretIndex,1) | 0;
-			if(txtStr.length > 0 && this.__caretIndex >= 0 && rightPos >= this.__caretIndex) {
-				var _g = 0;
-				while(_g < delimiters.length) {
-					var c = delimiters[_g];
-					++_g;
-					pos = txtStr.lastIndexOf(c,startPos - 1);
-					if(pos > leftPos) {
-						leftPos = pos + 1;
-					}
-					pos = txtStr.indexOf(c,startPos);
-					if(pos < rightPos && pos != -1) {
-						rightPos = pos;
-					}
-				}
-				if(leftPos != rightPos) {
-					this.setSelection(leftPos,rightPos);
-					var setDirty = true;
-					if(openfl_display_DisplayObject.__supportDOM) {
-						if(this.__renderedOnCanvasWhileOnDOM) {
-							this.__forceCachedBitmapUpdate = true;
-						}
-						setDirty = false;
-					}
-					if(setDirty) {
-						this.__dirty = true;
-						if(!this.__renderDirty) {
-							this.__renderDirty = true;
-							this.__setParentRenderDirty();
-						}
-					}
-				}
-			}
-		}
-	}
-	,window_onKeyDown: function(key,modifier) {
-		switch(key) {
-		case 8:
-			if(this.__selectionIndex == this.__caretIndex && this.__caretIndex > 0) {
-				this.__selectionIndex = this.__caretIndex - 1;
-			}
-			if(this.__selectionIndex != this.__caretIndex) {
-				this.replaceSelectedText("");
-				this.__selectionIndex = this.__caretIndex;
-				this.dispatchEvent(new openfl_events_Event("change",true));
-			}
-			break;
-		case 97:
-			if(this.get_selectable()) {
-				if(lime_ui_KeyModifier.get_metaKey(modifier) || lime_ui_KeyModifier.get_ctrlKey(modifier)) {
-					this.__caretIndex = this.__text.length;
-					this.__selectionIndex = 0;
-				}
-			}
-			break;
-		case 99:
-			if(lime_ui_KeyModifier.get_metaKey(modifier) || lime_ui_KeyModifier.get_ctrlKey(modifier)) {
-				if(this.__caretIndex != this.__selectionIndex) {
-					lime_system_Clipboard.set_text(this.__text.substring(this.__caretIndex,this.__selectionIndex));
-				}
-			}
-			break;
-		case 120:
-			if(lime_ui_KeyModifier.get_metaKey(modifier) || lime_ui_KeyModifier.get_ctrlKey(modifier)) {
-				if(this.__caretIndex != this.__selectionIndex) {
-					lime_system_Clipboard.set_text(this.__text.substring(this.__caretIndex,this.__selectionIndex));
-					this.replaceSelectedText("");
-					this.dispatchEvent(new openfl_events_Event("change",true));
-				}
-			}
-			break;
-		case 127:
-			if(this.__selectionIndex == this.__caretIndex && this.__caretIndex < this.__text.length) {
-				this.__selectionIndex = this.__caretIndex + 1;
-			}
-			if(this.__selectionIndex != this.__caretIndex) {
-				this.replaceSelectedText("");
-				this.__selectionIndex = this.__caretIndex;
-				this.dispatchEvent(new openfl_events_Event("change",true));
-			}
-			break;
-		case 1073741898:
-			if(this.get_selectable()) {
-				this.__caretBeginningOfLine();
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-			}
-			break;
-		case 1073741901:
-			if(this.get_selectable()) {
-				this.__caretEndOfLine();
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-			}
-			break;
-		case 1073741903:
-			if(this.get_selectable()) {
-				if(lime_ui_KeyModifier.get_metaKey(modifier)) {
-					this.__caretEndOfLine();
-					if(!lime_ui_KeyModifier.get_shiftKey(modifier)) {
-						this.__selectionIndex = this.__caretIndex;
-					}
-				} else if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
-					this.__caretNextCharacter();
-				} else {
-					if(this.__selectionIndex == this.__caretIndex) {
-						this.__caretNextCharacter();
-					} else {
-						this.__caretIndex = Math.max(this.__caretIndex,this.__selectionIndex) | 0;
-					}
-					this.__selectionIndex = this.__caretIndex;
-				}
-				this.__updateScrollH();
-				this.__updateScrollV();
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-			}
-			break;
-		case 1073741904:
-			if(this.get_selectable()) {
-				if(lime_ui_KeyModifier.get_metaKey(modifier)) {
-					this.__caretBeginningOfLine();
-					if(!lime_ui_KeyModifier.get_shiftKey(modifier)) {
-						this.__selectionIndex = this.__caretIndex;
-					}
-				} else if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
-					this.__caretPreviousCharacter();
-				} else {
-					if(this.__selectionIndex == this.__caretIndex) {
-						this.__caretPreviousCharacter();
-					} else {
-						this.__caretIndex = Math.min(this.__caretIndex,this.__selectionIndex) | 0;
-					}
-					this.__selectionIndex = this.__caretIndex;
-				}
-				this.__updateScrollH();
-				this.__updateScrollV();
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-			}
-			break;
-		case 1073741905:
-			if(this.get_selectable()) {
-				if(!this.__textEngine.multiline) {
-					return;
-				}
-				if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
-					this.__caretNextLine();
-				} else {
-					if(this.__selectionIndex == this.__caretIndex) {
-						this.__caretNextLine();
-					} else {
-						var lineIndex = this.getLineIndexOfChar(Math.max(this.__caretIndex,this.__selectionIndex) | 0);
-						this.__caretNextLine(lineIndex,Math.min(this.__caretIndex,this.__selectionIndex) | 0);
-					}
-					this.__selectionIndex = this.__caretIndex;
-				}
-				this.__updateScrollV();
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-			}
-			break;
-		case 1073741906:
-			if(this.get_selectable()) {
-				if(!this.__textEngine.multiline) {
-					return;
-				}
-				if(lime_ui_KeyModifier.get_shiftKey(modifier)) {
-					this.__caretPreviousLine();
-				} else {
-					if(this.__selectionIndex == this.__caretIndex) {
-						this.__caretPreviousLine();
-					} else {
-						var lineIndex = this.getLineIndexOfChar(Math.min(this.__caretIndex,this.__selectionIndex) | 0);
-						this.__caretPreviousLine(lineIndex,Math.min(this.__caretIndex,this.__selectionIndex) | 0);
-					}
-					this.__selectionIndex = this.__caretIndex;
-				}
-				this.__updateScrollV();
-				this.__stopCursorTimer();
-				this.__startCursorTimer();
-			}
-			break;
-		case 13:case 1073741912:
-			if(this.__textEngine.multiline) {
-				var te = new openfl_events_TextEvent("textInput",true,true,"\n");
-				this.dispatchEvent(te);
-				if(!te.isDefaultPrevented()) {
-					this.__replaceSelectedText("\n",true);
-					this.dispatchEvent(new openfl_events_Event("change",true));
-				}
-			}
-			break;
-		default:
-		}
-	}
-	,window_onTextInput: function(value) {
-		this.__replaceSelectedText(value,true);
-		this.dispatchEvent(new openfl_events_Event("change",true));
-	}
-	,__class__: openfl_text_TextField
-});
 var openfl_text_TextFieldAutoSize = {};
 openfl_text_TextFieldAutoSize.fromString = function(value) {
 	switch(value) {
@@ -69477,6 +69557,7 @@ openfl_display_CapsStyle.ROUND = 1;
 openfl_display_CapsStyle.SQUARE = 2;
 openfl_display_DOMRenderer.__meta__ = { fields : { element : { SuppressWarnings : ["checkstyle:Dynamic"]}, applyStyle : { SuppressWarnings : ["checkstyle:Dynamic"]}, clearStyle : { SuppressWarnings : ["checkstyle:Dynamic"]}, _ : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
 openfl_display_Shader.__meta__ = { fields : { glProgram : { SuppressWarnings : ["checkstyle:Dynamic"]}}};
+openfl_text_TextField.__missingFontWarning = new haxe_ds_StringMap();
 openfl_display_GradientType.LINEAR = 0;
 openfl_display_GradientType.RADIAL = 1;
 openfl_display_Graphics.__meta__ = { fields : { overrideBlendMode : { SuppressWarnings : ["checkstyle:FieldDocComment"]}}};
@@ -69842,7 +69923,6 @@ openfl_text_FontType.EMBEDDED_CFF = 2;
 openfl_text_GridFitType.NONE = 0;
 openfl_text_GridFitType.PIXEL = 1;
 openfl_text_GridFitType.SUBPIXEL = 2;
-openfl_text_TextField.__missingFontWarning = new haxe_ds_StringMap();
 openfl_text_TextFieldAutoSize.CENTER = 0;
 openfl_text_TextFieldAutoSize.LEFT = 1;
 openfl_text_TextFieldAutoSize.NONE = 2;
