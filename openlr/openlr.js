@@ -46503,7 +46503,9 @@ network_WebRTC.prototype = {
 				}
 			}
 			if(_gthis.isHost && _gthis.connections.length > 1) {
-				_gthis.sendGeneralPacketInfo(packet);
+				if(packet.action != "joinRequest") {
+					_gthis.sendGeneralPacketInfo(packet);
+				}
 			}
 		});
 		_conn.on("error",function(err) {
