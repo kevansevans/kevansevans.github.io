@@ -220,15 +220,8 @@ var Main = function() {
 };
 $hxClasses["Main"] = Main;
 Main.__name__ = "Main";
-Main.getBuildDate = function() {
-	var months = ["JAN","FEB","MAR","APR","MAY","JUN","JUN","AUG","SEP","OCT","NOV","DEC"];
-	var month = new Date().getMonth();
-	var monthstr = months[month] != null ? months[month] : "Lousy Smarch Weather";
-	return new Date().getDate() + monthstr + new Date().getFullYear();
-};
 Main.main = function() {
-	Main.build = "" + Main.getBuildDate();
-	Main.build = "Release:" + Main.build;
+	Main.build = "Release";
 	new Main();
 };
 Main.__super__ = hxd_App;
@@ -254,11 +247,13 @@ Main.prototype = $extend(hxd_App.prototype,{
 		Main.toolControl = new components_tool_ToolBehavior();
 		h2d_Console.HIDE_LOG_TIMEOUT = 25;
 		Main.console = new components_stage_LRConsole(hxd_res_DefaultFont.get(),this.s2d);
-		Main.console.shortKeyChar = 96;
 		this.setConsoleActions();
 		Main.console.log("Welcome to OpenLR: " + Main.build,3355443);
 		Main.console.log("Press / to toggle console...",3355443);
 		Main.console.log("https://github.com/kevansevans/OpenLR",3355443);
+		Main.console.log("Press S to play, Space to toggle pause.",3355443);
+		Main.console.log("Press X to stop.",3355443);
+		Main.console.log("Press 123 and QWE to cycle tools.",3355443);
 		Main.grid = new components_managers_Grid();
 		Main.riders = new components_managers_Riders();
 		Main.simulation = new components_managers_Simulation();
@@ -329,7 +324,6 @@ Main.prototype = $extend(hxd_App.prototype,{
 			if(_index != null) {
 				Main.canvas.removeLine(Main.grid.lines.h[_index]);
 			}
-			Main.console.log("" + _index);
 		});
 		var arg10 = { t : h2d_ConsoleArg.AString, opt : false, name : "Tool"};
 		Main.console.addCommand("setTool","Change current active tool",[arg10],function(_tool,_color) {
@@ -372,10 +366,10 @@ Main.prototype = $extend(hxd_App.prototype,{
 		var arg12 = { t : h2d_ConsoleArg.AFloat, opt : false, name : "x"};
 		var arg13 = { t : h2d_ConsoleArg.AFloat, opt : false, name : "y"};
 		Main.console.addCommand("zoomIn","Increase zoom by 1",[],function() {
-			Main.canvas.zoomCanvas(1);
+			Main.canvas.zoomCanvas(-1);
 		});
 		Main.console.addCommand("zoomOut","Decrease zoom by 1",[],function() {
-			Main.canvas.zoomCanvas(-1);
+			Main.canvas.zoomCanvas(1);
 		});
 		Main.console.addCommand("addCanvasPosition","Add values to existing canvas position",[arg12,arg13],function(_x,_y) {
 			Main.canvas.addCanvasPosition(_x,_y);
@@ -530,7 +524,6 @@ Main.prototype = $extend(hxd_App.prototype,{
 			Main.riders.deleteAllRiders();
 			Main.riders.addNewRider("Bosh",new h2d_col_Point(0,0));
 			Main.trackName = null;
-			Main.authorName = null;
 		});
 		var arg24 = { t : h2d_ConsoleArg.AString, opt : false, name : "Rider name"};
 		var arg25 = { t : h2d_ConsoleArg.AString, opt : false, name : "New name"};
@@ -549,12 +542,31 @@ Main.prototype = $extend(hxd_App.prototype,{
 		Main.console.addCommand("say","Relay a message to console",[arg26],function(_msg) {
 			Main.console.log(_msg);
 		});
+		var arg30 = { t : h2d_ConsoleArg.AString, opt : false, name : "Author name"};
+		Main.console.addCommand("name","Set author name",[arg30],function(_name) {
+			Main.authorName = _name;
+		});
 		var argServerName = { t : h2d_ConsoleArg.AString, opt : true, name : "ID Name"};
 		Main.console.addCommand("createServer","Creates P2P server through WebRTC",[argServerName],function(_name) {
+			if(Main.authorName == null) {
+				Main.console.log("Please set author name with /name before creating server",16711680);
+				return;
+			}
 			Main.p2p.create(_name);
 		});
 		Main.console.addCommand("joinServer","Joins P2P server through WebRTC",[argServerName],function(_name) {
+			if(Main.authorName == null) {
+				Main.console.log("Please set author name with /name before joining server",16711680);
+				return;
+			}
+			if(Main.grid.lineCount > 0) {
+				Main.console.runCommand("saveTrack" + (" " + new Date().getTime()));
+				Main.console.runCommand("newTrack");
+			}
 			Main.p2p.join(_name);
+		});
+		Main.console.addCommand("disconnect","Disconnects from online session",[],function() {
+			Main.p2p.disconnect();
 		});
 	}
 	,update: function(dt) {
@@ -568,6 +580,9 @@ Main.prototype = $extend(hxd_App.prototype,{
 		}
 		Main.canvas.drawRiders();
 		Main.textinfo.update();
+		if(Main.p2p.connected) {
+			Main.p2p.updateCursor();
+		}
 	}
 	,onResize: function() {
 		hxd_App.prototype.onResize.call(this);
@@ -4409,9 +4424,6 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 					var _loc4 = (_loc3 * _loc1.dx + _loc2 * _loc1.dy) * _loc1.invSqrDistance;
 					if(_loc12 < this.eraserSize * _loc9 || _loc13 < this.eraserSize * _loc9 || _loc11 < this.eraserSize * _loc9 && _loc4 >= 0 && _loc4 <= 1) {
 						this.removeLine(line);
-						if(Main.p2p.connected) {
-							Main.p2p.removeLine(line.id);
-						}
 						continue;
 					}
 				}
@@ -4430,9 +4442,6 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 					var _loc41 = (_loc31 * _loc14.dx + _loc21 * _loc14.dy) * _loc14.invSqrDistance;
 					if(_loc121 < this.eraserSize * _loc91 || _loc131 < this.eraserSize * _loc91 || _loc111 < this.eraserSize * _loc91 && _loc41 >= 0 && _loc41 <= 1) {
 						this.removeLine(line1);
-						if(Main.p2p.connected) {
-							Main.p2p.removeLine(line1.id);
-						}
 						continue;
 					}
 				}
@@ -4473,7 +4482,9 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 		}
 		line.render();
 		Main.grid.register(line);
-		return line;
+		if(Main.p2p.connected) {
+			Main.p2p.updateLineInfo("lineDownload",[line.type,line.start.x,line.start.y,line.end.x,line.end.y,line.shifted,line.limType]);
+		}
 	}
 	,clear: function() {
 		var line = Main.grid.lines.iterator();
@@ -4488,6 +4499,9 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 		this.sceneColorLayer.removeChild(_line.colorLayer);
 		this.scenePlaybackLayer.removeChild(_line.rideLayer);
 		this.rideLayer.removeChild(_line.rideLayer);
+		if(Main.p2p.connected) {
+			Main.p2p.updateLineInfo("deleteLine",[_line.id]);
+		}
 	}
 	,get_drawMode: function() {
 		return this.drawMode;
@@ -4538,6 +4552,49 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 			break;
 		}
 		return this.drawMode = _mode;
+	}
+	,P2PLineAdd: function(_type,_x1,_y1,_x2,_y2,_shifted,_limMode) {
+		if(_limMode == null) {
+			_limMode = -1;
+		}
+		if(_shifted == null) {
+			_shifted = false;
+		}
+		var line = null;
+		switch(_type) {
+		case 0:
+			line = new components_lines_Floor(new h2d_col_Point(_x1,_y1),new h2d_col_Point(_x2,_y2),_shifted);
+			if(_limMode != -1) {
+				line.setLim(_limMode);
+			}
+			this.colorLayer.addChild(line.colorLayer);
+			this.rideLayer.addChild(line.rideLayer);
+			break;
+		case 1:
+			line = new components_lines_Accel(new h2d_col_Point(_x1,_y1),new h2d_col_Point(_x2,_y2),_shifted);
+			if(_limMode != -1) {
+				line.setLim(_limMode);
+			}
+			this.colorLayer.addChild(line.colorLayer);
+			this.rideLayer.addChild(line.rideLayer);
+			break;
+		case 2:
+			line = new components_lines_Scenery(new h2d_col_Point(_x1,_y1),new h2d_col_Point(_x2,_y2),_shifted);
+			this.sceneColorLayer.addChild(line.colorLayer);
+			this.scenePlaybackLayer.addChild(line.rideLayer);
+			break;
+		default:
+		}
+		line.render();
+		Main.grid.register(line);
+	}
+	,P2PRemoveLine: function(_id) {
+		var _line = Main.grid.lines.h[_id];
+		Main.grid.unregister(_line);
+		this.colorLayer.removeChild(_line.colorLayer);
+		this.sceneColorLayer.removeChild(_line.colorLayer);
+		this.scenePlaybackLayer.removeChild(_line.rideLayer);
+		this.rideLayer.removeChild(_line.rideLayer);
 	}
 	,__class__: components_stage_Canvas
 });
@@ -4987,7 +5044,7 @@ h2d_Console.prototype = $extend(h2d_Object.prototype,{
 });
 var components_stage_LRConsole = function(font,parent) {
 	h2d_Console.call(this,font,parent);
-	h2d_Console.HIDE_LOG_TIMEOUT = 5;
+	h2d_Console.HIDE_LOG_TIMEOUT = 30;
 	this.tf.set_textColor(-15658735);
 };
 $hxClasses["components.stage.LRConsole"] = components_stage_LRConsole;
@@ -5273,10 +5330,7 @@ components_tool_ToolBehavior.prototype = {
 		}
 	}
 	,drawLine: function() {
-		var line = Main.canvas.addLine(this.color,this.mouseStart.x,this.mouseStart.y,this.mouseEnd.x,this.mouseEnd.y,this.shifted);
-		if(Main.p2p.connected) {
-			Main.p2p.sendLine(line);
-		}
+		Main.canvas.addLine(this.color,this.mouseStart.x,this.mouseStart.y,this.mouseEnd.x,this.mouseEnd.y,this.shifted);
 	}
 	,keyInputDown: function(event) {
 		switch(event.kind._hx_index) {
@@ -42511,13 +42565,6 @@ js_Boot.__downcastCheck = function(o,cl) {
 		return true;
 	}
 };
-js_Boot.__cast = function(o,t) {
-	if(o == null || js_Boot.__instanceof(o,t)) {
-		return o;
-	} else {
-		throw haxe_Exception.thrown("Cannot cast " + Std.string(o) + " to " + Std.string(t));
-	}
-};
 js_Boot.__nativeClassName = function(o) {
 	var name = js_Boot.__toStr.call(o).slice(8,-1);
 	if(name == "Object" || name == "Function" || name == "Math" || name == "JSON") {
@@ -46289,91 +46336,192 @@ js_html__$CanvasElement_CanvasUtil.getContextWebGL = function(canvas,attribs) {
 	return null;
 };
 Math.__name__ = "Math";
+var network_PeerCursor = function(_name) {
+	h2d_Object.call(this);
+	this.peername = _name;
+	this.nameField = new h2d_HtmlText(hxd_res_DefaultFont.get(),this);
+	var _this = this.nameField;
+	_this.posChanged = true;
+	_this.x = 6;
+	var _this = this.nameField;
+	var v = -(this.nameField.get_textHeight() / 2);
+	_this.posChanged = true;
+	_this.y = v;
+	this.nameField.set_text(_name);
+	this.gfx = new h2d_Graphics(this);
+	this.gfx.clear();
+	this.gfx.lineStyle(2,13369548,0.75);
+	this.gfx.drawCircle(0,0,1,10);
+};
+$hxClasses["network.PeerCursor"] = network_PeerCursor;
+network_PeerCursor.__name__ = "network.PeerCursor";
+network_PeerCursor.__super__ = h2d_Object;
+network_PeerCursor.prototype = $extend(h2d_Object.prototype,{
+	update: function(_x,_y) {
+		this.posChanged = true;
+		this.x = _x;
+		this.posChanged = true;
+		this.y = _y;
+	}
+	,__class__: network_PeerCursor
+});
 var network_WebRTC = function(_name) {
+	this.isHost = false;
 	this.connected = false;
 	this.peer = new Peer(_name);
-	this.peers = [];
+	this.namedCursors = new haxe_ds_StringMap();
 };
 $hxClasses["network.WebRTC"] = network_WebRTC;
 network_WebRTC.__name__ = "network.WebRTC";
 network_WebRTC.prototype = {
 	create: function(_name) {
 		var _gthis = this;
+		this.isHost = true;
+		this.connections = [];
+		this.namedConnections = new haxe_ds_StringMap();
+		var this1 = this.namedCursors;
+		var k = Main.authorName;
+		var v = new network_PeerCursor(Main.authorName);
+		this1.h[k] = v;
 		this.peer = new Peer(_name);
-		this.peers = [];
 		this.peer.on("open",function(_id) {
 			Main.console.log("Your network ID is: " + Std.string(_id));
 		});
 		this.peer.on("connection",function(_conn) {
-			Main.console.log("I've received a connection!");
+			_gthis.connections.push(_conn);
+			_gthis.attachFunctions(_conn);
 			_gthis.connected = true;
-			_gthis.initDataBehavior(_conn);
 		});
 		this.peer.on("data",function(data) {
-			Main.console.log(data);
 		});
 		this.peer.on("error",function(err) {
-			Main.console.log(err);
 		});
-		this.isHost = true;
 	}
 	,join: function(_name) {
 		var _gthis = this;
-		this.peers = [];
 		this.conn = this.peer.connect(_name);
 		this.conn.on("open",function(data) {
-			Main.console.log("Connected to " + _name);
-			_gthis.initDataBehavior(_gthis.conn);
+			var packetJoin = { action : "joinRequest", peername : "" + Main.authorName, data : [], globalecho : true, localecho : false, echoinfo : ["" + Main.authorName + " has joined the server!"]};
+			var packetCursor = { action : "addNewCursor", peername : "" + Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], globalecho : false, localecho : false, echoinfo : []};
+			var dataA = JSON.stringify(packetJoin);
+			var dataB = JSON.stringify(packetCursor);
+			_gthis.conn.send(dataA);
+			_gthis.conn.send(dataB);
+			_gthis.attachFunctions(_gthis.conn);
 			_gthis.connected = true;
 		});
 		this.isHost = false;
 	}
-	,initDataBehavior: function(_connection) {
+	,disconnect: function() {
+	}
+	,attachFunctions: function(_conn) {
 		var _gthis = this;
-		this.peers.push(_connection);
-		_connection.on("data",function(data) {
-			var items = (js_Boot.__cast(data , String)).split(":");
-			if(items[0] == "console") {
-				Main.console.runCommand(items[1]);
+		_conn.on("data",function(data) {
+			var packet = JSON.parse(data);
+			switch(packet.action) {
+			case "addNewCursor":
+				var this1 = _gthis.namedCursors;
+				var k = packet.data[0];
+				var v = new network_PeerCursor(packet.data[0]);
+				this1.h[k] = v;
+				_gthis.namedCursors.h[packet.data[0]].update(packet.data[1],packet.data[2]);
+				Main.canvas.addChild(_gthis.namedCursors.h[packet.data[0]]);
+				break;
+			case "deleteLine":
+				Main.canvas.P2PRemoveLine(packet.data[0]);
+				break;
+			case "joinRequest":
+				_conn.name = packet.peername;
+				_gthis.sendTrackData(_conn);
+				break;
+			case "lineDownload":
+				Main.canvas.P2PLineAdd(packet.data[0],packet.data[1],packet.data[2],packet.data[3],packet.data[4],packet.data[5],packet.data[6]);
+				break;
+			case "relayEcho":
+				break;
+			case "updateCursor":
+				_gthis.namedCursors.h[packet.data[0]].update(packet.data[1],packet.data[2]);
+				break;
+			default:
+				Main.console.log("Error! Unhandled packet action: " + packet.action,16711680);
 			}
-			if(_gthis.peers.length <= 1) {
-				return;
+			if(packet.localecho || packet.globalecho) {
+				var _g = 0;
+				var _g1 = packet.echoinfo;
+				while(_g < _g1.length) {
+					var info = _g1[_g];
+					++_g;
+					if(info == null) {
+						break;
+					}
+					Main.console.log("" + info);
+				}
 			}
-			var _g = 0;
-			var _g1 = _gthis.peers;
-			while(_g < _g1.length) {
-				var con = _g1[_g];
-				++_g;
-				if(con == _connection) {
-					continue;
-				} else {
-					con.send(data);
+			if(packet.globalecho) {
+				if(_gthis.isHost) {
+					var echopacket = { action : "relayEcho", peername : packet.peername, data : [], localecho : true, globalecho : false, echoinfo : packet.echoinfo};
+					_gthis.sendGeneralPacketInfo(echopacket);
 				}
 			}
 		});
-		_connection.on("error",function(err) {
-			Main.console.log(err);
+		_conn.on("error",function(err) {
+		});
+		_conn.on("disconnected",function(_data) {
 		});
 	}
-	,sendLine: function(_line) {
-		var command = "drawLine " + _line.type + " " + _line.start.x + " " + _line.start.y + " " + _line.end.x + " " + _line.end.y + " " + (_line.shifted == null ? "null" : "" + _line.shifted) + " " + _line.limType;
-		this.send(command);
+	,sendTrackData: function(conn) {
+		var lineIndex = 0;
+		var lineCount = 0;
+		while(lineCount < Main.grid.lineCount) {
+			if(Main.grid.lines.h[lineIndex] == null) {
+				++lineIndex;
+				continue;
+			}
+			var packet_action = "lineDownload";
+			var packet_peername = Main.authorName;
+			var packet_data_0 = Main.grid.lines.h[lineIndex].type;
+			var packet_data_1 = Main.grid.lines.h[lineIndex].start.x;
+			var packet_data_2 = Main.grid.lines.h[lineIndex].start.y;
+			var packet_data_3 = Main.grid.lines.h[lineIndex].end.x;
+			var packet_data_4 = Main.grid.lines.h[lineIndex].end.y;
+			var packet_data_5 = Main.grid.lines.h[lineIndex].shifted;
+			var packet_data_6 = Main.grid.lines.h[lineIndex].limType;
+			var packet_localecho = true;
+			var packet_globalecho = false;
+			var packet_echoinfo_0 = "Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName;
+			++lineCount;
+			++lineIndex;
+		}
+		var cursor = haxe_ds_StringMap.valueIterator(this.namedCursors.h);
+		while(cursor.hasNext()) {
+			var cursor1 = cursor.next();
+			var packet = { action : "addNewCursor", peername : Main.authorName, data : [cursor1.peername,cursor1.x,cursor1.y], localecho : false, globalecho : false, echoinfo : []};
+			this.sendGeneralPacketInfo(packet);
+		}
 	}
-	,removeLine: function(_index) {
-		var command = "removeLine " + _index;
-		this.send(command);
+	,updateLineInfo: function(_action,_data) {
+		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : []};
+		this.sendGeneralPacketInfo(packet);
 	}
-	,send: function(_msg) {
+	,updateCursor: function() {
+		var packet = { action : "updateCursor", peername : Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], localecho : false, globalecho : false, echoinfo : []};
+		this.sendGeneralPacketInfo(packet);
+	}
+	,sendGeneralPacketInfo: function(_packet) {
+		var data = JSON.stringify(_packet);
 		if(this.isHost) {
 			var _g = 0;
-			var _g1 = this.peers;
+			var _g1 = this.connections;
 			while(_g < _g1.length) {
-				var con = _g1[_g];
+				var peer = _g1[_g];
 				++_g;
-				con.send(_msg);
+				if(peer.name == _packet.peername) {
+					continue;
+				}
+				peer.send(data);
 			}
 		} else {
-			this.conn.send(_msg);
+			this.conn.send(data);
 		}
 	}
 	,__class__: network_WebRTC
