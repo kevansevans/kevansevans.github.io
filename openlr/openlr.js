@@ -465,7 +465,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 			Main.riders.riders.h[_name].disableFrame = _frame;
 		});
 		Main.console.addCommand("removeRider","Remove specified rider",[arg15],function(_name) {
-			Main.riders.riders.h[_name].delete();
+			Main.riders.removeRider(_name);
 		});
 		var arg18 = { t : h2d_ConsoleArg.AString, opt : false, name : "Track name"};
 		var arg19 = { t : h2d_ConsoleArg.AInt, opt : true, name : "previous version offset"};
@@ -1676,12 +1676,21 @@ components_managers_Riders.prototype = {
 			rider1.stepRider();
 		}
 	}
+	,removeRider: function(_name) {
+		this.riders.h[_name].delete();
+		if(Main.p2p.connected) {
+			Main.p2p.updateRiderData("removeRider",[_name]);
+		}
+	}
 	,P2PAddRider: function(_name,_x,_y,_startFrame,_endFrame) {
 		var this1 = this.riders;
 		var v = new components_sledder_Bosh(_x,_y,_name,_startFrame,_endFrame);
 		this1.h[_name] = v;
 		++this.riderCount;
 		Main.simulation.recordGlobalSimState();
+	}
+	,P2PRemoveRider: function(_name) {
+		this.riders.h[_name].delete();
 	}
 	,__class__: components_managers_Riders
 };
@@ -46464,6 +46473,9 @@ network_WebRTC.prototype = {
 				Main.canvas.P2PLineAdd(packet.data[0],packet.data[1],packet.data[2],packet.data[3],packet.data[4],packet.data[5],packet.data[6]);
 				break;
 			case "relayEcho":
+				break;
+			case "removeRider":
+				Main.riders.P2PRemoveRider(packet.data[0]);
 				break;
 			case "updateCursor":
 				_gthis.namedCursors.h[packet.data[0]].update(packet.data[1],packet.data[2]);
