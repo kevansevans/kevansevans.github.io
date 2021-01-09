@@ -258,6 +258,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		Main.riders = new components_managers_Riders();
 		Main.simulation = new components_managers_Simulation();
 		Main.saveload = new file_SaveLoad();
+		Main.saveload.loadUserInfo();
 		Main.textinfo = new components_stage_TextInfo();
 		this.s2d.addChild(Main.textinfo.info);
 		var _this = Main.textinfo.info;
@@ -545,6 +546,8 @@ Main.prototype = $extend(hxd_App.prototype,{
 		var arg30 = { t : h2d_ConsoleArg.AString, opt : false, name : "Author name"};
 		Main.console.addCommand("name","Set author name",[arg30],function(_name) {
 			Main.authorName = _name;
+			Main.saveload.saveUserInfo();
+			Main.console.log("Author name set to " + _name);
 		});
 		var argServerName = { t : h2d_ConsoleArg.AString, opt : true, name : "ID Name"};
 		Main.console.addCommand("createServer","Creates P2P server through WebRTC",[argServerName],function(_name) {
@@ -5577,6 +5580,16 @@ file_SaveLoad.prototype = {
 	}
 	,loadJSON: function(_fileName) {
 		return;
+	}
+	,saveUserInfo: function() {
+		var info = { name : Main.authorName};
+		hxd_Save.save(info,"playerdata",true);
+	}
+	,loadUserInfo: function() {
+		var info = hxd_Save.load(null,"playerdata",true);
+		if(info != null) {
+			Main.authorName = info.name;
+		}
 	}
 	,__class__: file_SaveLoad
 };
@@ -46477,18 +46490,8 @@ network_WebRTC.prototype = {
 				++lineIndex;
 				continue;
 			}
-			var packet_action = "lineDownload";
-			var packet_peername = Main.authorName;
-			var packet_data_0 = Main.grid.lines.h[lineIndex].type;
-			var packet_data_1 = Main.grid.lines.h[lineIndex].start.x;
-			var packet_data_2 = Main.grid.lines.h[lineIndex].start.y;
-			var packet_data_3 = Main.grid.lines.h[lineIndex].end.x;
-			var packet_data_4 = Main.grid.lines.h[lineIndex].end.y;
-			var packet_data_5 = Main.grid.lines.h[lineIndex].shifted;
-			var packet_data_6 = Main.grid.lines.h[lineIndex].limType;
-			var packet_localecho = true;
-			var packet_globalecho = false;
-			var packet_echoinfo_0 = "Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName;
+			var packet = { action : "lineDownload", peername : Main.authorName, data : [Main.grid.lines.h[lineIndex].type,Main.grid.lines.h[lineIndex].start.x,Main.grid.lines.h[lineIndex].start.y,Main.grid.lines.h[lineIndex].end.x,Main.grid.lines.h[lineIndex].end.y,Main.grid.lines.h[lineIndex].shifted,Main.grid.lines.h[lineIndex].limType], localecho : true, globalecho : false, echoinfo : ["Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName]};
+			this.sendGeneralPacketInfo(packet);
 			++lineCount;
 			++lineIndex;
 		}
