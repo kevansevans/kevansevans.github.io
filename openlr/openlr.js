@@ -566,6 +566,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 				Main.console.runCommand("saveTrack" + (" " + new Date().getTime()));
 				Main.console.runCommand("newTrack");
 			}
+			Main.riders.deleteAllRiders();
 			Main.p2p.join(_name);
 		});
 		Main.console.addCommand("disconnect","Disconnects from online session",[],function() {
@@ -46528,6 +46529,11 @@ network_WebRTC.prototype = {
 			var cursor1 = cursor.next();
 			var packet = { action : "addNewCursor", peername : Main.authorName, data : [cursor1.peername,cursor1.x,cursor1.y], localecho : false, globalecho : false, echoinfo : []};
 			this.sendGeneralPacketInfo(packet);
+		}
+		var rider = haxe_ds_StringMap.valueIterator(Main.riders.riders.h);
+		while(rider.hasNext()) {
+			var rider1 = rider.next();
+			this.updateRiderData("addRider",[rider1.get_name(),rider1.startPos.x,rider1.startPos.y,rider1.enabledFrame,rider1.disableFrame]);
 		}
 	}
 	,updateLineInfo: function(_action,_data) {
