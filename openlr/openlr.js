@@ -46434,8 +46434,8 @@ network_WebRTC.prototype = {
 		var _gthis = this;
 		this.conn = this.peer.connect(_name);
 		this.conn.on("open",function(data) {
-			var packetJoin = { action : "joinRequest", peername : "" + Main.authorName, data : [], globalecho : true, localecho : false, echoinfo : ["" + Main.authorName + " has joined the server!"]};
-			var packetCursor = { action : "addNewCursor", peername : "" + Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], globalecho : false, localecho : false, echoinfo : []};
+			var packetJoin = { action : "joinRequest", peername : "" + Main.authorName, data : [], globalecho : true, localecho : false, echoinfo : ["" + Main.authorName + " has joined the server!"], regurgitate : true};
+			var packetCursor = { action : "addNewCursor", peername : "" + Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], globalecho : false, localecho : false, echoinfo : [], regurgitate : true};
 			var dataA = JSON.stringify(packetJoin);
 			var dataB = JSON.stringify(packetCursor);
 			_gthis.conn.send(dataA);
@@ -46498,7 +46498,7 @@ network_WebRTC.prototype = {
 			}
 			if(packet.globalecho) {
 				if(_gthis.isHost) {
-					var echopacket = { action : "relayEcho", peername : packet.peername, data : [], localecho : true, globalecho : false, echoinfo : packet.echoinfo};
+					var echopacket = { action : "relayEcho", peername : packet.peername, data : [], localecho : true, globalecho : false, echoinfo : packet.echoinfo, regurgitate : true};
 					_gthis.sendGeneralPacketInfo(echopacket);
 				}
 			}
@@ -46514,6 +46514,9 @@ network_WebRTC.prototype = {
 		});
 	}
 	,sendTrackData: function(conn) {
+		if(!this.isHost) {
+			return;
+		}
 		var lineIndex = 0;
 		var lineCount = 0;
 		while(lineCount < Main.grid.lineCount) {
@@ -46521,7 +46524,7 @@ network_WebRTC.prototype = {
 				++lineIndex;
 				continue;
 			}
-			var packet = { action : "lineDownload", peername : Main.authorName, data : [Main.grid.lines.h[lineIndex].type,Main.grid.lines.h[lineIndex].start.x,Main.grid.lines.h[lineIndex].start.y,Main.grid.lines.h[lineIndex].end.x,Main.grid.lines.h[lineIndex].end.y,Main.grid.lines.h[lineIndex].shifted,Main.grid.lines.h[lineIndex].limType], localecho : true, globalecho : false, echoinfo : ["Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName]};
+			var packet = { action : "lineDownload", peername : Main.authorName, data : [Main.grid.lines.h[lineIndex].type,Main.grid.lines.h[lineIndex].start.x,Main.grid.lines.h[lineIndex].start.y,Main.grid.lines.h[lineIndex].end.x,Main.grid.lines.h[lineIndex].end.y,Main.grid.lines.h[lineIndex].shifted,Main.grid.lines.h[lineIndex].limType], localecho : true, globalecho : false, echoinfo : ["Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName], regurgitate : false};
 			this.sendGeneralPacketInfo(packet);
 			++lineCount;
 			++lineIndex;
@@ -46529,28 +46532,32 @@ network_WebRTC.prototype = {
 		var cursor = haxe_ds_StringMap.valueIterator(this.namedCursors.h);
 		while(cursor.hasNext()) {
 			var cursor1 = cursor.next();
-			var packet = { action : "addNewCursor", peername : Main.authorName, data : [cursor1.peername,cursor1.x,cursor1.y], localecho : false, globalecho : false, echoinfo : []};
+			var packet = { action : "addNewCursor", peername : Main.authorName, data : [cursor1.peername,cursor1.x,cursor1.y], localecho : false, globalecho : false, echoinfo : [], regurgitate : false};
 			this.sendGeneralPacketInfo(packet);
 		}
 		var rider = haxe_ds_StringMap.valueIterator(Main.riders.riders.h);
 		while(rider.hasNext()) {
 			var rider1 = rider.next();
-			this.updateRiderData("addRider",[rider1.get_name(),rider1.startPos.x,rider1.startPos.y,rider1.enabledFrame,rider1.disableFrame]);
+			var packet = { action : "addRider", peername : Main.authorName, data : [rider1.get_name(),rider1.startPos.x,rider1.startPos.y,rider1.enabledFrame,rider1.disableFrame], localecho : false, globalecho : false, echoinfo : [], regurgitate : false};
+			this.sendGeneralPacketInfo(packet);
 		}
 	}
 	,updateLineInfo: function(_action,_data) {
-		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : []};
+		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : [], regurgitate : true};
 		this.sendGeneralPacketInfo(packet);
 	}
 	,updateCursor: function() {
-		var packet = { action : "updateCursor", peername : Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], localecho : false, globalecho : false, echoinfo : []};
+		var packet = { action : "updateCursor", peername : Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], localecho : false, globalecho : false, echoinfo : [], regurgitate : true};
 		this.sendGeneralPacketInfo(packet);
 	}
 	,updateRiderData: function(_action,_data) {
-		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : []};
+		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : [], regurgitate : true};
 		this.sendGeneralPacketInfo(packet);
 	}
 	,sendGeneralPacketInfo: function(_packet) {
+		if(!_packet.regurgitate) {
+			return;
+		}
 		var data = JSON.stringify(_packet);
 		if(this.isHost) {
 			var _g = 0;
