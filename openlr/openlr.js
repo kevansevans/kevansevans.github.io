@@ -1677,6 +1677,14 @@ components_managers_Riders.prototype = {
 			rider1.stepRider();
 		}
 	}
+	,resetPositions: function() {
+		components_physics_BindStick.crash = false;
+		var rider = haxe_ds_StringMap.valueIterator(this.riders.h);
+		while(rider.hasNext()) {
+			var rider1 = rider.next();
+			rider1.reset();
+		}
+	}
 	,removeRider: function(_name) {
 		this.riders.h[_name].delete();
 		if(Main.p2p.connected) {
@@ -2080,6 +2088,8 @@ components_sledder_RiderBase.__name__ = "components.sledder.RiderBase";
 components_sledder_RiderBase.prototype = {
 	init: function() {
 	}
+	,reset: function() {
+	}
 	,'delete': function() {
 		Main.canvas.sledderLayer.removeChild(this.gfx);
 		Main.canvas.sledderLayer.removeChild(this.nameField);
@@ -2464,6 +2474,9 @@ components_sledder_Bosh.prototype = $extend(components_sledder_RiderBase.prototy
 			}
 			this.prevFrame = _frame;
 		}
+	}
+	,reset: function() {
+		this.init();
 	}
 	,init: function() {
 		this.ridePoints = [];
@@ -5432,6 +5445,7 @@ components_tool_ToolBehavior.prototype = {
 				break;
 			case 88:
 				Main.simulation.endSim();
+				Main.riders.resetPositions();
 				break;
 			case 219:
 				if(Main.viewGridSize == 1) {
@@ -46753,6 +46767,7 @@ Xml.Comment = 3;
 Xml.DocType = 4;
 Xml.ProcessingInstruction = 5;
 Xml.Document = 6;
+components_physics_BindStick.crash = false;
 components_sledder_RiderBase.WHITE = new h3d_Vector(1,1,1,1);
 components_sledder_RiderBase.RED = new h3d_Vector(1,0,0,1);
 h2d_Console.HIDE_LOG_TIMEOUT = 3.;
