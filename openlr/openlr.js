@@ -1645,6 +1645,9 @@ components_managers_Riders.prototype = {
 		this1.h[setName] = v;
 		++this.riderCount;
 		Main.simulation.recordGlobalSimState();
+		if(Main.p2p.connected) {
+			Main.p2p.updateRiderData("addRider",[this.riders.h[setName].get_name(),this.riders.h[setName].startPos.x,this.riders.h[setName].startPos.y,this.riders.h[setName].enabledFrame,this.riders.h[setName].disableFrame]);
+		}
 	}
 	,renameRider: function(_old,_new) {
 		if(this.riders.h[_old] == null) {
@@ -1672,6 +1675,13 @@ components_managers_Riders.prototype = {
 			var rider1 = rider.next();
 			rider1.stepRider();
 		}
+	}
+	,P2PAddRider: function(_name,_x,_y,_startFrame,_endFrame) {
+		var this1 = this.riders;
+		var v = new components_sledder_Bosh(_x,_y,_name,_startFrame,_endFrame);
+		this1.h[_name] = v;
+		++this.riderCount;
+		Main.simulation.recordGlobalSimState();
 	}
 	,__class__: components_managers_Riders
 };
@@ -46440,6 +46450,9 @@ network_WebRTC.prototype = {
 				_gthis.namedCursors.h[packet.data[0]].update(packet.data[1],packet.data[2]);
 				Main.canvas.addChild(_gthis.namedCursors.h[packet.data[0]]);
 				break;
+			case "addRider":
+				Main.riders.P2PAddRider(packet.data[0],packet.data[1],packet.data[2],packet.data[3],packet.data[4]);
+				break;
 			case "deleteLine":
 				Main.canvas.P2PRemoveLine(packet.data[0]);
 				break;
@@ -46476,6 +46489,9 @@ network_WebRTC.prototype = {
 					_gthis.sendGeneralPacketInfo(echopacket);
 				}
 			}
+			if(_gthis.isHost && _gthis.connections.length > 1) {
+				_gthis.sendGeneralPacketInfo(packet);
+			}
 		});
 		_conn.on("error",function(err) {
 		});
@@ -46508,6 +46524,10 @@ network_WebRTC.prototype = {
 	}
 	,updateCursor: function() {
 		var packet = { action : "updateCursor", peername : Main.authorName, data : ["" + Main.authorName,Main.canvas.get_mouseX(),Main.canvas.get_mouseY()], localecho : false, globalecho : false, echoinfo : []};
+		this.sendGeneralPacketInfo(packet);
+	}
+	,updateRiderData: function(_action,_data) {
+		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : []};
 		this.sendGeneralPacketInfo(packet);
 	}
 	,sendGeneralPacketInfo: function(_packet) {
