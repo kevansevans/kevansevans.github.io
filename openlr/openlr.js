@@ -46414,6 +46414,7 @@ network_PeerCursor.prototype = $extend(h2d_Object.prototype,{
 });
 var network_WebRTC = function(_name) {
 	this.isHost = false;
+	this.needsToDownload = true;
 	this.connected = false;
 	this.peer = new Peer(_name);
 	this.namedCursors = new haxe_ds_StringMap();
@@ -46458,6 +46459,7 @@ network_WebRTC.prototype = {
 			_gthis.connected = true;
 		});
 		this.isHost = false;
+		this.needsToDownload = false;
 	}
 	,disconnect: function() {
 	}
@@ -46481,6 +46483,9 @@ network_WebRTC.prototype = {
 				Main.canvas.P2PRemoveLine(packet.data[0]);
 				break;
 			case "joinRequest":
+				if(!_gthis.needsToDownload) {
+					return;
+				}
 				_conn.name = packet.peername;
 				_gthis.sendTrackData(_conn);
 				break;
@@ -46525,6 +46530,7 @@ network_WebRTC.prototype = {
 		_conn.on("error",function(err) {
 		});
 		_conn.on("disconnected",function(_data) {
+			Main.console.log("" + _conn.name + " left the server");
 		});
 	}
 	,sendTrackData: function(conn) {
@@ -46555,6 +46561,7 @@ network_WebRTC.prototype = {
 			var packet = { action : "addRider", peername : Main.authorName, data : [rider1.get_name(),rider1.startPos.x,rider1.startPos.y,rider1.enabledFrame,rider1.disableFrame], localecho : false, globalecho : false, echoinfo : []};
 			this.sendGeneralPacketInfo(packet);
 		}
+		this.needsToDownload = false;
 	}
 	,updateLineInfo: function(_action,_data) {
 		var packet = { action : _action, peername : Main.authorName, data : _data, localecho : false, globalecho : false, echoinfo : []};
