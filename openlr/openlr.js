@@ -531,7 +531,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		Main.console.addCommand("renameRider","Rename and existing rider",[arg24,arg25],function(_old,_new) {
 			Main.riders.renameRider(_old,_new);
 		});
-		Main.console.addCommand("importAlternativeSave","Load valid JSON tracks",[arg20],function(_name) {
+		Main.console.addCommand("importJSONSave","Load valid JSON tracks",[arg20],function(_name) {
 			if(Main.trackName != null) {
 				Main.console.runCommand("saveTrack");
 			}
@@ -548,6 +548,24 @@ Main.prototype = $extend(hxd_App.prototype,{
 			Main.authorName = _name;
 			Main.saveload.saveUserInfo();
 			Main.console.log("Author name set to " + _name);
+		});
+		var argOffset = { t : h2d_ConsoleArg.AFloat, opt : true, name : "Offset"};
+		Main.console.addCommand("loadAudio","Import a .ogg file to play with track",[argOffset],function(_offset) {
+			if(_offset == null) {
+				_offset = 0.0;
+			}
+			hxd_File.browse(function(_file) {
+				_file.load(function(_bytes) {
+					Main.audio.loadAudioAsBytes(_bytes,_file.fileName);
+				});
+			},{ title : "Import .ogg file", fileTypes : [{ name : "Vorbis", extensions : ["ogg"]}]});
+		});
+		Main.console.addCommand("setAudioOffset","Changes start position of song",[argOffset],function(_offset) {
+			if(_offset < 0) {
+				Main.console.log("Offset needs to be zero or greater, ${_offset} is not valid...",16711680);
+				return;
+			}
+			Main.audio.offset = _offset;
 		});
 		var argServerName = { t : h2d_ConsoleArg.AString, opt : true, name : "ID Name"};
 		Main.console.addCommand("createServer","Creates P2P server through WebRTC",[argServerName],function(_name) {
@@ -1605,12 +1623,21 @@ components_managers_Grid.prototype = {
 	,__class__: components_managers_Grid
 };
 var components_managers_Musicplayer = function() {
+	this.offset = 0;
 	this.speedfilter = new hxd_snd_effect_Pitch();
 };
 $hxClasses["components.managers.Musicplayer"] = components_managers_Musicplayer;
 components_managers_Musicplayer.__name__ = "components.managers.Musicplayer";
 components_managers_Musicplayer.prototype = {
 	loadAudio: function(_name) {
+	}
+	,loadAudioAsBytes: function(_bytes,_name) {
+		var _gthis = this;
+		var bFileEntry = new hxd_fs_BytesFileEntry("",_bytes);
+		bFileEntry.load(function() {
+			_gthis.sound = new hxd_res_Sound(bFileEntry);
+		});
+		Main.songName = _name;
 	}
 	,__class__: components_managers_Musicplayer
 };
@@ -1635,6 +1662,9 @@ components_managers_Riders.prototype = {
 	}
 	,addNewRider: function(_name,_start,_startFrame,_endFrame) {
 		var setName = _name;
+		if(setName.length > 30) {
+			setName = HxOverrides.substr(setName,0,30);
+		}
 		if(this.riders.h[setName] != null) {
 			var occupiedSpace = 0;
 			while(this.riders.h[setName + occupiedSpace] != null) ++occupiedSpace;
@@ -2249,7 +2279,7 @@ var components_sledder_Bosh = function(_x,_y,_name,_enable,_disable) {
 		_x = 0.0;
 	}
 	this.prevFrame = 0;
-	this.blinkRate = 0.03125;
+	this.blinkRate = 0.1;
 	components_sledder_RiderBase.call(this,_x,_y,_name,_enable,_disable);
 	this.init();
 	Main.rng.setKeyOffset(_name,Main.rng.getRandom());
@@ -2288,6 +2318,14 @@ components_sledder_Bosh.prototype = $extend(components_sledder_RiderBase.prototy
 		Main.canvas.sledderLayer.removeChild(this.body);
 		Main.canvas.sledderLayer.removeChild(this.rightArm);
 		Main.canvas.sledderLayer.removeChild(this.rightLeg);
+	}
+	,stepRider: function() {
+		components_sledder_RiderBase.prototype.stepRider.call(this);
+		var fakiex = this.ridePoints[3].pos.x - this.ridePoints[0].pos.x;
+		var fakiey = this.ridePoints[3].pos.y - this.ridePoints[0].pos.y;
+		if(fakiex * (this.ridePoints[1].pos.y - this.ridePoints[0].pos.y) - fakiey * (this.ridePoints[1].pos.x - this.ridePoints[0].pos.x) < 0) {
+			this.crashed = true;
+		}
 	}
 	,renderRider: function() {
 		this.updateEyeball(Main.simulation.frames);
@@ -2553,6 +2591,7 @@ components_sledder_Bosh.prototype = $extend(components_sledder_RiderBase.prototy
 		this.scarves.push(new components_physics_ScarfStick(this.scarfPoints[4],this.scarfPoints[5]));
 		this.bones[20].restLength *= 0.5;
 		this.bones[21].restLength *= 0.5;
+		this.crashed = false;
 	}
 	,__class__: components_sledder_Bosh
 });
@@ -28901,6 +28940,69 @@ $hxClasses["hxd.Event"] = hxd_Event;
 hxd_Event.__name__ = "hxd.Event";
 hxd_Event.prototype = {
 	__class__: hxd_Event
+};
+var hxd_File = function() { };
+$hxClasses["hxd.File"] = hxd_File;
+hxd_File.__name__ = "hxd.File";
+hxd_File.browse = function(onSelect,options) {
+	if(options == null) {
+		options = { };
+	}
+	var input = window.document.getElementById("heapsBrowserInput");
+	if(input == null) {
+		input = window.document.createElement("input");
+		input.setAttribute("id","heapsBrowserInput");
+		window.document.body.appendChild(input);
+	}
+	input.setAttribute("type","file");
+	input.style.display = "none";
+	if(options.fileTypes != null) {
+		var extensions = [];
+		var _g = 0;
+		var _g1 = options.fileTypes;
+		while(_g < _g1.length) {
+			var ft = _g1[_g];
+			++_g;
+			var _g2 = 0;
+			var _g3 = ft.extensions;
+			while(_g2 < _g3.length) {
+				var e = _g3[_g2];
+				++_g2;
+				extensions.push("." + e);
+			}
+		}
+		input.setAttribute("accept",extensions.join(","));
+	}
+	input.onclick = function(e) {
+		input.value = null;
+	};
+	input.onchange = function(e) {
+		var file = e.target.files[0];
+		var b = { fileName : file.name, load : function(onReady) {
+			var reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = function(re) {
+				var raw = re.target.result;
+				var header = HxOverrides.substr(raw,0,raw.indexOf(","));
+				var data = HxOverrides.substr(raw,raw.indexOf(",") + 1,null);
+				if(raw.indexOf(";") >= 0) {
+					var onReady1 = onReady;
+					var b;
+					if(header.split(";")[1] == "base64") {
+						b = haxe_crypto_Base64.decode(data);
+					} else {
+						throw haxe_Exception.thrown("Unsupported encoding: " + header.split(";")[1]);
+					}
+					onReady1(b);
+				} else {
+					onReady(haxe_io_Bytes.ofString(data));
+				}
+			};
+		}};
+		onSelect(b);
+		input.remove();
+	};
+	input.click();
 };
 var hxd__$FloatBuffer_Float32Expand = {};
 hxd__$FloatBuffer_Float32Expand._new = function(length) {
