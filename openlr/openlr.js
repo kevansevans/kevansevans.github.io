@@ -323,7 +323,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		var arg29 = { t : h2d_ConsoleArg.AInt, opt : false, name : "Line Index"};
 		Main.console.addCommand("removeLine","remove specified line",[arg29],function(_index) {
 			if(_index != null) {
-				Main.canvas.removeLine(Main.grid.lines.h[_index]);
+				Main.grid.unregister(Main.grid.lines.h[_index]);
 			}
 		});
 		var arg10 = { t : h2d_ConsoleArg.AString, opt : false, name : "Tool"};
@@ -603,6 +603,10 @@ Main.prototype = $extend(hxd_App.prototype,{
 		});
 		Main.console.addCommand("disconnect","Disconnects from online session",[],function() {
 			Main.p2p.disconnect();
+		});
+		var argSpectate = { t : h2d_ConsoleArg.AString, opt : true, name : "Player to spectate"};
+		Main.console.addCommand("spectate","Allows user to watch other player as they see the canvas",[argSpectate],function(_name) {
+			var tmp = _name == null;
 		});
 	}
 	,update: function(dt) {
@@ -1647,6 +1651,46 @@ components_managers_Grid.prototype = {
 		}
 	}
 	,unregister: function(_line) {
+		var _g = 0;
+		var _g1 = _line.keyList;
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			HxOverrides.remove(this.registry.h[key].allLines,_line);
+			switch(_line.type) {
+			case 0:case 1:
+				HxOverrides.remove(this.registry.h[key].colliders,_line);
+				break;
+			case 2:
+				HxOverrides.remove(this.registry.h[key].nonColliders,_line);
+				break;
+			default:
+			}
+			if(this.registry.h[key].lowFrame != null) {
+				Main.simulation.updateSimHistory(this.registry.h[key].lowFrame);
+			}
+		}
+		switch(_line.type) {
+		case 0:
+			--this.floorCount;
+			break;
+		case 1:
+			--this.accelCount;
+			break;
+		case 2:
+			--this.sceneCount;
+			break;
+		default:
+		}
+		_line.clear();
+		--this.lineCount;
+		var v = null;
+		this.lines.h[_line.id] = v;
+		if(Main.p2p.connected) {
+			Main.p2p.updateLineInfo("deleteLine",[_line.id]);
+		}
+	}
+	,P2Punregister: function(_line) {
 		var _g = 0;
 		var _g1 = _line.keyList;
 		while(_g < _g1.length) {
@@ -4592,15 +4636,6 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 			Main.p2p.updateLineInfo("lineDownload",[line.type,line.start.x,line.start.y,line.end.x,line.end.y,line.shifted,line.limType]);
 		}
 	}
-	,removeLine: function(_line) {
-		this.colorLayer.removeChild(_line.colorLayer);
-		this.sceneColorLayer.removeChild(_line.colorLayer);
-		this.scenePlaybackLayer.removeChild(_line.rideLayer);
-		this.rideLayer.removeChild(_line.rideLayer);
-		if(Main.p2p.connected) {
-			Main.p2p.updateLineInfo("deleteLine",[_line.id]);
-		}
-	}
 	,get_drawMode: function() {
 		return this.drawMode;
 	}
@@ -4685,14 +4720,6 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 		}
 		line.render();
 		Main.grid.register(line);
-	}
-	,P2PRemoveLine: function(_id) {
-		var _line = Main.grid.lines.h[_id];
-		Main.grid.unregister(_line);
-		this.colorLayer.removeChild(_line.colorLayer);
-		this.sceneColorLayer.removeChild(_line.colorLayer);
-		this.scenePlaybackLayer.removeChild(_line.rideLayer);
-		this.rideLayer.removeChild(_line.rideLayer);
 	}
 	,__class__: components_stage_Canvas
 });
@@ -46973,7 +47000,6 @@ var network_WebRTC = function(_name) {
 	this.isHost = false;
 	this.needsToDownload = true;
 	this.connected = false;
-	this.peer = new Peer(_name);
 	this.namedCursors = new haxe_ds_StringMap();
 };
 $hxClasses["network.WebRTC"] = network_WebRTC;
@@ -47037,7 +47063,7 @@ network_WebRTC.prototype = {
 				Main.riders.P2PAddRider(packet.data[0],packet.data[1],packet.data[2],packet.data[3],packet.data[4]);
 				break;
 			case "deleteLine":
-				Main.canvas.P2PRemoveLine(packet.data[0]);
+				Main.grid.P2Punregister(Main.grid.lines.h[packet.data[0]]);
 				break;
 			case "joinRequest":
 				_conn.name = packet.peername;
