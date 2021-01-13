@@ -47032,6 +47032,7 @@ network_WebRTC.prototype = {
 	}
 	,join: function(_name) {
 		var _gthis = this;
+		this.peer = new Peer();
 		this.conn = this.peer.connect(_name);
 		this.conn.on("open",function(data) {
 			var packetJoin = { action : "joinRequest", peername : "" + Main.authorName, data : [], globalecho : true, localecho : false, echoinfo : ["" + Main.authorName + " has joined the server!"]};
