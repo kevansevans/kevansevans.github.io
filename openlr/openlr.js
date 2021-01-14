@@ -43019,6 +43019,13 @@ js_Boot.__downcastCheck = function(o,cl) {
 		return true;
 	}
 };
+js_Boot.__cast = function(o,t) {
+	if(o == null || js_Boot.__instanceof(o,t)) {
+		return o;
+	} else {
+		throw haxe_Exception.thrown("Cannot cast " + Std.string(o) + " to " + Std.string(t));
+	}
+};
 js_Boot.__nativeClassName = function(o) {
 	var name = js_Boot.__toStr.call(o).slice(8,-1);
 	if(name == "Object" || name == "Function" || name == "Math" || name == "JSON") {
@@ -46963,7 +46970,10 @@ network_WebRTC.prototype = {
 	}
 	,errorFunc: function(err) {
 		var error = err;
-		switch(error.type) {
+		var type = js_Boot.__cast(error.type , String);
+		Main.console.log(err);
+		Main.console.log(error.type);
+		switch(type) {
 		case "browser-incompatible":
 			Main.console.log("Your browser is currently unsupported, cannot use WebRTC.",16711680);
 			break;
