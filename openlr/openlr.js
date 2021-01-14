@@ -46844,6 +46844,7 @@ var network_WebRTC = function(_name) {
 	this.isHost = false;
 	this.needsToDownload = true;
 	this.connected = false;
+	this.peer = new Peer(_name);
 	this.namedCursors = new haxe_ds_StringMap();
 };
 $hxClasses["network.WebRTC"] = network_WebRTC;
@@ -46869,14 +46870,10 @@ network_WebRTC.prototype = {
 		});
 		this.peer.on("data",function(data) {
 		});
-		this.peer.on("error",function(err) {
-			var error = err;
-			Main.console.log(error.type);
-		});
+		this.peer.on("error",$bind(this,this.errorFunc));
 	}
 	,join: function(_name) {
 		var _gthis = this;
-		this.peer = new Peer();
 		this.conn = this.peer.connect(_name);
 		this.conn.on("open",function(data) {
 			var packetJoin = { action : "joinRequest", peername : "" + Main.authorName, data : [], globalecho : true, localecho : false, echoinfo : ["" + Main.authorName + " has joined the server!"]};
@@ -46890,8 +46887,6 @@ network_WebRTC.prototype = {
 		});
 		this.isHost = false;
 		this.needsToDownload = false;
-	}
-	,disconnect: function() {
 	}
 	,attachFunctions: function(_conn) {
 		var _gthis = this;
@@ -46961,13 +46956,52 @@ network_WebRTC.prototype = {
 				}
 			}
 		});
-		_conn.on("error",function(err) {
-			var error = err;
-			Main.console.log(error.type);
-		});
+		_conn.on("error",$bind(this,this.errorFunc));
 		_conn.on("disconnected",function(_data) {
 			Main.console.log("" + _conn.name + " left the server");
 		});
+	}
+	,errorFunc: function(err) {
+		var error = err;
+		switch(error.type) {
+		case "browser-incompatible":
+			Main.console.log("Your browser is currently unsupported, cannot use WebRTC.",16711680);
+			break;
+		case "disconnected":
+			Main.console.log("You have lost connection, please recreate the server...",16711680);
+			break;
+		case "invalid-id":
+			Main.console.log("The API key passed into the Peer constructor contains illegal characters or is not in the system (cloud server only).",16711680);
+			break;
+		case "network":
+			Main.console.log("Lost or cannot establish a connection to the signalling server.",16711680);
+			break;
+		case "peer-unavailable":
+			Main.console.log("The peer you're trying to connect to does not exist.",16711680);
+			break;
+		case "server-error":
+			Main.console.log("Unable to reach the server.",16711680);
+			break;
+		case "socket-closed":
+			Main.console.log("The underlying socket closed unexpectedly.",16711680);
+			break;
+		case "socket-error":
+			Main.console.log("An error from the underlying socket.",16711680);
+			break;
+		case "ssl-unavailable":
+			Main.console.log("PeerJS is being used securely, but the cloud server does not support SSL.",16711680);
+			break;
+		case "unavailable-id":
+			Main.console.log("TThe ID passed into the Peer constructor is already taken.",16711680);
+			break;
+		case "webrtc":
+			Main.console.log("Native WebRTC errors.",16711680);
+			break;
+		default:
+			Main.console.log("Unspecified network error!");
+		}
+	}
+	,disconnect: function() {
 	}
 	,sendTrackData: function(conn) {
 		if(!this.isHost) {
