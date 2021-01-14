@@ -47066,7 +47066,6 @@ network_WebRTC.prototype = {
 			while(_g < _g1.length) {
 				var peer = _g1[_g];
 				++_g;
-				haxe_Log.trace(peer.name,{ fileName : "src/network/WebRTC.hx", lineNumber : 434, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 				if(peer.name == _packet.peername) {
 					continue;
 				}
