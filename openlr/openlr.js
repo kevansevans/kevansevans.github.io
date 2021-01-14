@@ -47058,6 +47058,7 @@ network_WebRTC.prototype = {
 		this.sendGeneralPacketInfo(packet);
 	}
 	,sendGeneralPacketInfo: function(_packet) {
+		haxe_Log.trace(_packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 433, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 		var data = JSON.stringify(_packet);
 		if(this.isHost) {
 			var _g = 0;
