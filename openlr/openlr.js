@@ -47058,16 +47058,21 @@ network_WebRTC.prototype = {
 	}
 	,sendGeneralPacketInfo: function(_packet) {
 		var data = JSON.stringify(_packet);
+		haxe_Log.trace(this.isHost,{ fileName : "src/network/WebRTC.hx", lineNumber : 433, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 		if(this.isHost) {
 			var _g = 0;
 			var _g1 = this.connections;
 			while(_g < _g1.length) {
-				var peer = _g1[_g];
+				var client = _g1[_g];
 				++_g;
-				if(peer.name == _packet.peername) {
+				haxe_Log.trace(client.name,{ fileName : "src/network/WebRTC.hx", lineNumber : 438, className : "network.WebRTC", methodName : "sendGeneralPacketInfo", customParams : [_packet.peername,client.name == _packet.peername]});
+				if(client.name == _packet.peername) {
+					haxe_Log.trace("Client same as source",{ fileName : "src/network/WebRTC.hx", lineNumber : 441, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 					continue;
+				} else {
+					haxe_Log.trace("AAAAAHHHHH",{ fileName : "src/network/WebRTC.hx", lineNumber : 445, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
+					client.send(data);
 				}
-				peer.send(data);
 			}
 		} else {
 			this.conn.send(data);
