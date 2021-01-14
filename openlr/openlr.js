@@ -46891,7 +46891,6 @@ network_WebRTC.prototype = {
 			_gthis.conn.send(dataB);
 			_gthis.connected = true;
 		});
-		this.conn.on("error",$bind(this,this.errorFunc));
 		this.isHost = false;
 		this.needsToDownload = false;
 	}
@@ -46963,7 +46962,6 @@ network_WebRTC.prototype = {
 				}
 			}
 		});
-		_conn.on("error",$bind(this,this.errorFunc));
 		_conn.on("disconnected",function(_data) {
 			Main.console.log("" + _conn.name + " left the server");
 		});
@@ -46973,6 +46971,7 @@ network_WebRTC.prototype = {
 		var type = js_Boot.__cast(error.type , String);
 		Main.console.log(err);
 		Main.console.log(error.type);
+		haxe_Log.trace(err,{ fileName : "src/network/WebRTC.hx", lineNumber : 226, className : "network.WebRTC", methodName : "errorFunc", customParams : [error.type]});
 		switch(type) {
 		case "browser-incompatible":
 			Main.console.log("Your browser is currently unsupported, cannot use WebRTC.",16711680);
