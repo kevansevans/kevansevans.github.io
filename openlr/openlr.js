@@ -47024,6 +47024,7 @@ network_WebRTC.prototype = {
 				continue;
 			}
 			var packet = { action : "lineDownload", peername : Main.authorName, data : [Main.grid.lines.h[lineIndex].type,Main.grid.lines.h[lineIndex].start.x,Main.grid.lines.h[lineIndex].start.y,Main.grid.lines.h[lineIndex].end.x,Main.grid.lines.h[lineIndex].end.y,Main.grid.lines.h[lineIndex].shifted,Main.grid.lines.h[lineIndex].limType], localecho : true, globalecho : false, echoinfo : ["Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName]};
+			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 314, className : "network.WebRTC", methodName : "sendTrackData"});
 			var data = JSON.stringify(packet);
 			conn.send(data);
 			++lineCount;
@@ -47033,6 +47034,7 @@ network_WebRTC.prototype = {
 		while(cursor.hasNext()) {
 			var cursor1 = cursor.next();
 			var packet = { action : "addNewCursor", peername : Main.authorName, data : [cursor1.peername,cursor1.x,cursor1.y], localecho : false, globalecho : false, echoinfo : []};
+			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 337, className : "network.WebRTC", methodName : "sendTrackData"});
 			var data = JSON.stringify(packet);
 			conn.send(data);
 		}
@@ -47040,6 +47042,7 @@ network_WebRTC.prototype = {
 		while(rider.hasNext()) {
 			var rider1 = rider.next();
 			var packet = { action : "addRider", peername : Main.authorName, data : [rider1.get_name(),rider1.startPos.x,rider1.startPos.y,rider1.enabledFrame,rider1.disableFrame], localecho : false, globalecho : false, echoinfo : []};
+			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 360, className : "network.WebRTC", methodName : "sendTrackData"});
 			var data = JSON.stringify(packet);
 			conn.send(data);
 		}
@@ -47058,7 +47061,6 @@ network_WebRTC.prototype = {
 		this.sendGeneralPacketInfo(packet);
 	}
 	,sendGeneralPacketInfo: function(_packet) {
-		haxe_Log.trace(_packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 433, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 		var data = JSON.stringify(_packet);
 		if(this.isHost) {
 			var _g = 0;
