@@ -46882,9 +46882,9 @@ network_WebRTC.prototype = {
 			var dataB = JSON.stringify(packetCursor);
 			_gthis.conn.send(dataA);
 			_gthis.conn.send(dataB);
-			_gthis.attachFunctions(_gthis.conn);
 			_gthis.connected = true;
 		});
+		this.conn.on("error",$bind(this,this.errorFunc));
 		this.isHost = false;
 		this.needsToDownload = false;
 	}
