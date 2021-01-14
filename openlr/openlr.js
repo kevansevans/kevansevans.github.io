@@ -46897,7 +46897,6 @@ network_WebRTC.prototype = {
 		var _gthis = this;
 		_conn.on("data",function(data) {
 			var packet = JSON.parse(data);
-			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 121, className : "network.WebRTC", methodName : "attachFunctions"});
 			switch(packet.action) {
 			case "addNewCursor":
 				var this1 = _gthis.namedCursors;
@@ -47058,19 +47057,19 @@ network_WebRTC.prototype = {
 	}
 	,sendGeneralPacketInfo: function(_packet) {
 		var data = JSON.stringify(_packet);
-		haxe_Log.trace(this.isHost,{ fileName : "src/network/WebRTC.hx", lineNumber : 433, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
+		haxe_Log.trace(this.isHost,{ fileName : "src/network/WebRTC.hx", lineNumber : 431, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 		if(this.isHost) {
 			var _g = 0;
 			var _g1 = this.connections;
 			while(_g < _g1.length) {
 				var client = _g1[_g];
 				++_g;
-				haxe_Log.trace(client.name,{ fileName : "src/network/WebRTC.hx", lineNumber : 438, className : "network.WebRTC", methodName : "sendGeneralPacketInfo", customParams : [_packet.peername,client.name == _packet.peername]});
+				haxe_Log.trace(client.name,{ fileName : "src/network/WebRTC.hx", lineNumber : 436, className : "network.WebRTC", methodName : "sendGeneralPacketInfo", customParams : [_packet.peername,client.name == _packet.peername]});
 				if(client.name == _packet.peername) {
-					haxe_Log.trace("Client same as source",{ fileName : "src/network/WebRTC.hx", lineNumber : 441, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
+					haxe_Log.trace("Client same as source",{ fileName : "src/network/WebRTC.hx", lineNumber : 439, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 					continue;
 				} else {
-					haxe_Log.trace("AAAAAHHHHH",{ fileName : "src/network/WebRTC.hx", lineNumber : 445, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
+					haxe_Log.trace("AAAAAHHHHH",{ fileName : "src/network/WebRTC.hx", lineNumber : 443, className : "network.WebRTC", methodName : "sendGeneralPacketInfo"});
 					client.send(data);
 				}
 			}
