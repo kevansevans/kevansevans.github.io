@@ -46897,6 +46897,7 @@ network_WebRTC.prototype = {
 		var _gthis = this;
 		_conn.on("data",function(data) {
 			var packet = JSON.parse(data);
+			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 121, className : "network.WebRTC", methodName : "attachFunctions"});
 			switch(packet.action) {
 			case "addNewCursor":
 				var this1 = _gthis.namedCursors;
@@ -46970,7 +46971,6 @@ network_WebRTC.prototype = {
 		var type = js_Boot.__cast(error.type , String);
 		Main.console.log(err);
 		Main.console.log(error.type);
-		haxe_Log.trace(err,{ fileName : "src/network/WebRTC.hx", lineNumber : 224, className : "network.WebRTC", methodName : "errorFunc", customParams : [error.type]});
 		switch(type) {
 		case "browser-incompatible":
 			Main.console.log("Your browser is currently unsupported, cannot use WebRTC.",16711680);
@@ -47023,7 +47023,6 @@ network_WebRTC.prototype = {
 				continue;
 			}
 			var packet = { action : "lineDownload", peername : Main.authorName, data : [Main.grid.lines.h[lineIndex].type,Main.grid.lines.h[lineIndex].start.x,Main.grid.lines.h[lineIndex].start.y,Main.grid.lines.h[lineIndex].end.x,Main.grid.lines.h[lineIndex].end.y,Main.grid.lines.h[lineIndex].shifted,Main.grid.lines.h[lineIndex].limType], localecho : true, globalecho : false, echoinfo : ["Downloaded line " + lineCount + " of " + Main.grid.lineCount + " from " + Main.authorName]};
-			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 312, className : "network.WebRTC", methodName : "sendTrackData"});
 			var data = JSON.stringify(packet);
 			client.send(data);
 			++lineCount;
@@ -47033,7 +47032,6 @@ network_WebRTC.prototype = {
 		while(cursor.hasNext()) {
 			var cursor1 = cursor.next();
 			var packet = { action : "addNewCursor", peername : Main.authorName, data : [cursor1.peername,cursor1.x,cursor1.y], localecho : false, globalecho : false, echoinfo : []};
-			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 335, className : "network.WebRTC", methodName : "sendTrackData"});
 			var data = JSON.stringify(packet);
 			client.send(data);
 		}
@@ -47041,7 +47039,6 @@ network_WebRTC.prototype = {
 		while(rider.hasNext()) {
 			var rider1 = rider.next();
 			var packet = { action : "addRider", peername : Main.authorName, data : [rider1.get_name(),rider1.startPos.x,rider1.startPos.y,rider1.enabledFrame,rider1.disableFrame], localecho : false, globalecho : false, echoinfo : []};
-			haxe_Log.trace(packet,{ fileName : "src/network/WebRTC.hx", lineNumber : 358, className : "network.WebRTC", methodName : "sendTrackData"});
 			var data = JSON.stringify(packet);
 			client.send(data);
 		}
