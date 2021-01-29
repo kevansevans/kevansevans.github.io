@@ -640,10 +640,14 @@ Main.prototype = $extend(hxd_App.prototype,{
 		} else if(Main.simulation.rewinding) {
 			Main.simulation.rewindSim(dt);
 		}
-		Main.canvas.drawRiders();
-		Main.textinfo.update();
-		if(Main.camera.running) {
-			Main.camera.follow();
+		if(Main.simulation.updating) {
+			Main.simulation.liveUpdateTick();
+		} else {
+			Main.canvas.drawRiders();
+			Main.textinfo.update();
+			if(Main.camera.running && Main.simulation.playing) {
+				Main.camera.follow();
+			}
 		}
 		if(Main.p2p.connected) {
 			Main.p2p.updateCursor();
@@ -1433,38 +1437,7 @@ components_lines_Floor.__name__ = "components.lines.Floor";
 components_lines_Floor.__super__ = components_lines_LineBase;
 components_lines_Floor.prototype = $extend(components_lines_LineBase.prototype,{
 	render: function() {
-		this.rideLayer.clear();
-		this.colorLayer.clear();
-		var _this = this.rideLayer;
-		var _this1 = this.colorLayer;
-		_this1.posChanged = true;
-		_this.posChanged = true;
-		_this.x = _this1.x = this.start.x;
-		var _this = this.rideLayer;
-		var _this1 = this.colorLayer;
-		_this1.posChanged = true;
-		_this.posChanged = true;
-		_this.y = _this1.y = this.start.y;
-		var x_offset = this.nx > 0 ? Math.ceil(this.nx) : Math.floor(this.nx);
-		var y_offset = this.ny > 0 ? Math.ceil(this.ny) : Math.floor(this.ny);
-		this.colorLayer.lineStyle(2,26367,0.75);
-		var _this = this.colorLayer;
-		_this.flush();
-		_this.addVertex(x_offset,y_offset,_this.curR,_this.curG,_this.curB,_this.curA,x_offset * _this.ma + y_offset * _this.mc + _this.mx,x_offset * _this.mb + y_offset * _this.md + _this.my);
-		var _this = this.colorLayer;
-		var x = this.gfxEnd.x + x_offset;
-		var y = this.gfxEnd.y + y_offset;
-		_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-		this.rideLayer.lineStyle(2,0);
-		var _this = this.rideLayer;
-		_this.flush();
-		_this.addVertex(0,0,_this.curR,_this.curG,_this.curB,_this.curA,0 * _this.ma + 0 * _this.mc + _this.mx,0 * _this.mb + 0 * _this.md + _this.my);
-		var _this = this.rideLayer;
-		var x = this.gfxEnd.x;
-		var y = this.gfxEnd.y;
-		_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-		this.rideLayer.drawCircle(0,0,this.lineCapRadius,this.lineCapSegment);
-		this.rideLayer.drawCircle(this.gfxEnd.x,this.gfxEnd.y,this.lineCapRadius,this.lineCapSegment);
+		return;
 	}
 	,collide: function(_point) {
 		var _loc5 = _point.pos.x - this.start.x;
@@ -1652,6 +1625,7 @@ components_managers_Grid.prototype = {
 			break;
 		default:
 		}
+		Main.simulation.updateSim();
 	}
 	,storeLine: function(_line,_x,_y) {
 		var key = "x" + _x + "y" + _y;
@@ -1671,9 +1645,6 @@ components_managers_Grid.prototype = {
 			Main.console.log("Error registering line",16711680);
 		}
 		_line.keyList.push(key);
-		if(this.registry.h[key].lowFrame != null) {
-			Main.simulation.updateSimHistory(this.registry.h[key].lowFrame);
-		}
 	}
 	,deleteTrack: function() {
 		var line = this.lines.iterator();
@@ -1683,6 +1654,9 @@ components_managers_Grid.prototype = {
 		}
 	}
 	,unregister: function(_line) {
+		if(_line == null) {
+			return;
+		}
 		var _g = 0;
 		var _g1 = _line.keyList;
 		while(_g < _g1.length) {
@@ -1698,10 +1672,8 @@ components_managers_Grid.prototype = {
 				break;
 			default:
 			}
-			if(this.registry.h[key].lowFrame != null) {
-				Main.simulation.updateSimHistory(this.registry.h[key].lowFrame);
-			}
 		}
+		--this.lineCount;
 		switch(_line.type) {
 		case 0:
 			--this.floorCount;
@@ -1718,9 +1690,10 @@ components_managers_Grid.prototype = {
 			Main.p2p.updateLineInfo("deleteLine",[_line.id]);
 		}
 		_line.clear();
-		--this.lineCount;
 		var v = null;
 		this.lines.h[_line.id] = v;
+		Main.simulation.updateSim();
+		Main.canvas.redrawLines();
 	}
 	,P2Punregister: function(_line) {
 		var _g = 0;
@@ -1737,9 +1710,6 @@ components_managers_Grid.prototype = {
 				HxOverrides.remove(this.registry.h[key].nonColliders,_line);
 				break;
 			default:
-			}
-			if(this.registry.h[key].lowFrame != null) {
-				Main.simulation.updateSimHistory(this.registry.h[key].lowFrame);
 			}
 		}
 		switch(_line.type) {
@@ -1872,12 +1842,11 @@ components_managers_Riders.prototype = {
 	,__class__: components_managers_Riders
 };
 var components_managers_Simulation = function() {
-	this.returnPoint = 0;
-	this.rewindPoint = 0;
+	this.updating = false;
+	this.returnframe = 0;
 	this.timeDelta = 0.0;
 	this.flagframe = 0;
 	this.flagged = false;
-	this.updating = false;
 	this.rewinding = false;
 	this.paused = false;
 	this.playing = false;
@@ -1916,6 +1885,21 @@ components_managers_Simulation.prototype = {
 	,resumeSim: function() {
 		this.playing = true;
 		this.paused = false;
+	}
+	,updateSim: function() {
+		return;
+	}
+	,liveUpdateTick: function() {
+		var _g = 0;
+		while(_g < 40) {
+			var tic = _g++;
+			if(this.frames == this.returnframe) {
+				this.updating = false;
+				break;
+			} else {
+				this.stepSim();
+			}
+		}
 	}
 	,endSim: function() {
 		if(this.playing) {
@@ -2020,22 +2004,6 @@ components_managers_Simulation.prototype = {
 		}
 		this.frameStates.h[_rider.__id__][_frame].points = _points;
 		this.frameStates.h[_rider.__id__][_frame].scarves = _scarves;
-	}
-	,updateSimHistory: function(_minFrame) {
-		return;
-	}
-	,updateSim: function() {
-		var _g = 0;
-		while(_g < 40) {
-			var a = _g++;
-			this.stepSim();
-			if(this.frames >= this.returnPoint) {
-				this.updating = false;
-				this.frames = this.rewindPoint;
-				this.restoreState(this.rewindPoint);
-				return;
-			}
-		}
 	}
 	,get_desiredSimSpeed: function() {
 		return this.desiredSimSpeed;
@@ -4682,7 +4650,7 @@ var components_stage_Canvas = function(_parent) {
 	this.scenePlaybackLayer = new h2d_Object(this);
 	this.scenePlaybackLayer.set_visible(false);
 	this.colorLayer = new h2d_Object(this);
-	this.rideLayer = new h2d_Object(this);
+	this.rideLayer = new h2d_Graphics(this);
 	this.sledderLayer = new h2d_Object(this);
 	this.preview = new h2d_Object(this);
 };
@@ -4734,6 +4702,26 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 		_g.posChanged = true;
 		_g.y += -(oldMouseY * (newScale - oldScale));
 	}
+	,redrawLines: function() {
+		this.rideLayer.clear();
+		var line = Main.grid.lines.iterator();
+		while(line.hasNext()) {
+			var line1 = line.next();
+			if(line1 == null) {
+				continue;
+			}
+			this.rideLayer.lineStyle(2,0);
+			var _this = this.rideLayer;
+			var x = line1.start.x;
+			var y = line1.start.y;
+			_this.flush();
+			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
+			var _this1 = this.rideLayer;
+			var x1 = line1.end.x;
+			var y1 = line1.end.y;
+			_this1.addVertex(x1,y1,_this1.curR,_this1.curG,_this1.curB,_this1.curA,x1 * _this1.ma + y1 * _this1.mc + _this1.mx,x1 * _this1.mb + y1 * _this1.md + _this1.my);
+		}
+	}
 	,addLine: function(_type,_x1,_y1,_x2,_y2,_shifted,_limMode) {
 		if(_limMode == null) {
 			_limMode = -1;
@@ -4741,32 +4729,25 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 		if(_shifted == null) {
 			_shifted = false;
 		}
+		this.rideLayer.lineStyle(2,0);
+		var _this = this.rideLayer;
+		_this.flush();
+		_this.addVertex(_x1,_y1,_this.curR,_this.curG,_this.curB,_this.curA,_x1 * _this.ma + _y1 * _this.mc + _this.mx,_x1 * _this.mb + _y1 * _this.md + _this.my);
+		var _this = this.rideLayer;
+		_this.addVertex(_x2,_y2,_this.curR,_this.curG,_this.curB,_this.curA,_x2 * _this.ma + _y2 * _this.mc + _this.mx,_x2 * _this.mb + _y2 * _this.md + _this.my);
 		var line = null;
 		switch(_type) {
 		case 0:
 			line = new components_lines_Floor(new h2d_col_Point(_x1,_y1),new h2d_col_Point(_x2,_y2),_shifted);
-			if(_limMode != -1) {
-				line.setLim(_limMode);
-			}
-			this.colorLayer.addChild(line.colorLayer);
-			this.rideLayer.addChild(line.rideLayer);
 			break;
 		case 1:
 			line = new components_lines_Accel(new h2d_col_Point(_x1,_y1),new h2d_col_Point(_x2,_y2),_shifted);
-			if(_limMode != -1) {
-				line.setLim(_limMode);
-			}
-			this.colorLayer.addChild(line.colorLayer);
-			this.rideLayer.addChild(line.rideLayer);
 			break;
 		case 2:
 			line = new components_lines_Scenery(new h2d_col_Point(_x1,_y1),new h2d_col_Point(_x2,_y2),_shifted);
-			this.sceneColorLayer.addChild(line.colorLayer);
-			this.scenePlaybackLayer.addChild(line.rideLayer);
 			break;
 		default:
 		}
-		line.render();
 		Main.grid.register(line);
 		if(Main.p2p.connected) {
 			Main.p2p.updateLineInfo("lineDownload",[line.type,line.start.x,line.start.y,line.end.x,line.end.y,line.shifted,line.limType]);
@@ -4776,50 +4757,6 @@ components_stage_Canvas.prototype = $extend(h2d_Scene.prototype,{
 		return this.drawMode;
 	}
 	,set_drawMode: function(_mode) {
-		switch(_mode._hx_index) {
-		case 0:
-			this.colorLayer.set_visible(true);
-			this.sceneColorLayer.set_visible(true);
-			this.scenePlaybackLayer.set_visible(false);
-			this.rideLayer.set_visible(true);
-			Main.console.log("Draw mode set to Edit");
-			break;
-		case 1:
-			this.colorLayer.set_visible(false);
-			this.sceneColorLayer.set_visible(false);
-			this.scenePlaybackLayer.set_visible(true);
-			this.rideLayer.set_visible(true);
-			Main.console.log("Draw mode set to Playback");
-			break;
-		case 2:
-			this.colorLayer.set_visible(true);
-			this.sceneColorLayer.set_visible(false);
-			this.scenePlaybackLayer.set_visible(false);
-			this.rideLayer.set_visible(true);
-			Main.console.log("Draw mode set to No Scenery Edit");
-			break;
-		case 3:
-			this.colorLayer.set_visible(false);
-			this.sceneColorLayer.set_visible(false);
-			this.scenePlaybackLayer.set_visible(false);
-			this.rideLayer.set_visible(true);
-			Main.console.log("Draw mode set to No Scenery Playback");
-			break;
-		case 4:
-			this.colorLayer.set_visible(false);
-			this.sceneColorLayer.set_visible(true);
-			this.scenePlaybackLayer.set_visible(false);
-			this.rideLayer.set_visible(false);
-			Main.console.log("Draw mode set to Scenery Edit Only");
-			break;
-		case 5:
-			this.colorLayer.set_visible(false);
-			this.sceneColorLayer.set_visible(false);
-			this.scenePlaybackLayer.set_visible(true);
-			this.rideLayer.set_visible(false);
-			Main.console.log("Draw mode set to Scenery Playback Only");
-			break;
-		}
 		return this.drawMode = _mode;
 	}
 	,P2PLineAdd: function(_type,_x1,_y1,_x2,_y2,_shifted,_limMode) {
@@ -6238,6 +6175,7 @@ var components_tool_ToolMode = $hxEnums["components.tool.ToolMode"] = { __ename_
 components_tool_ToolMode.__empty_constructs__ = [components_tool_ToolMode.NONE,components_tool_ToolMode.PENCIL,components_tool_ToolMode.LINE,components_tool_ToolMode.ERASER];
 var components_tool_ToolBehavior = function() {
 	this.shifted = false;
+	this.rightIsDown = false;
 	this.middleIsDown = false;
 	this.leftIsDown = false;
 	this.colorEraser = false;
@@ -6309,6 +6247,17 @@ components_tool_ToolBehavior.prototype = {
 			default:
 			}
 			break;
+		case 1:
+			this.rightIsDown = true;
+			this.mouseStart = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
+			this.mouseEnd = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
+			switch(this.tool._hx_index) {
+			case 1:case 2:
+				this.snap(this.mouseStart);
+				break;
+			default:
+			}
+			break;
 		case 2:
 			this.middleIsDown = true;
 			this.mouseStart = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
@@ -6320,7 +6269,7 @@ components_tool_ToolBehavior.prototype = {
 			Main.simulation.stepSim();
 			break;
 		default:
-			haxe_Log.trace(event.button,{ fileName : "src/components/tool/ToolBehavior.hx", lineNumber : 148, className : "components.tool.ToolBehavior", methodName : "mouseDown"});
+			haxe_Log.trace(event.button,{ fileName : "src/components/tool/ToolBehavior.hx", lineNumber : 165, className : "components.tool.ToolBehavior", methodName : "mouseDown"});
 		}
 	}
 	,mouseWheel: function(event) {
@@ -6332,11 +6281,11 @@ components_tool_ToolBehavior.prototype = {
 	}
 	,mouseMove: function(event) {
 		Main.canvas.preview.removeChildren();
-		if(this.leftIsDown) {
-			switch(this.tool._hx_index) {
-			case 0:
-				break;
-			case 1:
+		switch(this.tool._hx_index) {
+		case 0:
+			break;
+		case 1:
+			if(this.leftIsDown || this.rightIsDown) {
 				this.mouseEnd = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
 				if(Math.sqrt(Math.pow(this.mouseEnd.x - this.mouseStart.x,2) + Math.pow(this.mouseEnd.y - this.mouseStart.y,2)) > 10 * (1 / Main.canvas.scaleX)) {
 					this.drawLine();
@@ -6344,18 +6293,22 @@ components_tool_ToolBehavior.prototype = {
 					this.mouseEnd = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
 				}
 				this.updatePreview();
-				break;
-			case 2:
+			}
+			break;
+		case 2:
+			if(this.leftIsDown || this.rightIsDown) {
 				this.mouseEnd = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
 				this.snap(this.mouseEnd);
 				this.updatePreview();
-				break;
-			case 3:
+			}
+			break;
+		case 3:
+			if(this.leftIsDown) {
 				var tmp = Main.canvas.get_mouseX();
 				var tmp1 = Main.canvas.get_mouseY();
 				components_tool_ToolFunction.erase(tmp,tmp1);
-				break;
 			}
+			break;
 		}
 		if(this.middleIsDown) {
 			this.mouseEnd = new h2d_col_Point(Main.canvas.get_mouseX(),Main.canvas.get_mouseY());
@@ -6366,6 +6319,13 @@ components_tool_ToolBehavior.prototype = {
 		}
 	}
 	,updatePreview: function() {
+		this.tempLine = null;
+		if(!this.leftIsDown && !this.rightIsDown) {
+			return;
+		}
+		if(this.tool == components_tool_ToolMode.ERASER) {
+			return;
+		}
 		var preview = Main.canvas.preview;
 		if(Math.sqrt(Math.pow(this.mouseEnd.x - this.mouseStart.x,2) + Math.pow(this.mouseEnd.y - this.mouseStart.y,2)) * Main.canvas.scaleX < 10) {
 			this.tempLine = new components_lines_Undefined(this.mouseStart,this.mouseEnd,this.shifted);
@@ -6378,7 +6338,11 @@ components_tool_ToolBehavior.prototype = {
 				preview.addChild(this.tempLine.rideLayer);
 				break;
 			case 1:
-				this.tempLine = new components_lines_Accel(this.mouseStart,this.mouseEnd,this.shifted);
+				if(this.leftIsDown) {
+					this.tempLine = new components_lines_Accel(this.mouseStart,this.mouseEnd,this.shifted);
+				} else if(this.rightIsDown) {
+					this.tempLine = new components_lines_Accel(this.mouseEnd,this.mouseStart,!this.shifted);
+				}
 				preview.addChild(this.tempLine.colorLayer);
 				preview.addChild(this.tempLine.rideLayer);
 				break;
@@ -6392,8 +6356,7 @@ components_tool_ToolBehavior.prototype = {
 	}
 	,mouseUp: function(event) {
 		switch(event.button) {
-		case 0:
-			this.leftIsDown = false;
+		case 0:case 1:
 			switch(this.tool._hx_index) {
 			case 0:
 				break;
@@ -6401,7 +6364,9 @@ components_tool_ToolBehavior.prototype = {
 				if(this.mouseStart == null || this.mouseEnd == null) {
 					return;
 				}
-				this.snap(this.mouseEnd);
+				if(this.tool == components_tool_ToolMode.LINE) {
+					this.snap(this.mouseEnd);
+				}
 				this.drawLine();
 				break;
 			case 3:
@@ -6413,7 +6378,10 @@ components_tool_ToolBehavior.prototype = {
 			break;
 		default:
 		}
+		this.leftIsDown = false;
+		this.rightIsDown = false;
 		Main.canvas.preview.removeChildren();
+		this.updatePreview();
 	}
 	,snap: function(_pos) {
 		if(this.color == -1 || this.color == 2) {
@@ -6525,12 +6493,16 @@ components_tool_ToolBehavior.prototype = {
 		if(Math.sqrt(Math.pow(this.mouseEnd.x - this.mouseStart.x,2) + Math.pow(this.mouseEnd.y - this.mouseStart.y,2)) * Main.canvas.scaleX < 10 && this.color != 2) {
 			return;
 		}
-		Main.canvas.addLine(this.color,this.mouseStart.x,this.mouseStart.y,this.mouseEnd.x,this.mouseEnd.y,this.shifted);
+		if(this.leftIsDown) {
+			Main.canvas.addLine(this.color,this.mouseStart.x,this.mouseStart.y,this.mouseEnd.x,this.mouseEnd.y,this.shifted);
+		} else if(this.rightIsDown) {
+			Main.canvas.addLine(this.color,this.mouseEnd.x,this.mouseEnd.y,this.mouseStart.x,this.mouseStart.y,!this.shifted);
+		}
 	}
 	,keyInputDown: function(event) {
 		switch(event.kind._hx_index) {
 		case 8:
-			haxe_Log.trace(event.keyCode,{ fileName : "src/components/tool/ToolBehavior.hx", lineNumber : 387, className : "components.tool.ToolBehavior", methodName : "keyInputDown"});
+			haxe_Log.trace(event.keyCode,{ fileName : "src/components/tool/ToolBehavior.hx", lineNumber : 436, className : "components.tool.ToolBehavior", methodName : "keyInputDown"});
 			switch(event.keyCode) {
 			case 9:
 				switch(Main.canvas.get_drawMode()._hx_index) {
@@ -6821,6 +6793,7 @@ components_tool_ToolFunction.eraseDefault = function(_x,_y) {
 	}
 };
 components_tool_ToolFunction.tryDispose = function(_line) {
+	haxe_Log.trace("blep",{ fileName : "src/components/tool/ToolFunction.hx", lineNumber : 62, className : "components.tool.ToolFunction", methodName : "tryDispose"});
 	switch(Main.canvas.get_drawMode()._hx_index) {
 	case 0:case 1:
 		Main.grid.unregister(_line);
@@ -46180,6 +46153,7 @@ hxsl_Printer.prototype = {
 			var e = _g.e;
 			var args = _g.args;
 			var m = _g.m;
+			this.buffer.b += Std.string("@");
 			this.buffer.b += Std.string(m);
 			if(args.length > 0) {
 				this.buffer.b += Std.string("(");
