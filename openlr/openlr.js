@@ -260,6 +260,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		Main.saveload.loadUserInfo();
 		Main.textinfo = new components_stage_TextInfo();
 		this.s2d.addChild(Main.textinfo.info);
+		Main.textinfo.update();
 		var _this = Main.textinfo.info;
 		var v = this.engine.width - Main.textinfo.info.get_textWidth() - 5;
 		_this.posChanged = true;
