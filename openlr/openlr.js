@@ -1440,19 +1440,17 @@ components_managers_Grid.prototype = {
 		var left = _line.dx > 0 ? start.x : end.x;
 		var bottom = _line.dy > 0 ? end.y : start.y;
 		var top = _line.dy > 0 ? start.y : end.y;
+		this.storeLine(_line,start.x,start.y);
 		if(_line.dx == 0 && _line.dy == 0 || left == right && top == bottom) {
-			this.storeLine(_line,start.x,start.y);
 			return;
-		} else {
-			this.storeLine(_line,start.x,start.y);
 		}
 		var x = _line.start.x;
 		var y = _line.start.y;
 		var invDx = 1 / _line.dx;
 		var invDy = 1 / _line.dy;
+		var difX;
+		var difY;
 		while(true) {
-			var difX;
-			var difY;
 			if(start.x < 0) {
 				difX = _line.dx > 0 ? 14 + start.gx : -14 - start.gx;
 			} else {
@@ -1512,13 +1510,13 @@ components_managers_Grid.prototype = {
 	,storeLine: function(_line,_x,_y) {
 		var key = "x" + _x + "y" + _y;
 		if(this.registry.h[key] == null) {
-			var reg = { position : new h2d_col_Point(_x,_y), allLines : [], colliders : [], nonColliders : []};
+			var reg = { position : new h2d_col_Point(_x,_y), allLines : [], hittable : [], nonColliders : []};
 			this.registry.h[key] = reg;
 		}
 		this.registry.h[key].allLines.push(_line);
 		switch(_line.type) {
 		case 0:case 1:
-			this.registry.h[key].colliders[_line.id] = _line;
+			this.registry.h[key].hittable[_line.id] = _line;
 			break;
 		case 2:
 			this.registry.h[key].nonColliders.push(_line);
@@ -1527,6 +1525,7 @@ components_managers_Grid.prototype = {
 			Main.console.log("Error registering line",16711680);
 		}
 		_line.keyList.push(key);
+		haxe_Log.trace(key,{ fileName : "src/components/managers/Grid.hx", lineNumber : 142, className : "components.managers.Grid", methodName : "storeLine", customParams : [this.registry.h[key].allLines.length,this.registry.h[key].hittable.length]});
 	}
 	,deleteTrack: function() {
 		var _g = 0;
@@ -1549,7 +1548,7 @@ components_managers_Grid.prototype = {
 			HxOverrides.remove(this.registry.h[key].allLines,_line);
 			switch(_line.type) {
 			case 0:case 1:
-				HxOverrides.remove(this.registry.h[key].colliders,_line);
+				HxOverrides.remove(this.registry.h[key].hittable,_line);
 				break;
 			case 2:
 				HxOverrides.remove(this.registry.h[key].nonColliders,_line);
@@ -1586,7 +1585,7 @@ components_managers_Grid.prototype = {
 			HxOverrides.remove(this.registry.h[key].allLines,_line);
 			switch(_line.type) {
 			case 0:case 1:
-				HxOverrides.remove(this.registry.h[key].colliders,_line);
+				HxOverrides.remove(this.registry.h[key].hittable,_line);
 				break;
 			case 2:
 				HxOverrides.remove(this.registry.h[key].nonColliders,_line);
@@ -2299,8 +2298,9 @@ components_sledder_RiderBase.prototype = {
 						continue;
 					} else {
 						var register = Main.grid.registry.h[key];
+						haxe_Log.trace(key,{ fileName : "src/components/sledder/RiderBase.hx", lineNumber : 182, className : "components.sledder.RiderBase", methodName : "collision", customParams : [register.allLines.length,register.hittable.length]});
 						var _g4 = 0;
-						var _g5 = register.colliders;
+						var _g5 = register.hittable;
 						while(_g4 < _g5.length) {
 							var line = _g5[_g4];
 							++_g4;
@@ -6770,7 +6770,7 @@ components_tool_ToolBehavior.prototype = {
 					}
 					var chunk = Main.grid.registry.h[key];
 					var _g2 = 0;
-					var _g3 = chunk.colliders;
+					var _g3 = chunk.hittable;
 					while(_g2 < _g3.length) {
 						var line = _g3[_g2];
 						++_g2;
