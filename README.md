@@ -3,6 +3,10 @@ kev's github site demo
 
 ###
 
-HxDoom https://kevansevans.github.io/HxDoom/
+HxDoom Demo: https://kevansevans.github.io/HxDoom/demo/
 	
-Haxe port of Doom, still WIP. 
+HxDoom API: https://kevansevans.github.io/HxDoom/api/
+	
+Particle Breaker: https://kevansevans.github.io/hxparticle/
+	
+OpenLR: https://kevansevans.github.io/openlr/
