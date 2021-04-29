@@ -248,8 +248,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		hxd_Res.set_loader(new hxd_res_Loader(new hxd_fs_EmbedFileSystem(haxe_Unserializer.run("oy4:tooloy15:pencilGreen.pngty14:pencilBlue.pngty13:eraserRed.pngty13:lineGreen.pngty13:pencilRed.pngty14:eraserBlue.pngty11:lineRed.pngty12:lineBlue.pngty12:pencilmp.pngty15:eraserGreen.pngty10:eraser.pngtgy4:iconoy10:camera.pngty9:pause.pngty8:line.pngty8:stop.pngty8:flag.pngtR11ty10:pencil.pngty9:trash.pngty8:play.pngtgy5:rideroy7:leg.pngty11:eye0003.pngty11:eye0002.pngty8:sled.pngty11:eye0001.pngty7:arm.pngty8:body.pngtgy5:trackoy10:embed.jsontgy5:linesoR4tR7tR8tgg"))));
 		this.engine.backgroundColor = -3355444;
 		this.s2d.ctx.defaultSmooth = true;
-		this.ruler = new h2d_Graphics();
-		this.s2d.addChild(this.ruler);
+		this.ruler = new components_stage_Ruler(this.s2d);
 		this.mask = new h2d_Mask(this.engine.width,this.engine.height,this.s2d);
 		Main.canvas = new components_stage_Canvas(this.mask);
 		var _this = Main.canvas;
@@ -681,8 +680,8 @@ Main.prototype = $extend(hxd_App.prototype,{
 	,update: function(dt) {
 		hxd_App.prototype.update.call(this,dt);
 		Main.textinfo.framerate = dt;
-		this.updateGridLines();
 		Main.timeline.update();
+		this.ruler.update();
 		if(Main.simulation.playing && !Main.simulation.rewinding) {
 			Main.simulation.playSim(dt);
 		} else if(Main.simulation.rewinding) {
@@ -705,6 +704,12 @@ Main.prototype = $extend(hxd_App.prototype,{
 	}
 	,onResize: function() {
 		hxd_App.prototype.onResize.call(this);
+		var _this = this.ruler;
+		var _this1 = this.ruler;
+		_this1.posChanged = true;
+		_this.posChanged = true;
+		_this.x = _this1.y = 0;
+		this.ruler.resize();
 		Main.canvas_interaction.width = this.engine.width;
 		Main.canvas_interaction.height = this.engine.height;
 		this.mask.width = this.engine.width;
@@ -730,81 +735,6 @@ Main.prototype = $extend(hxd_App.prototype,{
 		_this.posChanged = true;
 		_this.y = this.s2d.height - 40;
 		Main.timeline.resize();
-	}
-	,updateGridLines: function() {
-		var ratio = Math.round(Main.viewGridSize * Main.canvas.scaleX);
-		var x_offset = Main.canvas.x % ratio;
-		var y_offset = Main.canvas.y % ratio;
-		var x_originValue = null;
-		var y_originValue = null;
-		this.ruler.clear();
-		var _g = 0;
-		var _g1 = this.engine.width * 10;
-		while(_g < _g1) {
-			var x = _g++;
-			this.ruler.lineStyle(2,12303291);
-			if(x % ratio == 0) {
-				if(x + x_offset - Main.canvas.x == 0) {
-					x_originValue = x;
-					continue;
-				}
-				if(ratio <= 3) {
-					continue;
-				}
-				var _this = this.ruler;
-				var x1 = x + x_offset;
-				_this.flush();
-				_this.addVertex(x1,0,_this.curR,_this.curG,_this.curB,_this.curA,x1 * _this.ma + 0 * _this.mc + _this.mx,x1 * _this.mb + 0 * _this.md + _this.my);
-				var _this1 = this.ruler;
-				var x2 = x + x_offset;
-				var y = this.engine.height;
-				_this1.addVertex(x2,y,_this1.curR,_this1.curG,_this1.curB,_this1.curA,x2 * _this1.ma + y * _this1.mc + _this1.mx,x2 * _this1.mb + y * _this1.md + _this1.my);
-			}
-		}
-		var _g = 0;
-		var _g1 = this.engine.height * 10;
-		while(_g < _g1) {
-			var y = _g++;
-			this.ruler.lineStyle(2,12303291);
-			if(y % ratio == 0) {
-				if(y + y_offset - Main.canvas.y == 0) {
-					y_originValue = y;
-					continue;
-				}
-				if(ratio <= 3) {
-					continue;
-				}
-				var _this = this.ruler;
-				var y1 = y + y_offset;
-				_this.flush();
-				_this.addVertex(0,y1,_this.curR,_this.curG,_this.curB,_this.curA,0 * _this.ma + y1 * _this.mc + _this.mx,0 * _this.mb + y1 * _this.md + _this.my);
-				var _this1 = this.ruler;
-				var x = this.engine.width;
-				var y2 = y + y_offset;
-				_this1.addVertex(x,y2,_this1.curR,_this1.curG,_this1.curB,_this1.curA,x * _this1.ma + y2 * _this1.mc + _this1.mx,x * _this1.mb + y2 * _this1.md + _this1.my);
-			}
-		}
-		this.ruler.lineStyle(2,255,0.25);
-		if(x_originValue != null) {
-			var _this = this.ruler;
-			var x = x_originValue + x_offset;
-			_this.flush();
-			_this.addVertex(x,0,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + 0 * _this.mc + _this.mx,x * _this.mb + 0 * _this.md + _this.my);
-			var _this = this.ruler;
-			var x = x_originValue + x_offset;
-			var y = this.engine.height;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-		}
-		if(y_originValue != null) {
-			var _this = this.ruler;
-			var y = y_originValue + y_offset;
-			_this.flush();
-			_this.addVertex(0,y,_this.curR,_this.curG,_this.curB,_this.curA,0 * _this.ma + y * _this.mc + _this.mx,0 * _this.mb + y * _this.md + _this.my);
-			var _this = this.ruler;
-			var x = this.engine.width;
-			var y = y_originValue + y_offset;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-		}
 	}
 	,__class__: Main
 });
@@ -4833,6 +4763,227 @@ components_stage_LRConsole.prototype = $extend(h2d_Console.prototype,{
 	}
 	,__class__: components_stage_LRConsole
 });
+var components_stage_Ruler = function(_parent) {
+	this.enabled = true;
+	this.color = 13421772;
+	h2d_Object.call(this,_parent);
+	this.bitmap = new h2d_Bitmap(h2d_Tile.fromColor(0),this);
+	this.bitmap.addShader(this.shader = new components_stage_RulerShader());
+};
+$hxClasses["components.stage.Ruler"] = components_stage_Ruler;
+components_stage_Ruler.__name__ = "components.stage.Ruler";
+components_stage_Ruler.__super__ = h2d_Object;
+components_stage_Ruler.prototype = $extend(h2d_Object.prototype,{
+	resize: function() {
+		this.bitmap.set_tile(h2d_Tile.fromColor(0,Main.rootScene.width,Main.rootScene.height));
+	}
+	,update: function() {
+		this.shader.ratioX__ = 1 / Main.rootScene.width;
+		this.shader.ratioY__ = 1 / Main.rootScene.height;
+		this.shader.midFloatX__ = 1 / Main.rootScene.width * ((Main.rootScene.width % 2 == 0 ? Main.rootScene.width - 1 : Main.rootScene.width) / 2);
+		this.shader.midFloatY__ = 1 / Main.rootScene.height * ((Main.rootScene.height % 2 == 0 ? Main.rootScene.height - 1 : Main.rootScene.height) / 2);
+		this.shader.bg_r__ = (this.color >> 16) / 255;
+		this.shader.bg_g__ = (this.color >> 8 & 255) / 255;
+		this.shader.bg_b__ = (this.color & 255) / 255;
+		this.shader.offsetX__ = (Main.canvas.x - Main.rootScene.width / 2) * (1 / Main.rootScene.width);
+		this.shader.offsetY__ = (Main.canvas.y - Main.rootScene.height / 2) * (1 / Main.rootScene.height);
+		this.shader.scale__ = 1 / Main.canvas.scaleX;
+		this.shader.size__ = Main.viewGridSize;
+		this.shader.enabled__ = this.enabled ? 1 : 0;
+	}
+	,__class__: components_stage_Ruler
+});
+var hxsl_Shader = function() {
+	this.priority = 0;
+	this.initialize();
+};
+$hxClasses["hxsl.Shader"] = hxsl_Shader;
+hxsl_Shader.__name__ = "hxsl.Shader";
+hxsl_Shader.prototype = {
+	initialize: function() {
+		this.constModified = true;
+		if(this.shader != null) {
+			return;
+		}
+		var cl = js_Boot.getClass(this);
+		this.shader = cl._SHADER;
+		if(this.shader == null) {
+			var curClass = cl;
+			while(curClass != null && curClass.SRC == null) curClass = curClass.__super__;
+			if(curClass == null) {
+				throw haxe_Exception.thrown(cl.__name__ + " has no shader source");
+			}
+			this.shader = curClass._SHADER;
+			if(this.shader == null) {
+				this.shader = new hxsl_SharedShader(curClass.SRC);
+				curClass._SHADER = this.shader;
+			}
+		}
+	}
+	,setPriority: function(v) {
+		this.priority = v;
+	}
+	,getParamValue: function(index) {
+		throw haxe_Exception.thrown("assert");
+	}
+	,getParamFloatValue: function(index) {
+		throw haxe_Exception.thrown("assert");
+	}
+	,updateConstants: function(globals) {
+		throw haxe_Exception.thrown("assert");
+	}
+	,updateConstantsFinal: function(globals) {
+		var c = this.shader.consts;
+		while(c != null) {
+			if(c.globalId == 0) {
+				c = c.next;
+				continue;
+			}
+			var v = globals.map.h[c.globalId];
+			var _g = c.v.type;
+			switch(_g._hx_index) {
+			case 1:
+				var v1 = v;
+				if(v1 >>> c.bits != 0) {
+					throw haxe_Exception.thrown("Constant " + c.v.name + " is outside range (" + v1 + " > " + ((1 << c.bits) - 1) + ")");
+				}
+				this.constBits |= v1 << c.pos;
+				break;
+			case 2:
+				var v2 = v;
+				if(v2) {
+					this.constBits |= 1 << c.pos;
+				}
+				break;
+			case 17:
+				var count = _g.size;
+				if(v == null) {
+					c = c.next;
+					continue;
+				}
+				var v3 = v;
+				var sel = v3.channel;
+				if(v3.texture == null) {
+					sel = hxsl_Channel.Unknown;
+				} else if(sel == null || sel == hxsl_Channel.Unknown) {
+					switch(count) {
+					case 1:
+						if(v3.texture.format == h3d_mat_Texture.nativeFormat) {
+							sel = hxsl_Channel.PackedFloat;
+						} else {
+							throw haxe_Exception.thrown("Constant " + c.v.name + " does not define channel select value");
+						}
+						break;
+					case 3:
+						if(v3.texture.format == h3d_mat_Texture.nativeFormat) {
+							sel = hxsl_Channel.PackedNormal;
+						} else {
+							throw haxe_Exception.thrown("Constant " + c.v.name + " does not define channel select value");
+						}
+						break;
+					default:
+						throw haxe_Exception.thrown("Constant " + c.v.name + " does not define channel select value");
+					}
+				}
+				this.constBits |= (globals.allocChannelID(v3.texture) << 3 | sel._hx_index) << c.pos;
+				break;
+			default:
+				throw haxe_Exception.thrown("assert");
+			}
+			c = c.next;
+		}
+		var _this = this.shader;
+		var constBits = this.constBits;
+		var i = _this.instanceCache.h[constBits];
+		this.instance = i == null ? _this.makeInstance(constBits) : i;
+	}
+	,toString: function() {
+		var c = js_Boot.getClass(this);
+		return c.__name__;
+	}
+	,__class__: hxsl_Shader
+};
+var components_stage_RulerShader = function() {
+	this.enabled__ = 1;
+	this.ratioY__ = 1;
+	this.ratioX__ = 1;
+	this.midFloatY__ = 0.5;
+	this.midFloatX__ = 0.5;
+	this.size__ = 0;
+	this.scale__ = 0;
+	this.offsetY__ = 0;
+	this.offsetX__ = 0;
+	this.bg_b__ = 0;
+	this.bg_g__ = 0;
+	this.bg_r__ = 0;
+	hxsl_Shader.call(this);
+};
+$hxClasses["components.stage.RulerShader"] = components_stage_RulerShader;
+components_stage_RulerShader.__name__ = "components.stage.RulerShader";
+components_stage_RulerShader.__super__ = hxsl_Shader;
+components_stage_RulerShader.prototype = $extend(hxsl_Shader.prototype,{
+	updateConstants: function(globals) {
+		this.constBits = 0;
+		this.updateConstantsFinal(globals);
+	}
+	,getParamValue: function(index) {
+		switch(index) {
+		case 0:
+			return this.bg_r__;
+		case 1:
+			return this.bg_g__;
+		case 2:
+			return this.bg_b__;
+		case 3:
+			return this.offsetX__;
+		case 4:
+			return this.offsetY__;
+		case 5:
+			return this.scale__;
+		case 6:
+			return this.size__;
+		case 7:
+			return this.midFloatX__;
+		case 8:
+			return this.midFloatY__;
+		case 9:
+			return this.ratioX__;
+		case 10:
+			return this.ratioY__;
+		case 11:
+			return this.enabled__;
+		default:
+		}
+		return null;
+	}
+	,getParamFloatValue: function(index) {
+		switch(index) {
+		case 0:
+			return this.bg_r__;
+		case 1:
+			return this.bg_g__;
+		case 2:
+			return this.bg_b__;
+		case 3:
+			return this.offsetX__;
+		case 4:
+			return this.offsetY__;
+		case 5:
+			return this.scale__;
+		case 7:
+			return this.midFloatX__;
+		case 8:
+			return this.midFloatY__;
+		case 9:
+			return this.ratioX__;
+		case 10:
+			return this.ratioY__;
+		default:
+		}
+		return 0.;
+	}
+	,__class__: components_stage_RulerShader
+});
 var components_stage_TextInfo = function() {
 	this.info = new h2d_Text(hxd_res_DefaultFont.get());
 	this.info.color = new h3d_Vector(0.2,0.2,0.2);
@@ -5086,116 +5237,6 @@ components_stage_TimeLine.prototype = $extend(h2d_Object.prototype,{
 	}
 	,__class__: components_stage_TimeLine
 });
-var hxsl_Shader = function() {
-	this.priority = 0;
-	this.initialize();
-};
-$hxClasses["hxsl.Shader"] = hxsl_Shader;
-hxsl_Shader.__name__ = "hxsl.Shader";
-hxsl_Shader.prototype = {
-	initialize: function() {
-		this.constModified = true;
-		if(this.shader != null) {
-			return;
-		}
-		var cl = js_Boot.getClass(this);
-		this.shader = cl._SHADER;
-		if(this.shader == null) {
-			var curClass = cl;
-			while(curClass != null && curClass.SRC == null) curClass = curClass.__super__;
-			if(curClass == null) {
-				throw haxe_Exception.thrown(cl.__name__ + " has no shader source");
-			}
-			this.shader = curClass._SHADER;
-			if(this.shader == null) {
-				this.shader = new hxsl_SharedShader(curClass.SRC);
-				curClass._SHADER = this.shader;
-			}
-		}
-	}
-	,setPriority: function(v) {
-		this.priority = v;
-	}
-	,getParamValue: function(index) {
-		throw haxe_Exception.thrown("assert");
-	}
-	,getParamFloatValue: function(index) {
-		throw haxe_Exception.thrown("assert");
-	}
-	,updateConstants: function(globals) {
-		throw haxe_Exception.thrown("assert");
-	}
-	,updateConstantsFinal: function(globals) {
-		var c = this.shader.consts;
-		while(c != null) {
-			if(c.globalId == 0) {
-				c = c.next;
-				continue;
-			}
-			var v = globals.map.h[c.globalId];
-			var _g = c.v.type;
-			switch(_g._hx_index) {
-			case 1:
-				var v1 = v;
-				if(v1 >>> c.bits != 0) {
-					throw haxe_Exception.thrown("Constant " + c.v.name + " is outside range (" + v1 + " > " + ((1 << c.bits) - 1) + ")");
-				}
-				this.constBits |= v1 << c.pos;
-				break;
-			case 2:
-				var v2 = v;
-				if(v2) {
-					this.constBits |= 1 << c.pos;
-				}
-				break;
-			case 17:
-				var count = _g.size;
-				if(v == null) {
-					c = c.next;
-					continue;
-				}
-				var v3 = v;
-				var sel = v3.channel;
-				if(v3.texture == null) {
-					sel = hxsl_Channel.Unknown;
-				} else if(sel == null || sel == hxsl_Channel.Unknown) {
-					switch(count) {
-					case 1:
-						if(v3.texture.format == h3d_mat_Texture.nativeFormat) {
-							sel = hxsl_Channel.PackedFloat;
-						} else {
-							throw haxe_Exception.thrown("Constant " + c.v.name + " does not define channel select value");
-						}
-						break;
-					case 3:
-						if(v3.texture.format == h3d_mat_Texture.nativeFormat) {
-							sel = hxsl_Channel.PackedNormal;
-						} else {
-							throw haxe_Exception.thrown("Constant " + c.v.name + " does not define channel select value");
-						}
-						break;
-					default:
-						throw haxe_Exception.thrown("Constant " + c.v.name + " does not define channel select value");
-					}
-				}
-				this.constBits |= (globals.allocChannelID(v3.texture) << 3 | sel._hx_index) << c.pos;
-				break;
-			default:
-				throw haxe_Exception.thrown("assert");
-			}
-			c = c.next;
-		}
-		var _this = this.shader;
-		var constBits = this.constBits;
-		var i = _this.instanceCache.h[constBits];
-		this.instance = i == null ? _this.makeInstance(constBits) : i;
-	}
-	,toString: function() {
-		var c = js_Boot.getClass(this);
-		return c.__name__;
-	}
-	,__class__: hxsl_Shader
-};
 var components_stage_ScrubberShader = function() {
 	this.ratio__ = 0.1;
 	this.minLeftValue__ = 0;
@@ -47999,6 +48040,7 @@ Xml.Document = 6;
 components_sledder_Bosh.WHITE = new h3d_Vector(1,1,1,1);
 components_sledder_Bosh.RED = new h3d_Vector(1,0,0,1);
 h2d_Console.HIDE_LOG_TIMEOUT = 3.;
+components_stage_RulerShader.SRC = "HXSLHGNvbXBvbmVudHMuc3RhZ2UuUnVsZXJTaGFkZXISAQVpbnB1dA0BAQICdXYFCgEBAAEAAAMMY2FsY3VsYXRlZFVWBQoEAAAECnBpeGVsQ29sb3IFDAQAAAUJc3BlY0NvbG9yBQsEAAAGBGJnX3IDAgAABwRiZ19nAwIAAAgEYmdfYgMCAAAJB29mZnNldFgDAgAACgdvZmZzZXRZAwIAAAsFc2NhbGUDAgAADARzaXplAQIAAA0JbWlkRmxvYXRYAwIAAA4JbWlkRmxvYXRZAwIAAA8GcmF0aW9YAwIAABAGcmF0aW9ZAwIAABEHZW5hYmxlZAECAAASBnZlcnRleA4GAAATCGZyYWdtZW50DgYAAAIAEgAABQEGBAIDBQoCAgUKBQoAARMAAAUMCBQIdXZPZmZzZXQFCgQAAAIDBQoABoMKAhQFCgAAAwIJAwMGgwoCFAUKBAADAgoDAwgVA3RvbAEEAAABAugDAAABAAYEAgQFDAkDKg4EAgYDAgcDAggDAQMAAAAAAADwPwMFDAUMCwYFAhEBAQIAAAAAAQINAAAAAAgWBGNvcHkFDAQAAAIEBQwACBcEYWxwaAMEAAAJAxUOAgYCBAYBCQMmDgECDAEDBAYCAQMAAAAAAADwPwMCCwMDAwMDAQMAAAAAAAAIQAMDAQMAAAAAAADgPwMDAAsGCgYTBAYCBAYDCgIUBQoAAAMBAwAAAAAAAOA/AwMDAg8DAwMEBgEJAyYOAQIMAQMEBgIBAwAAAAAAAPA/AwILAwMDAwMDAQMAAAAAAADwPwMCBQEGBAIEBQwJAyoOBAYDAQMAAAAAAADwPwMKAhYFDAAAAwMGAwEDAAAAAAAA8D8DCgIWBQwEAAMDBgMBAwAAAAAAAPA/AwoCFgUMCAADAwIXAwUMBQwAAAALBgoGEwQGAgQGAwoCFAUKBAADAQMAAAAAAADgPwMDAwIQAwMDBAYBCQMmDgECDAEDBAYCAQMAAAAAAADwPwMCCwMDAwMDAwEDAAAAAAAA8D8DAgUBBgQCBAUMCQMqDgQGAwEDAAAAAAAA8D8DCgIWBQwAAAMDBgMBAwAAAAAAAPA/AwoCFgUMBAADAwYDAQMAAAAAAADwPwMKAhYFDAgAAwMCFwMFDAUMAAAACwYPBgUGAgkDEQ4BBgEKAhQFCgAAAwkDJg4BAhUBAwMDCQMmDgECFQEDAwEDAAAAAAAA4D8DAgYFBgIJAxIOAQYBCgIUBQoAAAMJAyYOAQIVAQMDAwkDJg4BAhUBAwMBAwAAAAAAAOA/AwICBQEGBAIEBQwJAyoOBAEDAAAAAAAAAAADAQMAAAAAAAAAAAMBAwAAAAAAAOg/AwEDAAAAAAAA8D8DBQwFDAAAAAsGDwYFBgIJAxEOAQYBCgIUBQoEAAMJAyYOAQIVAQMDAwkDJg4BAhUBAwMBAwAAAAAAAOA/AwIGBQYCCQMSDgEGAQoCFAUKBAADCQMmDgECFQEDAwMJAyYOAQIVAQMDAQMAAAAAAADgPwMCAgUBBgQCBAUMCQMqDgQBAwAAAAAAAAAAAwEDAAAAAAAAAAADAQMAAAAAAADoPwMBAwAAAAAAAPA/AwUMBQwAAAAA";
 components_stage_ScrubberShader.SRC = "HXSLH2NvbXBvbmVudHMuc3RhZ2UuU2NydWJiZXJTaGFkZXIKAQVpbnB1dA0BAQICdXYFCgEBAAEAAAMMY2FsY3VsYXRlZFVWBQoEAAAECnBpeGVsQ29sb3IFDAQAAAUJc3BlY0NvbG9yBQsEAAAGBWZyYW1lAQIAAAcEZmxhZwECAAAIDG1pbkxlZnRWYWx1ZQECAAAJBXJhdGlvAwIAAAoGdmVydGV4DgYAAAsIZnJhZ21lbnQOBgAAAgAKAAAFAQYEAgMFCgICBQoFCgABCwAABQQIDAh1dk9mZnNldAUKBAAAAgMFCgAIDQZvZmZzZXQDBAAABgAJAyYOAQQGAwIGAQIIAQEBAwQJAxEOAQYCCgIMBQoAAAMCCQMDAwMDAAYEAgQFDAkDKg4EAQMAAAAAAADoPwMBAwAAAAAAAOg/AwEDAAAAAAAA6D8DAQMAAAAAAADwPwMFDAUMCwYJAg0DAQMAAAAAAAAAAAMCBQEGBAIEBQwJAyoOBAEDzczMzMzM5D8DAQNmZmZmZmbWPwMBA2ZmZmZmZtY/AwEDAAAAAAAA8D8DBQwFDAALBgUCDQMJAyYOAQIGAQMCBQEGBAIEBQwJAyoOBAEDMzMzMzMzwz8DAQMAAAAAAADoPwMBAzMzMzMzM8M/AwEDAAAAAAAA8D8DBQwFDAALBgUCDQMJAyYOAQIHAQMCBQEGBAIEBQwJAyoOBAEDzczMzMzM5D8DAQPNzMzMzMzkPwMBA2ZmZmZmZtY/AwEDAAAAAAAA8D8DBQwFDAALBgUGEwINAwEDAAAAAAAgzEADAwEDAAAAAAAAAAADAgUBBgQCBAUMCQMqDgQBAzMzMzMzM+M/AwEDmpmZmZmZyT8DAQMAAAAAAADwPwMBAwAAAAAAAPA/AwUMBQwACwYFBhMCDQMBAwAAAAAAwKJAAwMBAwAAAAAAAAAAAwIFAQYEAgQFDAkDKg4EAQPNzMzMzMzkPwMBA2ZmZmZmZtY/AwEDZmZmZmZm1j8DAQMAAAAAAADwPwMFDAUMAAsGBQYTAg0DAQMAAAAAAABEQAMDAQMAAAAAAAAAAAMCBQEGBAIEBQwJAyoOBAEDZmZmZmZm1j8DAQNmZmZmZmbWPwMBA83MzMzMzOQ/AwEDAAAAAAAA8D8DBQwFDAALBgUGEwINAwEDAAAAAAAAJEADAwEDAAAAAAAAAAADAgUBBgQCBAUMCQMqDgQBA83MzMzMzNw/AwEDzczMzMzM3D8DAQPNzMzMzMzcPwMBAwAAAAAAAPA/AwUMBQwACwYFBhMCDQMBAwAAAAAAAABAAwMBAwAAAAAAAAAAAwIFAQYEAgQFDAkDKg4EAQPNzMzMzMzkPwMBA83MzMzMzOQ/AwEDzczMzMzM5D8DAQMAAAAAAADwPwMFDAUMAAAAAAAAAAAAAAA";
 hxlr_engine_Cell.cellList = [];
 hxlr_engine_Grid.lineCount = 0;
