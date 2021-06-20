@@ -237,6 +237,11 @@ $hxClasses["Main"] = Main;
 Main.__name__ = "Main";
 Main.main = function() {
 	Main.build = "Release";
+	var month = new Date().getMonth();
+	var day = new Date().getDate();
+	if(month == 7 && day == 16) {
+		hxlr_Constants.names.unshift("Boo");
+	}
 	new Main();
 };
 Main.__super__ = hxd_App;
@@ -286,8 +291,9 @@ Main.prototype = $extend(hxd_App.prototype,{
 		var _this = Main.toolbar;
 		_this.posChanged = true;
 		_this.y = 3;
+		var firstRider = Main.riders.addNewRider(new h2d_col_Point(0,0));
 		Main.camera = new components_stage_Camera();
-		Main.camera.set_riderFollow("Bosh");
+		Main.camera.set_riderFollow(firstRider.name);
 		hxd_Window.getInstance().set_title("OpenLR - " + Main.build);
 		Main.console = new components_stage_LRConsole(hxd_res_DefaultFont.get(),this.s2d);
 		this.setConsoleActions();
@@ -479,11 +485,11 @@ Main.prototype = $extend(hxd_App.prototype,{
 		});
 		var arg27 = { t : h2d_ConsoleArg.AInt, opt : true, name : "Enable frame"};
 		var arg28 = { t : h2d_ConsoleArg.AInt, opt : true, name : "End frame"};
-		Main.console.addCommand("addNewRider","Add new rider to sim",[arg15,arg16,arg17,arg27,arg28],function(_name,_x,_y,_en,_ds) {
+		Main.console.addCommand("addNewRider","Add new rider to sim",[arg16,arg17,arg15,arg27,arg28],function(_name,_x,_y,_en,_ds) {
 			var x = _x == null ? Main.canvas.get_mouseX() : _x;
 			var y = _y == null ? Main.canvas.get_mouseY() : _y;
 			var startFrame = _en == null ? Main.simulation.frames - 1 : _en;
-			Main.riders.addNewRider(_name,new h2d_col_Point(x,y),startFrame,_ds);
+			Main.riders.addNewRider(new h2d_col_Point(x,y),_name,startFrame,_ds);
 		});
 		Main.console.addCommand("listRiderInfo","Print all riders and info into console",[],function() {
 			Main.console.log("===");
@@ -578,7 +584,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 			}
 			hxlr_engine_Grid.deleteTrack();
 			Main.riders.deleteAllRiders();
-			Main.riders.addNewRider("Bosh",new h2d_col_Point(0,0));
+			Main.riders.addNewRider(new h2d_col_Point(0,0));
 			Main.trackName = null;
 		});
 		var arg24 = { t : h2d_ConsoleArg.AString, opt : false, name : "Rider name"};
@@ -1289,17 +1295,28 @@ components_managers_Musicplayer.prototype = {
 var components_managers_Riders = function() {
 	this.riderCount = 0;
 	this.riders = new haxe_ds_StringMap();
-	var defaultRider = new components_sledder_Bosh();
-	this.riders.h[defaultRider.name] = defaultRider;
-	++this.riderCount;
 };
 $hxClasses["components.managers.Riders"] = components_managers_Riders;
 components_managers_Riders.__name__ = "components.managers.Riders";
 components_managers_Riders.prototype = {
 	deleteAllRiders: function() {
+		var h = this.riders.h;
+		var rider_h = h;
+		var rider_keys = Object.keys(h);
+		var rider_length = rider_keys.length;
+		var rider_current = 0;
+		while(rider_current < rider_length) {
+			var rider = rider_h[rider_keys[rider_current++]];
+			rider.delete();
+			var key = rider.name;
+			var _this = this.riders;
+			if(Object.prototype.hasOwnProperty.call(_this.h,key)) {
+				delete(_this.h[key]);
+			}
+		}
 	}
-	,addNewRider: function(_name,_start,_startFrame,_endFrame) {
-		var setName = _name;
+	,addNewRider: function(_start,_name,_startFrame,_endFrame) {
+		var setName = _name == null ? hxlr_Constants.names[this.riderCount % hxlr_Constants.names.length] : _name;
 		if(setName.length > 30) {
 			setName = HxOverrides.substr(setName,0,30);
 		}
@@ -1309,11 +1326,11 @@ components_managers_Riders.prototype = {
 			Main.console.log("Rider name " + setName + " already occupied, renaming to " + (setName + occupiedSpace));
 			setName += "" + occupiedSpace;
 		}
-		var this1 = this.riders;
-		var v = new components_sledder_Bosh(_start.x,_start.y,setName,_startFrame,_endFrame);
-		this1.h[setName] = v;
+		var rider = new components_sledder_Bosh(_start.x,_start.y,setName,_startFrame,_endFrame);
+		this.riders.h[setName] = rider;
 		++this.riderCount;
 		Main.simulation.recordGlobalSimState();
+		return rider;
 	}
 	,renameRider: function(_old,_new) {
 		if(this.riders.h[_old] == null) {
@@ -1639,6 +1656,8 @@ hxlr_rider_RiderBase.prototype = {
 	}
 	,step: function() {
 	}
+	,'delete': function() {
+	}
 	,collide: function() {
 		var _g = 0;
 		var _g1 = this.contactPoints;
@@ -1706,9 +1725,6 @@ h3d_Vector.prototype = {
 	__class__: h3d_Vector
 };
 var components_sledder_Bosh = function(_x,_y,_name,_enable,_disable) {
-	if(_name == null) {
-		_name = "Bosh";
-	}
 	if(_y == null) {
 		_y = 0.0;
 	}
@@ -1753,7 +1769,41 @@ $hxClasses["components.sledder.Bosh"] = components_sledder_Bosh;
 components_sledder_Bosh.__name__ = "components.sledder.Bosh";
 components_sledder_Bosh.__super__ = hxlr_rider_RiderBase;
 components_sledder_Bosh.prototype = $extend(hxlr_rider_RiderBase.prototype,{
-	step: function() {
+	'delete': function() {
+		var _this = this.leftArm;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.rightArm;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.leftLeg;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.rightLeg;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.sled;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.body;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.neckscarf;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+		var _this = this.nameField;
+		if(_this != null && _this.parent != null) {
+			_this.parent.removeChild(_this);
+		}
+	}
+	,step: function() {
 		if(this.enabled) {
 			if((this.enabledFrame == null || Main.simulation.frames >= this.enabledFrame) && (this.disableFrame == null || Main.simulation.frames < this.disableFrame)) {
 				this.iterate();
@@ -2101,6 +2151,15 @@ h2d_Object.prototype = {
 		m.x = this.absX;
 		m.y = this.absY;
 		return m;
+	}
+	,contains: function(o) {
+		while(o != null) {
+			o = o.parent;
+			if(o == this) {
+				return true;
+			}
+		}
+		return false;
 	}
 	,getBoundsRec: function(relativeTo,out,forSize) {
 		if(this.posChanged) {
@@ -3198,8 +3257,8 @@ var components_stage_Canvas = function(_parent) {
 	this.drawMode = components_stage_DrawMode.FULL_EDIT;
 	this.lineBitmaps = new haxe_ds_ObjectMap();
 	h2d_Object.call(this,_parent);
-	this.sceneLayer = new h2d_Graphics(this);
-	this.rideLayer = new h2d_Graphics(this);
+	this.sceneLayer = new h2d_Object(this);
+	this.rideLayer = new h2d_Object(this);
 	this.previewLayer = new h2d_Graphics(this);
 	this.sledderLayer = new h2d_Object(this);
 	this.sledderGFX = new h2d_Graphics(this.sledderLayer);
@@ -3245,104 +3304,13 @@ components_stage_Canvas.prototype = $extend(h2d_Object.prototype,{
 		this.y += -(oldMouseY * (newScale - oldScale));
 	}
 	,drawPreviewLine: function(_line) {
-		this.previewLayer.clear();
-		var lineCapRadius = 0.0025;
-		var lineCapSegment = 15;
-		switch(_line.type) {
-		case 0:
-			this.previewLayer.lineStyle(2,26367);
-			var _this = this.previewLayer;
-			var x = _line.start.x + _line.nx;
-			var y = _line.start.y + _line.ny;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x + _line.nx;
-			var y = _line.end.y + _line.ny;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			this.previewLayer.lineStyle(2,0);
-			var _this = this.previewLayer;
-			var x = _line.start.x;
-			var y = _line.start.y;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x;
-			var y = _line.end.y;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			this.previewLayer.drawCircle(_line.start.x,_line.start.y,lineCapRadius,lineCapSegment);
-			this.previewLayer.drawCircle(_line.end.x,_line.end.y,lineCapRadius,lineCapSegment);
-			break;
-		case 1:
-			this.previewLayer.lineStyle(2,13369344);
-			var _this = this.previewLayer;
-			var x = _line.start.x + _line.nx;
-			var y = _line.start.y + _line.ny;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x + _line.nx;
-			var y = _line.end.y + _line.ny;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x + (_line.nx * 4 - _line.dx * _line.invDistance * 5);
-			var y = _line.end.y + (_line.ny * 4 - _line.dy * _line.invDistance * 5);
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x - _line.dx * _line.invDistance * 5;
-			var y = _line.end.y - _line.dy * _line.invDistance * 5;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			this.previewLayer.lineStyle(2,0);
-			var _this = this.previewLayer;
-			var x = _line.start.x;
-			var y = _line.start.y;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x;
-			var y = _line.end.y;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			this.previewLayer.drawCircle(_line.start.x,_line.start.y,lineCapRadius,lineCapSegment);
-			this.previewLayer.drawCircle(_line.end.x,_line.end.y,lineCapRadius,lineCapSegment);
-			break;
-		case 2:
-			this.previewLayer.lineStyle(2,0);
-			var _this = this.previewLayer;
-			var x = _line.start.x;
-			var y = _line.start.y;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x;
-			var y = _line.end.y;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			this.previewLayer.drawCircle(_line.start.x,_line.start.y,lineCapRadius,lineCapSegment);
-			this.previewLayer.drawCircle(_line.end.x,_line.end.y,lineCapRadius,lineCapSegment);
-			this.previewLayer.lineStyle(2,52224);
-			var _this = this.previewLayer;
-			var x = _line.start.x;
-			var y = _line.start.y;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x;
-			var y = _line.end.y;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			this.previewLayer.drawCircle(_line.start.x,_line.start.y,lineCapRadius,lineCapSegment);
-			this.previewLayer.drawCircle(_line.end.x,_line.end.y,lineCapRadius,lineCapSegment);
-			break;
-		default:
-			this.previewLayer.lineStyle(1,16711680);
-			var _this = this.previewLayer;
-			var x = _line.start.x;
-			var y = _line.start.y;
-			_this.flush();
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
-			var _this = this.previewLayer;
-			var x = _line.end.x;
-			var y = _line.end.y;
-			_this.addVertex(x,y,_this.curR,_this.curG,_this.curB,_this.curA,x * _this.ma + y * _this.mc + _this.mx,x * _this.mb + y * _this.md + _this.my);
+		if(this.previewLayer.contains(this.previewLine)) {
+			var _this = this.previewLine;
+			if(_this != null && _this.parent != null) {
+				_this.parent.removeChild(_this);
+			}
 		}
+		this.previewLine = new components_stage_VisLine(_line,this.previewLayer);
 	}
 	,addVisLine: function(_line) {
 		var line = null;
@@ -3366,6 +3334,13 @@ components_stage_Canvas.prototype = $extend(h2d_Object.prototype,{
 		this.lineBitmaps.remove(_line);
 	}
 	,trashTrack: function() {
+		var _g = 0;
+		var _g1 = hxlr_engine_Grid.lines;
+		while(_g < _g1.length) {
+			var line = _g1[_g];
+			++_g;
+			this.removeVisLine(line);
+		}
 	}
 	,get_drawMode: function() {
 		return this.drawMode;
@@ -3460,20 +3435,24 @@ var h2d_Console = function(font,parent) {
 	_this.posChanged = true;
 	_this.y = 1;
 	this.tf.set_textColor(-1);
-	this.commands = new haxe_ds_StringMap();
-	this.aliases = new haxe_ds_StringMap();
-	this.addCommand("help","Show help",[{ name : "command", t : h2d_ConsoleArg.AString, opt : true}],$bind(this,this.showHelp));
-	this.addCommand("cls","Clear console",[],function() {
-		_gthis.logs = [];
-		_gthis.logTxt.set_text("");
-	});
-	this.addAlias("?","help");
+	this.resetCommands();
 };
 $hxClasses["h2d.Console"] = h2d_Console;
 h2d_Console.__name__ = "h2d.Console";
 h2d_Console.__super__ = h2d_Object;
 h2d_Console.prototype = $extend(h2d_Object.prototype,{
-	addCommand: function(name,help,args,callb) {
+	resetCommands: function() {
+		var _gthis = this;
+		this.commands = new haxe_ds_StringMap();
+		this.aliases = new haxe_ds_StringMap();
+		this.addCommand("help","Show help",[{ name : "command", t : h2d_ConsoleArg.AString, opt : true}],$bind(this,this.showHelp));
+		this.addCommand("cls","Clear console",[],function() {
+			_gthis.logs = [];
+			_gthis.logTxt.set_text("");
+		});
+		this.addAlias("?","help");
+	}
+	,addCommand: function(name,help,args,callb) {
 		this.commands.h[name] = { help : help == null ? "" : help, args : args, callb : callb};
 	}
 	,addAlias: function(name,command) {
@@ -4011,8 +3990,8 @@ hxsl_Shader.prototype = {
 	,__class__: hxsl_Shader
 };
 var components_stage_CapShader = function() {
+	this.dirDependant__ = 0;
 	this.cap__ = 1;
-	this.radius__ = 1;
 	this.lineLength__ = 0;
 	hxsl_Shader.call(this);
 };
@@ -4029,20 +4008,16 @@ components_stage_CapShader.prototype = $extend(hxsl_Shader.prototype,{
 		case 0:
 			return this.lineLength__;
 		case 1:
-			return this.radius__;
-		case 2:
 			return this.cap__;
+		case 2:
+			return this.dirDependant__;
 		default:
 		}
 		return null;
 	}
 	,getParamFloatValue: function(index) {
-		switch(index) {
-		case 0:
+		if(index == 0) {
 			return this.lineLength__;
-		case 1:
-			return this.radius__;
-		default:
 		}
 		return 0.;
 	}
@@ -4092,6 +4067,25 @@ components_stage_ColorShader.prototype = $extend(hxsl_Shader.prototype,{
 	}
 	,__class__: components_stage_ColorShader
 });
+var components_stage_EndFlagShader = function() {
+	hxsl_Shader.call(this);
+};
+$hxClasses["components.stage.EndFlagShader"] = components_stage_EndFlagShader;
+components_stage_EndFlagShader.__name__ = "components.stage.EndFlagShader";
+components_stage_EndFlagShader.__super__ = hxsl_Shader;
+components_stage_EndFlagShader.prototype = $extend(hxsl_Shader.prototype,{
+	updateConstants: function(globals) {
+		this.constBits = 0;
+		this.updateConstantsFinal(globals);
+	}
+	,getParamValue: function(index) {
+		return null;
+	}
+	,getParamFloatValue: function(index) {
+		return 0.;
+	}
+	,__class__: components_stage_EndFlagShader
+});
 var components_stage_Ruler = function(_parent) {
 	this.enabled = true;
 	this.color = 13421772;
@@ -4109,8 +4103,6 @@ components_stage_Ruler.prototype = $extend(h2d_Object.prototype,{
 	,update: function() {
 		this.shader.ratioX__ = 1 / Main.rootScene.width;
 		this.shader.ratioY__ = 1 / Main.rootScene.height;
-		this.shader.midFloatX__ = 1 / Main.rootScene.width * ((Main.rootScene.width % 2 == 0 ? Main.rootScene.width - 1 : Main.rootScene.width) / 2);
-		this.shader.midFloatY__ = 1 / Main.rootScene.height * ((Main.rootScene.height % 2 == 0 ? Main.rootScene.height - 1 : Main.rootScene.height) / 2);
 		this.shader.bg_r__ = (this.color >> 16) / 255;
 		this.shader.bg_g__ = (this.color >> 8 & 255) / 255;
 		this.shader.bg_b__ = (this.color & 255) / 255;
@@ -4126,8 +4118,6 @@ var components_stage_RulerShader = function() {
 	this.enabled__ = 1;
 	this.ratioY__ = 1;
 	this.ratioX__ = 1;
-	this.midFloatY__ = 0.5;
-	this.midFloatX__ = 0.5;
 	this.size__ = 0;
 	this.scale__ = 0;
 	this.offsetY__ = 0;
@@ -4162,14 +4152,10 @@ components_stage_RulerShader.prototype = $extend(hxsl_Shader.prototype,{
 		case 6:
 			return this.size__;
 		case 7:
-			return this.midFloatX__;
-		case 8:
-			return this.midFloatY__;
-		case 9:
 			return this.ratioX__;
-		case 10:
+		case 8:
 			return this.ratioY__;
-		case 11:
+		case 9:
 			return this.enabled__;
 		default:
 		}
@@ -4190,12 +4176,8 @@ components_stage_RulerShader.prototype = $extend(hxsl_Shader.prototype,{
 		case 5:
 			return this.scale__;
 		case 7:
-			return this.midFloatX__;
-		case 8:
-			return this.midFloatY__;
-		case 9:
 			return this.ratioX__;
-		case 10:
+		case 8:
 			return this.ratioY__;
 		default:
 		}
@@ -4533,7 +4515,21 @@ var components_stage_VisLine = function(_line,_parent) {
 	this.rotation = v;
 	this.bitmap.addShader(this.capShader = new components_stage_CapShader());
 	this.capShader.lineLength__ = _line.get_length() + 2;
-	this.capShader.radius__ = 1;
+	if(_line.type == 1) {
+		this.capShader.dirDependant__ = 1;
+		this.redFlag = new h2d_Bitmap(h2d_Tile.fromColor(13369344,5,4));
+		this.bitmap.addChildAt(this.redFlag,0);
+		var _this = this.redFlag;
+		_this.posChanged = true;
+		_this.y = 1;
+		var _this = this.redFlag;
+		_this.posChanged = true;
+		_this.x = this.bitmap.width - 5;
+		this.redFlag.addShader(new components_stage_EndFlagShader());
+		var _this = this.redFlag;
+		_this.posChanged = true;
+		_this.scaleY = _line.shifted ? -1 : 1;
+	}
 	switch(_line.type) {
 	case 0:
 		if(_line.shifted) {
@@ -4570,6 +4566,10 @@ var components_stage_VisLine = function(_line,_parent) {
 		this.bitmap.addShader(components_stage_VisLine.greenShader);
 		break;
 	default:
+		if(components_stage_VisLine.invalidShader == null) {
+			components_stage_VisLine.invalidShader = new components_stage_ColorShader(components_stage_VisLine.redRED,1);
+		}
+		this.bitmap.addShader(components_stage_VisLine.invalidShader);
 	}
 };
 $hxClasses["components.stage.VisLine"] = components_stage_VisLine;
@@ -4755,7 +4755,10 @@ components_tool_ToolBehavior.prototype = {
 	}
 	,updatePreview: function() {
 		if(!this.leftIsDown && !this.rightIsDown) {
-			Main.canvas.previewLayer.clear();
+			var _this = Main.canvas.previewLine;
+			if(_this != null && _this.parent != null) {
+				_this.parent.removeChild(_this);
+			}
 			return;
 		}
 		if(this.tool == components_tool_ToolMode.ERASER) {
@@ -4942,7 +4945,7 @@ components_tool_ToolBehavior.prototype = {
 			hxlr_engine_Grid.register(line);
 			Main.canvas.addVisLine(line);
 		} else if(this.rightIsDown) {
-			var line = hxlr_engine_Grid.createLineObject(type,this.mouseStart.x,this.mouseStart.y,this.mouseEnd.x,this.mouseEnd.y,!this.shifted);
+			var line = hxlr_engine_Grid.createLineObject(type,this.mouseEnd.x,this.mouseEnd.y,this.mouseStart.x,this.mouseStart.y,!this.shifted);
 			hxlr_engine_Grid.register(line);
 			Main.canvas.addVisLine(line);
 		}
@@ -5573,8 +5576,8 @@ var components_ui_Toolbar = function(parent) {
 		Main.toolControl.setToolEraser();
 	};
 	this.trash.onClick = function() {
-		hxlr_engine_Grid.deleteTrack();
 		Main.canvas.trashTrack();
+		hxlr_engine_Grid.deleteTrack();
 	};
 	this.blue.onClick = function() {
 		Main.toolControl.setColorMode(0);
@@ -6102,7 +6105,7 @@ file_SaveLoad.prototype = {
 		while(_g < _g1.length) {
 			var rider = _g1[_g];
 			++_g;
-			Main.riders.addNewRider(rider.name,rider.startPoint,rider.startFrame,rider.stopFrame);
+			Main.riders.addNewRider(rider.startPoint,rider.name,rider.startFrame,rider.stopFrame);
 			var bosh = js_Boot.__cast(Main.riders.riders.h[rider.name] , components_sledder_Bosh);
 			bosh.setColor(rider.colora,rider.colorb);
 		}
@@ -9014,7 +9017,7 @@ h2d_Flow.prototype = $extend(h2d_Object.prototype,{
 		var k = 0;
 		while(this.children.length > k) {
 			var c = this.children[k];
-			if(c == this.background || c == this.interactive || c == this.debugGraphics) {
+			if(c == this.background || c == this.interactive || c == this.debugGraphics || c == this.scrollBar) {
 				++k;
 			} else {
 				this.removeChild(c);
@@ -11782,30 +11785,6 @@ h2d_Graphics.prototype = $extend(h2d_Drawable.prototype,{
 		this.tmpPoints[3].x += e;
 		this.tmpPoints[4].x += e;
 		this.tmpPoints[4].y += e;
-		this.flush();
-	}
-	,drawCircle: function(cx,cy,radius,nsegments) {
-		if(nsegments == null) {
-			nsegments = 0;
-		}
-		this.flush();
-		if(nsegments == 0) {
-			var f = radius * 3.14 * 2 / 4;
-			nsegments = Math.ceil(f < 0 ? -f : f);
-		}
-		if(nsegments < 3) {
-			nsegments = 3;
-		}
-		var angle = 6.2831853071795862 / nsegments;
-		var _g = 0;
-		var _g1 = nsegments + 1;
-		while(_g < _g1) {
-			var i = _g++;
-			var a = i * angle;
-			var x = cx + Math.cos(a) * radius;
-			var y = cy + Math.sin(a) * radius;
-			this.addVertex(x,y,this.curR,this.curG,this.curB,this.curA,x * this.ma + y * this.mc + this.mx,x * this.mb + y * this.md + this.my);
-		}
 		this.flush();
 	}
 	,addVertex: function(x,y,r,g,b,a,u,v) {
@@ -34763,6 +34742,7 @@ hxd_Timer.skip = function() {
 };
 var hxd_Window = function(canvas,globalEvents) {
 	this.useScreenPixels = js_Browser.get_supported();
+	this._mouseLock = false;
 	this.curMouseY = 0.;
 	this.curMouseX = 0.;
 	var _gthis = this;
@@ -34817,6 +34797,7 @@ var hxd_Window = function(canvas,globalEvents) {
 		_g1(b1);
 	};
 	this.element.addEventListener("focus",tmp);
+	this.element.addEventListener("resize",$bind(this,this.checkResize));
 	canvas.oncontextmenu = function(e) {
 		e.stopPropagation();
 		e.preventDefault();
@@ -34930,8 +34911,15 @@ hxd_Window.prototype = {
 	,get_mouseY: function() {
 		return Math.round((this.curMouseY - this.canvasPos.top) * this.getPixelRatio());
 	}
+	,get_mouseLock: function() {
+		return this._mouseLock;
+	}
 	,onMouseDown: function(e) {
-		if(e.clientX != this.curMouseX || e.clientY != this.curMouseY) {
+		if(this.get_mouseLock()) {
+			if(e.movementX != 0 || e.movementY != 0) {
+				this.onMouseMove(e);
+			}
+		} else if(e.clientX != this.curMouseX || e.clientY != this.curMouseY) {
 			this.onMouseMove(e);
 		}
 		var ev = new hxd_Event(hxd_EventKind.EPush,this.get_mouseX(),this.get_mouseY());
@@ -34952,7 +34940,11 @@ hxd_Window.prototype = {
 		this.event(ev);
 	}
 	,onMouseUp: function(e) {
-		if(e.clientX != this.curMouseX || e.clientY != this.curMouseY) {
+		if(this.get_mouseLock()) {
+			if(e.movementX != 0 || e.movementY != 0) {
+				this.onMouseMove(e);
+			}
+		} else if(e.clientX != this.curMouseX || e.clientY != this.curMouseY) {
 			this.onMouseMove(e);
 		}
 		var ev = new hxd_Event(hxd_EventKind.ERelease,this.get_mouseX(),this.get_mouseY());
@@ -34973,8 +34965,13 @@ hxd_Window.prototype = {
 		this.event(ev);
 	}
 	,onMouseMove: function(e) {
-		this.curMouseX = e.clientX;
-		this.curMouseY = e.clientY;
+		if(this.get_mouseLock()) {
+			this.curMouseX += e.movementX;
+			this.curMouseY += e.movementY;
+		} else {
+			this.curMouseX = e.clientX;
+			this.curMouseY = e.clientY;
+		}
 		this.event(new hxd_Event(hxd_EventKind.EMove,this.get_mouseX(),this.get_mouseY()));
 	}
 	,onMouseWheel: function(e) {
@@ -41811,6 +41808,7 @@ var hxlr_lines_LineObject = function(_start,_end,_shift,_lim) {
 	this.limEnd = 0;
 	this.limStart = 0;
 	this.limType = 0;
+	this.multiplier = 1;
 	this.zone = 10;
 	this.tangible = false;
 	hxlr_math_geom_Line.call(this,_start,_end);
@@ -41905,8 +41903,8 @@ hxlr_lines_Accel.__super__ = hxlr_lines_LineObject;
 hxlr_lines_Accel.prototype = $extend(hxlr_lines_LineObject.prototype,{
 	calculateConstants: function() {
 		hxlr_lines_LineObject.prototype.calculateConstants.call(this);
-		this.accx = this.ny * this.accConst * (this.shifted ? 1 : -1);
-		this.accy = this.nx * this.accConst * (this.shifted ? -1 : 1);
+		this.accx = this.ny * (this.accConst * this.get_multiplier()) * (this.shifted ? 1 : -1);
+		this.accy = this.nx * (this.accConst * this.get_multiplier()) * (this.shifted ? -1 : 1);
 	}
 	,collide: function(_point) {
 		var _loc5 = _point.pos.x - this.start.x;
@@ -41921,6 +41919,9 @@ hxlr_lines_Accel.prototype = $extend(hxlr_lines_LineObject.prototype,{
 				_point.vel.y = _point.vel.y - this.nx * _point.friction * _loc4 * (_point.vel.y < _point.pos.y ? -1 : 1) + this.accy;
 			}
 		}
+	}
+	,get_multiplier: function() {
+		return this.multiplier;
 	}
 	,__class__: hxlr_lines_Accel
 });
@@ -41967,6 +41968,7 @@ hxlr_lines_Scenery.prototype = $extend(hxlr_lines_LineObject.prototype,{
 });
 var hxlr_lines_Undefined = function(_start,_end) {
 	hxlr_lines_LineObject.call(this,_start,_end);
+	this.type = -1;
 };
 $hxClasses["hxlr.lines.Undefined"] = hxlr_lines_Undefined;
 hxlr_lines_Undefined.__name__ = "hxlr.lines.Undefined";
@@ -49409,12 +49411,16 @@ hxsl_GlslOut.prototype = {
 		this.decls = [];
 		this.buf = new StringBuf();
 		this.exprValues = [];
-		this.decl("precision mediump float;");
 		if(s.funs.length != 1) {
 			throw haxe_Exception.thrown("assert");
 		}
 		var f = s.funs[0];
 		this.isVertex = f.kind == hxsl_FunctionKind.Vertex;
+		if(this.isVertex) {
+			this.decl("precision highp float;");
+		} else {
+			this.decl("precision mediump float;");
+		}
 		this.initVars(s);
 		var tmp = this.buf;
 		this.buf = new StringBuf();
@@ -51949,12 +51955,14 @@ Xml.Document = 6;
 components_sledder_Bosh.WHITE = new h3d_Vector(1,1,1,1);
 components_sledder_Bosh.RED = new h3d_Vector(1,0,0,1);
 h2d_Console.HIDE_LOG_TIMEOUT = 3.;
-components_stage_CapShader.SRC = "HXSLGmNvbXBvbmVudHMuc3RhZ2UuQ2FwU2hhZGVyCQEFaW5wdXQNAQECAnV2BQoBAQABAAADDGNhbGN1bGF0ZWRVVgUKBAAABApwaXhlbENvbG9yBQwEAAAFCXNwZWNDb2xvcgULBAAABgpsaW5lTGVuZ3RoAwIAAAcGcmFkaXVzAwIAAAgDY2FwAQIAAAkGdmVydGV4DgYAAAoIZnJhZ21lbnQOBgAAAgAJAAAFAQYEAgMFCgICBQoFCgABCgAABQQICwJ1dgUKBAAAAgMFCgAIDARzaXplBQoEAAAJAygOAgIGAwEDAAAAAAAAAEADBQoACA0DcG9zBQoEAAAGAQILBQoCDAUKBQoACwYFAggBAQIBAAAAAQIFAgsGDgYJCgINBQoAAAMBAwAAAAAAAPA/AwIGBwkDGw4BBgMCDQUKCQMoDgIBAwAAAAAAAPA/AwEDAAAAAAAA8D8DBQoFCgMBAwAAAAAAAPA/AwICDAAAAAsGDgYHCgINBQoAAAMGAwIGAwEDAAAAAAAA8D8DAwIGBwkDGw4BBgMCDQUKCQMoDgIGAwIGAwEDAAAAAAAA8D8DAwEDAAAAAAAA8D8DBQoFCgMBAwAAAAAAAPA/AwICDAAAAAAAAAA";
+components_stage_CapShader.SRC = "HXSLGmNvbXBvbmVudHMuc3RhZ2UuQ2FwU2hhZGVyCQEFaW5wdXQNAQECAnV2BQoBAQABAAADDGNhbGN1bGF0ZWRVVgUKBAAABApwaXhlbENvbG9yBQwEAAAFCXNwZWNDb2xvcgULBAAABgpsaW5lTGVuZ3RoAwIAAAcDY2FwAQIAAAgMZGlyRGVwZW5kYW50AQIAAAkGdmVydGV4DgYAAAoIZnJhZ21lbnQOBgAAAgAJAAAFAQYEAgMFCgICBQoFCgABCgAABQUICwJ1dgUKBAAAAgMFCgAIDARzaXplBQoEAAAJAygOAgIGAwEDAAAAAAAAAEADBQoACA0DcG9zBQoEAAAGAQILBQoCDAUKBQoACwYFAgcBAQIBAAAAAQIFAgsGDgYJCgINBQoAAAMBAwAAAAAAAPA/AwIGBwkDGw4BBgMCDQUKCQMoDgIBAwAAAAAAAPA/AwEDAAAAAAAA8D8DBQoFCgMBAwAAAAAAAPA/AwICDAAAAAsGDgYHCgINBQoAAAMGAwIGAwEDAAAAAAAA8D8DAwIGBwkDGw4BBgMCDQUKCQMoDgIGAwIGAwEDAAAAAAAA8D8DAwEDAAAAAAAA8D8DBQoFCgMBAwAAAAAAAPA/AwICDAAAAAAAAAsGBgIIAQECAAAAAAECBQAAAAAA";
 components_stage_ColorShader.SRC = "HXSLHGNvbXBvbmVudHMuc3RhZ2UuQ29sb3JTaGFkZXILAQZyZW5kZXINAQECBG1vZGUBAAEAAAAAAwVpbnB1dA0CAQQCdXYFCgEDAAEAAAUMY2FsY3VsYXRlZFVWBQoEAAAGCnBpeGVsQ29sb3IFDAQAAAcJc3BlY0NvbG9yBQsEAAAICWVkaXRDb2xvcgULAgAACQlwbGF5Q29sb3IFCwIAAAoIZWRpdE1vZGUBAgAACwNpbnYBAgAADAZ2ZXJ0ZXgOBgAADQhmcmFnbWVudA4GAAACAAwAAAUBBgQCBQUKAgQFCgUKAAENAAAFAwgOAnV2BQoEAAACBQUKAAYEAgYFDAkDKg4CAgkFCwEDAAAAAAAA8D8DBQwFDAsGBQICAQECAAAAAAECBQELBgUCCgEBAgAAAAABAgUBCwYFAgsBAQIAAAAAAQIFAQsGBwoCDgUKBAADAQMAAAAAAADgPwMCBQEGBAIGBQwJAyoOAgIIBQsBAwAAAAAAAPA/AwUMBQwAAAAABQELBgkKAg4FCgQAAwEDAAAAAAAA4D8DAgUBBgQCBgUMCQMqDgICCAULAQMAAAAAAADwPwMFDAUMAAAAAAAABQEGBAIGBQwJAyoOAgIIBQsBAwAAAAAAANA/AwUMBQwAAAAFAQYEAgYFDAkDKg4CAgkFCwEDAAAAAAAA8D8DBQwFDAAAAA";
-components_stage_RulerShader.SRC = "HXSLHGNvbXBvbmVudHMuc3RhZ2UuUnVsZXJTaGFkZXISAQVpbnB1dA0BAQICdXYFCgEBAAEAAAMMY2FsY3VsYXRlZFVWBQoEAAAECnBpeGVsQ29sb3IFDAQAAAUJc3BlY0NvbG9yBQsEAAAGBGJnX3IDAgAABwRiZ19nAwIAAAgEYmdfYgMCAAAJB29mZnNldFgDAgAACgdvZmZzZXRZAwIAAAsFc2NhbGUDAgAADARzaXplAQIAAA0JbWlkRmxvYXRYAwIAAA4JbWlkRmxvYXRZAwIAAA8GcmF0aW9YAwIAABAGcmF0aW9ZAwIAABEHZW5hYmxlZAECAAASBnZlcnRleA4GAAATCGZyYWdtZW50DgYAAAIAEgAABQEGBAIDBQoCAgUKBQoAARMAAAUJCBQIdXZPZmZzZXQFCgQAAAIDBQoABoMKAhQFCgAAAwIJAwMGgwoCFAUKBAADAgoDAwgVA3RvbAEEAAABAugDAAABAAYEAgQFDAkDKg4EAgYDAgcDAggDAQMAAAAAAADwPwMFDAUMCwYFAhEBAQIAAAAAAQINAAAAAAgWBGNvcHkFDAQAAAIEBQwACBcEYWxwaAMEAAAJAxUOAgYCBAYBCQMmDgECDAEDBAYCAQMAAAAAAADwPwMCCwMDAwMDAQMAAAAAAAAIQAMDAQMAAAAAAADgPwMDAAsGCgYTBAYCBAYDCgIUBQoAAAMBAwAAAAAAAOA/AwMDAg8DAwMEBgEJAyYOAQIMAQMEBgIBAwAAAAAAAPA/AwILAwMDAwMDAQMAAAAAAADwPwMCBQEGBAIEBQwJAyoOBAYDAQMAAAAAAADwPwMKAhYFDAAAAwMGAwEDAAAAAAAA8D8DCgIWBQwEAAMDBgMBAwAAAAAAAPA/AwoCFgUMCAADAwIXAwUMBQwACwYKBhMEBgIEBgMKAhQFCgQAAwEDAAAAAAAA4D8DAwMCEAMDAwQGAQkDJg4BAgwBAwQGAgEDAAAAAAAA8D8DAgsDAwMDAwMBAwAAAAAAAPA/AwIFAQYEAgQFDAkDKg4EBgMBAwAAAAAAAPA/AwoCFgUMAAADAwYDAQMAAAAAAADwPwMKAhYFDAQAAwMGAwEDAAAAAAAA8D8DCgIWBQwIAAMDAhcDBQwFDAALBg4GCgYCBAYDCgIUBQoAAAMBAwAAAAAAAOA/AwMDAg8DAwEDAAAAAAAA8D8DAgYIBgIEBgMKAhQFCgAAAwEDAAAAAAAA4D8DAwMCDwMDAQMAAAAAAADwvwMCAgUBBgQCBAUMCQMqDgQBAwAAAAAAAAAAAwEDAAAAAAAAAAADAQMAAAAAAADoPwMBAwAAAAAAAPA/AwUMBQwACwYOBgoGAgQGAwoCFAUKBAADAQMAAAAAAADgPwMDAwIQAwMBAwAAAAAAAPA/AwIGCAYCBAYDCgIUBQoEAAMBAwAAAAAAAOA/AwMDAhADAwEDAAAAAAAA8L8DAgIFAQYEAgQFDAkDKg4EAQMAAAAAAAAAAAMBAwAAAAAAAAAAAwEDAAAAAAAA6D8DAQMAAAAAAADwPwMFDAUMAAUBDAAAAAAAAAA";
+components_stage_EndFlagShader.SRC = "HXSLHmNvbXBvbmVudHMuc3RhZ2UuRW5kRmxhZ1NoYWRlcgcBBnJlbmRlcg0BAQIEbW9kZQEAAQAAAAADBWlucHV0DQIBBAJ1dgUKAQMAAQAABQxjYWxjdWxhdGVkVVYFCgQAAAYKcGl4ZWxDb2xvcgUMBAAABwlzcGVjQ29sb3IFCwQAAAgGdmVydGV4DgYAAAkIZnJhZ21lbnQOBgAAAgAIAAAFAQYEAgUFCgIEBQoFCgABCQAABQELBgUCAgEBAgEAAAABAgwABQIICgJ1dgUKBAAAAgUFCgALBgcGAAoCCgUKAAADCgIKBQoEAAMDAQMAAAAAAADwPwMCDAAAAAAAAA";
+components_stage_RulerShader.SRC = "HXSLHGNvbXBvbmVudHMuc3RhZ2UuUnVsZXJTaGFkZXIQAQVpbnB1dA0BAQICdXYFCgEBAAEAAAMMY2FsY3VsYXRlZFVWBQoEAAAECnBpeGVsQ29sb3IFDAQAAAUJc3BlY0NvbG9yBQsEAAAGBGJnX3IDAgAABwRiZ19nAwIAAAgEYmdfYgMCAAAJB29mZnNldFgDAgAACgdvZmZzZXRZAwIAAAsFc2NhbGUDAgAADARzaXplAQIAAA0GcmF0aW9YAwIAAA4GcmF0aW9ZAwIAAA8HZW5hYmxlZAECAAAQBnZlcnRleA4GAAARCGZyYWdtZW50DgYAAAIAEAAABQEGBAIDBQoCAgUKBQoAAREAAAUJCBIIdXZPZmZzZXQFCgQAAAIDBQoABoMKAhIFCgAAAwIJAwMGgwoCEgUKBAADAgoDAwgTA3RvbAEEAAABAugDAAABAAYEAgQFDAkDKg4EAgYDAgcDAggDAQMAAAAAAADwPwMFDAUMCwYFAg8BAQIAAAAAAQINAAAAAAgUBGNvcHkFDAQAAAIEBQwACBUEYWxwaAMEAAAJAxUOAgYCBAYBCQMmDgECDAEDBAYCAQMAAAAAAADwPwMCCwMDAwMDAQMAAAAAAAAIQAMDAQMAAAAAAADgPwMDAAsGCgYTBAYCBAYDCgISBQoAAAMBAwAAAAAAAOA/AwMDAg0DAwMEBgEJAyYOAQIMAQMEBgIBAwAAAAAAAPA/AwILAwMDAwMDAQMAAAAAAADwPwMCBQEGBAIEBQwJAyoOBAYDAQMAAAAAAADwPwMKAhQFDAAAAwMGAwEDAAAAAAAA8D8DCgIUBQwEAAMDBgMBAwAAAAAAAPA/AwoCFAUMCAADAwIVAwUMBQwACwYKBhMEBgIEBgMKAhIFCgQAAwEDAAAAAAAA4D8DAwMCDgMDAwQGAQkDJg4BAgwBAwQGAgEDAAAAAAAA8D8DAgsDAwMDAwMBAwAAAAAAAPA/AwIFAQYEAgQFDAkDKg4EBgMBAwAAAAAAAPA/AwoCFAUMAAADAwYDAQMAAAAAAADwPwMKAhQFDAQAAwMGAwEDAAAAAAAA8D8DCgIUBQwIAAMDAhUDBQwFDAALBg4GCgYCBAYDCgISBQoAAAMBAwAAAAAAAOA/AwMDAg0DAwEDAAAAAAAA8D8DAgYIBgIEBgMKAhIFCgAAAwEDAAAAAAAA4D8DAwMCDQMDAQMAAAAAAADwvwMCAgUBBgQCBAUMCQMqDgQBAwAAAAAAAAAAAwEDAAAAAAAAAAADAQMAAAAAAADoPwMBAwAAAAAAAPA/AwUMBQwACwYOBgoGAgQGAwoCEgUKBAADAQMAAAAAAADgPwMDAwIOAwMBAwAAAAAAAPA/AwIGCAYCBAYDCgISBQoEAAMBAwAAAAAAAOA/AwMDAg4DAwEDAAAAAAAA8L8DAgIFAQYEAgQFDAkDKg4EAQMAAAAAAAAAAAMBAwAAAAAAAAAAAwEDAAAAAAAA6D8DAQMAAAAAAADwPwMFDAUMAAUBDAAAAAAAAAA";
 components_stage_ScrubberShader.SRC = "HXSLH2NvbXBvbmVudHMuc3RhZ2UuU2NydWJiZXJTaGFkZXIKAQVpbnB1dA0BAQICdXYFCgEBAAEAAAMMY2FsY3VsYXRlZFVWBQoEAAAECnBpeGVsQ29sb3IFDAQAAAUJc3BlY0NvbG9yBQsEAAAGBWZyYW1lAQIAAAcEZmxhZwECAAAIDG1pbkxlZnRWYWx1ZQECAAAJBXJhdGlvAwIAAAoGdmVydGV4DgYAAAsIZnJhZ21lbnQOBgAAAgAKAAAFAQYEAgMFCgICBQoFCgABCwAABQQIDAh1dk9mZnNldAUKBAAAAgMFCgAIDQZvZmZzZXQDBAAABgAJAyYOAQQGAwIGAQIIAQEBAwQJAxEOAQYCCgIMBQoAAAMCCQMDAwMDAAYEAgQFDAkDKg4EAQMAAAAAAADoPwMBAwAAAAAAAOg/AwEDAAAAAAAA6D8DAQMAAAAAAADwPwMFDAUMCwYJAg0DAQMAAAAAAAAAAAMCBQEGBAIEBQwJAyoOBAEDzczMzMzM5D8DAQNmZmZmZmbWPwMBA2ZmZmZmZtY/AwEDAAAAAAAA8D8DBQwFDAALBgUCDQMJAyYOAQIGAQMCBQEGBAIEBQwJAyoOBAEDMzMzMzMzwz8DAQMAAAAAAADoPwMBAzMzMzMzM8M/AwEDAAAAAAAA8D8DBQwFDAALBgUCDQMJAyYOAQIHAQMCBQEGBAIEBQwJAyoOBAEDZmZmZmZm7j8DAQNmZmZmZmbuPwMBA2ZmZmZmZtY/AwEDAAAAAAAA8D8DBQwFDAALBgUGEwINAwEDAAAAAAAgzEADAwEDAAAAAAAAAAADAgUBBgQCBAUMCQMqDgQBAzMzMzMzM+M/AwEDmpmZmZmZyT8DAQMAAAAAAADwPwMBAwAAAAAAAPA/AwUMBQwACwYFBhMCDQMBAwAAAAAAwKJAAwMBAwAAAAAAAAAAAwIFAQYEAgQFDAkDKg4EAQPNzMzMzMzkPwMBA2ZmZmZmZtY/AwEDZmZmZmZm1j8DAQMAAAAAAADwPwMFDAUMAAsGBQYTAg0DAQMAAAAAAABEQAMDAQMAAAAAAAAAAAMCBQEGBAIEBQwJAyoOBAEDZmZmZmZm1j8DAQNmZmZmZmbWPwMBA83MzMzMzOQ/AwEDAAAAAAAA8D8DBQwFDAALBgUGEwINAwEDAAAAAAAAJEADAwEDAAAAAAAAAAADAgUBBgQCBAUMCQMqDgQBA83MzMzMzNw/AwEDzczMzMzM3D8DAQPNzMzMzMzcPwMBAwAAAAAAAPA/AwUMBQwACwYFBhMCDQMBAwAAAAAAAABAAwMBAwAAAAAAAAAAAwIFAQYEAgQFDAkDKg4EAQPNzMzMzMzkPwMBA83MzMzMzOQ/AwEDzczMzMzM5D8DAQMAAAAAAADwPwMFDAUMAAAAAAAAAAAAAAA";
 components_stage_VisLine.blue = new h3d_Vector(0,0.4,1);
 components_stage_VisLine.red = new h3d_Vector(0.8,0,0);
+components_stage_VisLine.redRED = new h3d_Vector(1,0,0);
 components_stage_VisLine.green = new h3d_Vector(0,0.8,0);
 hxlr_engine_Cell.cellList = [];
 hxlr_engine_Grid.lineCount = 0;
@@ -52118,6 +52126,7 @@ hxlr_Constants.x_gravity = 0;
 hxlr_Constants.y_gravity = 0.175;
 hxlr_Constants.x_velocity = 0.4;
 hxlr_Constants.y_velocity = 0;
+hxlr_Constants.names = ["Bosh","Chaz","Bailey","Bish","Essi","Fin","Coco","Fsk"];
 hxsl_Tools.UID = 0;
 hxsl_Tools.SWIZ = hxsl_Component.__empty_constructs__.slice();
 hxsl_Tools.MAX_CHANNELS_BITS = 3;
