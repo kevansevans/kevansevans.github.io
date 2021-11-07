@@ -5595,6 +5595,8 @@ var components_ui_MenuMain = function(_parent) {
 	this.newItem.set_onClick(function(event) {
 		Main.canvas.trashTrack();
 		hxlr_engine_Grid.deleteTrack();
+		Main.riders.deleteAllRiders();
+		Main.riders.addNewRider(new h2d_col_Point(0,0),"Bosh");
 	});
 	this.saveItem = new haxe_ui_containers_menus_MenuItem();
 	this.saveItem.set_text("Save Track to file...");
@@ -5719,11 +5721,11 @@ var components_ui_MenuMain = function(_parent) {
 	this.angleSnapValue.set_text("90");
 	this.angleSnapValue.set_onChange(function(e) {
 		var angle = parseFloat(_gthis.angleSnapValue.get_value());
-		if(isNaN(angle)) {
+		if(isNaN(angle) || angle < 1 || angle > 360) {
 			_gthis.angleSnapValue.set_backgroundColor(8323072);
 		} else {
 			_gthis.angleSnapValue.set_backgroundColor(null);
-			Main.toolControl.angleSnapValue = angle;
+			Main.toolControl.angleSnapValue = Math.min(Math.max(angle,0),360);
 		}
 	});
 	this.menubar.addComponent(this.fileMenu);
@@ -6046,6 +6048,7 @@ components_ui_menus_RiderProperties.prototype = $extend(h2d_Object.prototype,{
 			_gthis.activeRider.refreshRider();
 			var v = _gthis.activeRider;
 			Main.riders.riders.h[_gthis.riderKeys[_gthis.riderIndex]] = v;
+			Main.camera.set_riderFollow(_gthis.activeRider.name);
 		});
 		this.cameraBoxA = new haxe_ui_containers_HBox();
 		this.box.addComponent(this.cameraBoxA);
@@ -67344,6 +67347,9 @@ hxlr_file_LRPKTrack.decode = function(_fileBytes) {
 					break;
 				case 1:
 					line = new hxlr_lines_Accel(new h2d_col_Point(x1,y1),new h2d_col_Point(x2,y2),shifted,limType);
+					break;
+				case 4:
+					line = new hxlr_lines_Slow(new h2d_col_Point(x1,y1),new h2d_col_Point(x2,y2),shifted,limType);
 					break;
 				}
 				line.id = id;
