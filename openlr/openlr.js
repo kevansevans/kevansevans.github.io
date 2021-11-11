@@ -5402,10 +5402,7 @@ hxlr_engine_Grid.createLineFromStruct = function(_line) {
 	}
 	return line;
 };
-hxlr_engine_Grid.register_6_2 = function(_line,_logInfo) {
-	if(_logInfo == null) {
-		_logInfo = false;
-	}
+hxlr_engine_Grid.register_6_2 = function(_line) {
 	hxlr_engine_Grid.addLine(_line);
 	var start = hxlr_engine_Cell.getInfo(_line.start.x,_line.start.y);
 	var end = hxlr_engine_Cell.getInfo(_line.end.x,_line.end.y);
@@ -5459,25 +5456,10 @@ hxlr_engine_Grid.register_6_2 = function(_line,_logInfo) {
 		return;
 	}
 };
-hxlr_engine_Grid.register_6_1 = function(_line,_logInfo) {
-	if(_logInfo == null) {
-		_logInfo = false;
-	}
+hxlr_engine_Grid.register_6_1 = function(_line) {
 };
-hxlr_engine_Grid.register_6_0 = function(_line,_reLogInfo) {
-	if(_reLogInfo == null) {
-		_reLogInfo = false;
-	}
-	if(!_reLogInfo) {
-		hxlr_engine_Grid.addLine(_line);
-	}
-	if(_reLogInfo && _line.id == 1433) {
-		haxe_Log.trace("========== Line #" + _line.id + " ==========",{ fileName : "hxlr/engine/Grid.hx", lineNumber : 192, className : "hxlr.engine.Grid", methodName : "register_6_0"});
-		haxe_Log.trace(_line.start.x,{ fileName : "hxlr/engine/Grid.hx", lineNumber : 193, className : "hxlr.engine.Grid", methodName : "register_6_0"});
-		haxe_Log.trace(_line.start.y,{ fileName : "hxlr/engine/Grid.hx", lineNumber : 194, className : "hxlr.engine.Grid", methodName : "register_6_0"});
-		haxe_Log.trace(_line.end.x,{ fileName : "hxlr/engine/Grid.hx", lineNumber : 195, className : "hxlr.engine.Grid", methodName : "register_6_0"});
-		haxe_Log.trace(_line.end.y,{ fileName : "hxlr/engine/Grid.hx", lineNumber : 196, className : "hxlr.engine.Grid", methodName : "register_6_0"});
-	}
+hxlr_engine_Grid.register_6_0 = function(_line) {
+	hxlr_engine_Grid.addLine(_line);
 	var start = hxlr_engine_Cell.getInfo(_line.start.x,_line.start.y);
 	var end = hxlr_engine_Cell.getInfo(_line.end.x,_line.end.y);
 	var x = Math.min(start.x,end.x) | 0;
@@ -5492,16 +5474,8 @@ hxlr_engine_Grid.register_6_0 = function(_line,_reLogInfo) {
 		}
 		++x;
 	}
-	if(_line.keyList.length == 0) {
-		if(!_reLogInfo) {
-			hxlr_engine_Grid.register_6_0(_line,true);
-		}
-	}
 };
-hxlr_engine_Grid.lineBoxCheck = function(_line,_cell,_logInfo) {
-	if(_logInfo == null) {
-		_logInfo = false;
-	}
+hxlr_engine_Grid.lineBoxCheck = function(_line,_cell) {
 	var xdist = _line.get_x() - _cell.x;
 	var ydist = _line.get_y() - _cell.y;
 	var nxAbs = Math.abs(_line.nx);
@@ -6125,9 +6099,9 @@ var components_ui_menus_LoadMenu = function() {
 				Main.riders.deleteAllRiders();
 				hxlr_engine_Grid.deleteTrack();
 				var fileExt4 = HxOverrides.substr(item.fileName,item.fileName.length - 4,null);
-				haxe_Log.trace(fileExt4,{ fileName : "src/components/ui/menus/LoadMenu.hx", lineNumber : 99, className : "components.ui.menus.LoadMenu", methodName : "new"});
+				_gthis.decodeLRPK(_data);
 			});
-		},{ title : "Load a Line Rider track", fileTypes : [{ name : "OpenLR Package", extensions : ["lrpk"]},{ name : "AMF0/Beta 2", extensions : ["sol"]}]});
+		},{ title : "Load a Line Rider track", fileTypes : [{ name : "OpenLR Package", extensions : ["lrpk"]}]});
 	});
 	this.populateList();
 };
