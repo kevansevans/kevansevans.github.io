@@ -6597,6 +6597,20 @@ var components_ui_menus_SaveMenu = function() {
 };
 $hxClasses["components.ui.menus.SaveMenu"] = components_ui_menus_SaveMenu;
 components_ui_menus_SaveMenu.__name__ = "components.ui.menus.SaveMenu";
+components_ui_menus_SaveMenu.downloadJSFile = function(_bytes,_name) {
+	var buffer = _bytes.b.bufferValue;
+	var file = new Blob([buffer]);
+	var a = window.document.createElement("a");
+	var url = URL.createObjectURL(file);
+	a.href = url;
+	a.download = _name;
+	window.document.body.appendChild(a);
+	a.click();
+	var timer = haxe_Timer.delay(function() {
+		window.document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	},0);
+};
 components_ui_menus_SaveMenu.prototype = {
 	box: null
 	,trackName: null
@@ -6614,13 +6628,7 @@ components_ui_menus_SaveMenu.prototype = {
 		var track = hxlr_file_LRFileSystem.generateTrackStruct(this.skipScenery.get_selected());
 		track.label = this.trackName.get_value();
 		track.creator = this.authorName.get_value();
-		hxd_File.saveAs(hxlr_file_LRPKTrack.encode(track),{ title : "Save Track as", defaultPath : "/" + track.label + ".lrpk", saveFileName : $bind(this,this.finalize), fileTypes : [{ name : "OpenLR Package", extensions : ["lrpk"]}]});
-	}
-	,finalize: function(string) {
-		hxlr_Common.CVAR.trackName = this.trackName.get_value();
-		hxlr_Common.CVAR.authorName = this.authorName.get_value();
-		this.box.set_visible(false);
-		this.box = null;
+		components_ui_menus_SaveMenu.downloadJSFile(hxlr_file_LRPKTrack.encode(track),"/" + track.label + ".lrpk");
 	}
 	,__class__: components_ui_menus_SaveMenu
 };
@@ -64095,12 +64103,6 @@ hxd_File.browse = function(onSelect,options) {
 		input.remove();
 	};
 	input.click();
-};
-hxd_File.saveAs = function(dataContent,options) {
-	if(options == null) {
-		options = { };
-	}
-	throw haxe_Exception.thrown("Not supported");
 };
 var hxd__$FloatBuffer_Float32Expand = {};
 hxd__$FloatBuffer_Float32Expand._new = function(length) {
