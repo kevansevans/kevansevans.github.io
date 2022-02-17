@@ -66539,6 +66539,7 @@ hxlr_file_LRPKTrack.decode = function(_fileBytes,_skipScenery) {
 	}
 	var data = _fileBytes;
 	var header = data.getString(0,4);
+	var version;
 	var track;
 	var metadata = new haxe_ds_StringMap();
 	var v = false;
@@ -66568,9 +66569,9 @@ hxlr_file_LRPKTrack.decode = function(_fileBytes,_skipScenery) {
 				var _g3 = numLines;
 				while(_g2 < _g3) {
 					var a = _g2++;
-					var lineStruct = { id : -1, x1 : data.getFloat(position), y1 : data.getFloat(position + 4), x2 : data.getFloat(position + 8), y2 : data.getFloat(position + 12), type : 2, flipped : false, leftExtended : null, rightExtended : null, multiplier : null, layer : null};
+					var lineStruct = { id : data.getInt32(position), x1 : data.getFloat(position + 4), y1 : data.getFloat(position + 8), x2 : data.getFloat(position + 12), y2 : data.getFloat(position + 16), type : 2, flipped : false, leftExtended : null, rightExtended : null, multiplier : null, layer : null};
 					lineStructs.push(lineStruct);
-					position += 16;
+					position += 20;
 				}
 				break;
 			case "LINEDEF":
@@ -66633,7 +66634,7 @@ hxlr_file_LRPKTrack.decode = function(_fileBytes,_skipScenery) {
 				break;
 			case "VERSINFO":
 				var position2 = lump_position + 4;
-				var version = { indev : data.b[position2] > 0, engine : data.b[position2 + 1], library : data.b[position2 + 2], saveRevision : data.b[position2 + 3], portVersion : data.b[position2 + 4]};
+				version = { indev : data.b[position2] > 0, engine : data.b[position2 + 1], library : data.b[position2 + 2], saveRevision : data.b[position2 + 3], portVersion : data.b[position2 + 4]};
 				var v = version;
 				metadata.h["VERSIONINFO"] = v;
 				break;
@@ -66684,11 +66685,6 @@ hxlr_file_LRPKTrack.encode = function(_track) {
 			var infoBytes1 = hxlr_file_LRPKTrack.lineToBytes(line);
 			baseLineData.addBytes(infoBytes1,0,infoBytes1.length);
 			++lineCount;
-		}
-		if(hxlr_engine_Grid.lines[line.id].get_special()) {
-			var infoBytes2 = hxlr_file_LRPKTrack.specLineToBytes(line);
-			specialLineData.addBytes(infoBytes2,0,infoBytes2.length);
-			++specLineCount;
 		}
 	}
 	data.addInt32(lineCount);
@@ -66769,6 +66765,7 @@ hxlr_file_LRPKTrack.lineToBytes = function(_line) {
 };
 hxlr_file_LRPKTrack.decoLineToBytes = function(_line) {
 	var data = new haxe_io_BytesBuffer();
+	data.addInt32(_line.id);
 	data.addFloat(_line.x1);
 	data.addFloat(_line.y1);
 	data.addFloat(_line.x2);
@@ -66784,15 +66781,6 @@ hxlr_file_LRPKTrack.trackDataToByes = function() {
 	data.addByte(hxlr_Common.CVAR.authorName.length);
 	data.addString(hxlr_Common.CVAR.authorName);
 	data.addByte(hxlr_Common.CVAR.physics);
-	return data.getBytes();
-};
-hxlr_file_LRPKTrack.specLineToBytes = function(_line) {
-	var data = new haxe_io_BytesBuffer();
-	data.addInt32(_line.id);
-	data.addByte(_line.multiplier);
-	data.addDouble(hxlr_engine_Grid.lines[_line.id].thickness);
-	data.addByte(hxlr_engine_Grid.lines[_line.id].grindable == true ? 1 : 0);
-	data.addByte(_line.layer);
 	return data.getBytes();
 };
 var hxlr_math_geom_Line = function(_start,_end) {
@@ -66850,7 +66838,6 @@ var hxlr_lines_LineObject = function(_start,_end,_shift,_lim) {
 	this.limType = 0;
 	this.layer = 0;
 	this.accConst = 0.1;
-	this.thickness = 2;
 	this.multiplier = 1;
 	this.zone = 10;
 	this.directional = false;
@@ -66885,7 +66872,6 @@ hxlr_lines_LineObject.prototype = $extend(hxlr_math_geom_Line.prototype,{
 	,hx: null
 	,hy: null
 	,multiplier: null
-	,thickness: null
 	,accConst: null
 	,grindable: null
 	,grindMode: null
@@ -66986,21 +66972,6 @@ hxlr_lines_LineObject.prototype = $extend(hxlr_math_geom_Line.prototype,{
 			}
 		}
 	}
-	,get_special: function() {
-		if(this.multiplier != 1) {
-			return true;
-		}
-		if(this.thickness != 2) {
-			return true;
-		}
-		if(this.grindable) {
-			return true;
-		}
-		if(this.layer != 0) {
-			return true;
-		}
-		return false;
-	}
 	,get_x: function() {
 		return this.start.x + this.dx * 0.5;
 	}
@@ -67017,7 +66988,7 @@ hxlr_lines_LineObject.prototype = $extend(hxlr_math_geom_Line.prototype,{
 		return this.multiplier = value;
 	}
 	,__class__: hxlr_lines_LineObject
-	,__properties__: $extend(hxlr_math_geom_Line.prototype.__properties__,{set_multiplier:"set_multiplier",get_special:"get_special",get_hy:"get_hy",get_hx:"get_hx",get_y:"get_y",get_x:"get_x"})
+	,__properties__: $extend(hxlr_math_geom_Line.prototype.__properties__,{set_multiplier:"set_multiplier",get_hy:"get_hy",get_hx:"get_hx",get_y:"get_y",get_x:"get_x"})
 });
 var hxlr_lines_Accel = function(_start,_end,_shift,_limMode) {
 	if(_limMode == null) {
