@@ -79837,21 +79837,21 @@ sdk_file_FileManager.prototype = {
 			_entries = new haxe_ds_List();
 		}
 		if(_inDir == null) {
-			_inDir = "proj/";
+			_inDir = "";
 		}
 		var _g = 0;
 		var _g1 = _dir.lumps;
 		while(_g < _g1.length) {
 			var lump = _g1[_g];
 			++_g;
-			var path = _inDir + "/" + lump.name;
 			if(lump.type == 0) {
-				this.buildZip(lump,_entries,path);
+				var path = _inDir + lump.name;
+				this.buildZip(lump,_entries,path + "/");
 				continue;
 			}
 			var bytes = lump.toLumpFile();
-			var filename = _inDir + "/" + lump.name.toUpperCase() + "." + lump.ext;
-			var entry = { fileName : filename, fileSize : bytes.length, fileTime : new Date(), compressed : false, dataSize : bytes.length, data : bytes, crc32 : haxe_crypto_Crc32.make(bytes)};
+			var filename = _inDir + lump.name.toUpperCase() + "." + lump.ext;
+			var entry = { fileName : filename, fileSize : bytes.length, fileTime : new Date(), compressed : false, dataSize : bytes.length, data : bytes, crc32 : null};
 			_entries.push(entry);
 		}
 		return _entries;
