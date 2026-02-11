@@ -4015,7 +4015,7 @@ openfl_display_Sprite.prototype = $extend(openfl_display_DisplayObjectContainer.
 	,__class__: openfl_display_Sprite
 });
 var Main = function() {
-	this.auto = false;
+	this.auto = true;
 	var _gthis = this;
 	openfl_display_Sprite.call(this);
 	Main.WIDTH = openfl_Lib.get_current().stage.stageWidth;
